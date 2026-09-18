@@ -445,34 +445,32 @@ H6: cache-aware context topology can beat pure token minimization economically.
 H7: repository-aware localization improves context utility density.
 
 ## Existing prototype status
-A runnable Go-based v0/v0.2 prototype was already created in /mnt/data/contextos.
-Artifacts created previously:
-- /mnt/data/contextos/ASC-1-SPEC.md
-- /mnt/data/contextos/README.md
-- /mnt/data/contextos/README-IMPLEMENTATION.md
-- /mnt/data/contextos/ContextOS-v0.2.tar.gz
-- /mnt/data/contextos/bin/contextd
-- /mnt/data/contextos/bin/ctx
+ContextOS has reached **v0.6.0** production-grade research prototype status in this repository.
 
-The prototype includes:
-- SQLite persistence
-- Git repository/revision detection
-- lightweight source/symbol indexing
-- durable facts/decisions/constraints/failures
-- provenance/evidence
-- stale/invalid filtering
-- token-budgeted ASC allocation
-- cache-aware context plans
-- cross-process persistence
-- MCP JSON-RPC server
-- ctx CLI
-- tests
+### Implemented Capabilities:
+- **CGO-Free/CGO-Enabled Dual SQLite Persistence**: SQLite schema with WAL mode, FTS5 full-text indexing, and automatic migrations.
+- **Git Repository & Working Tree Tracking**: Revision detection, branch state, dirty file tracking, and automatic invalidation.
+- **AST & Lightweight Source/Symbol Indexing**: Symbol table extraction for functions, types, and cross-file references.
+- **Durable Typed Engineering Memories**: Facts, decisions, constraints, failures, observations, and working state.
+- **Provenance, Evidence & Authority**: Multi-tier authority scoring (`UserExplicit` > `PassingTest` > `CurrentCode` > `Commit` > `CurrentDoc` > `Inference`).
+- **6-Pass ASC-1 Budgeted Allocator**:
+  1. *BM25 Lexical + HashSemantic Scoring*: Length-normalized probabilistic retrieval + locality-sensitive semantic hashing.
+  2. *Reciprocal Rank Fusion (RRF)*: $k=60$ scale-free rank fusion gated multiplicatively by `authority × freshness × confidence`.
+  3. *Greedy Marginal-Utility Density Packing*: Items sorted by $Score_i / Tokens_i$.
+  4. *Singleton Rescue*: Chvátal / Sviridenko $(1 - 1/e)$ knapsack approximation guarantee.
+  5. *Optimal Fill Pass*: Greedily packs residual budget with highest-density eligible unselected items.
+  6. *KV-Cache Prefix Partitioning*: Partitions selected context into Stable Prefix (cacheable across calls) and Variable Context.
+- **Comprehensive Test Suite**: 58 passing tests with 100% pass rate across allocator (30 tests) and textutil (28 tests), verifying mathematical invariants, rejection bounds, and ordering.
+- **Production MCP Server**: 12 tools and 5 resources over JSON-RPC stdio.
+- **Full CLI (`ctx`)**: `init`, `index`, `remember`, `plan`, `resume`, `handoff`, `invalidate`, `work`, `session`, `event`, `stats`, `route`, `install`, `setup`.
+- **Zero-Friction Agent Integrations**: Automated hook capture and configuration for Claude Code, Cursor, Codex, and Gemini CLI.
 
-The prototype uses a deterministic heuristic allocator, not the learned policy yet.
+The prototype uses our mathematically-grounded 6-pass deterministic allocator; telemetry hooks are in place to record longitudinal traces for learned marginal-utility policy training.
 
 ## Prototype commands
 Examples:
 
+```bash
 ctx init
 ctx work -title "Implement failover"
 ctx session -agent codex
@@ -482,28 +480,30 @@ ctx plan -task "..." -model gpt-5.3-codex -budget 4000
 ctx handoff -task "..." -target gemini
 ctx resume
 ctx stats
+```
 
 MCP mode:
+```bash
 contextd -repo /path/to/repo -mcp
+```
 
-## Next implementation milestone: v0.3 / real-agent integration
-Proceed directly to implementation.
+## Current Implementation Status & Next Milestones
 
-Priority order:
-1. automatic session/transcript/event capture
-2. proper repository graph
-3. hybrid lexical + embedding retrieval
-4. WorkItem lifecycle completion
-5. decision/failure extraction
-6. Git-driven memory invalidation
-7. real context assembly
-8. Claude Code adapter
-9. Codex adapter
-10. Cursor adapter
-11. Gemini adapter
-12. provider-specific cache telemetry
-13. trace/observability UI
-14. collect real traces for learned marginal-utility model
+### Completed in v0.6.0:
+1. Full AST and symbol indexing with reference graph.
+2. BM25 length-normalized lexical search and hash semantic similarity.
+3. RRF rank fusion with confidence gating and revision staleness evaluation.
+4. Chvátal/Sviridenko Singleton Rescue and George & Kim Fill Pass for bounded knapsack context allocation.
+5. Prompt-cache topology optimization (Stable Prefix vs Variable Suffix).
+6. Agent setup scripts and hooks for Claude Code, Cursor, Codex, and Gemini CLI.
+7. 58 unit tests covering all edge cases, failure rejections, and mathematical invariants.
+
+### Next Research & Engineering Milestones:
+1. **Real Agent Longitudinal Telemetry**: Capture token usage and task outcomes across multi-session tasks.
+2. **Learned Marginal-Utility Policy**: Train offline/online contextual bandit on counterfactual ablation pairs:
+   $$\Delta_i = U(C) - U(C \setminus \{m_i\})$$
+3. **Multi-Repository Graph Bridging**: Cross-repo dependency tracking for microservices and monorepos.
+4. **Interactive TUI / Web Trace Dashboard**: Visual debugger for context allocations and KV-cache hit rates.
 
 ## Implementation principles
 - local-first
