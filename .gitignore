@@ -1,0 +1,7 @@
+bin/
+.contextos/
+*.db
+*.db-shm
+*.db-wal
+*.tar.gz
+.DS_Store
