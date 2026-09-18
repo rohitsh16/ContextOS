@@ -4,15 +4,16 @@
 Minimize the cost/latency of context supplied to a software-engineering agent while maintaining a target probability of task success.
 
 ## Core optimization
-For task q, state S, model M, budget B:
 
-maximize U(C,M | q,S)
-subject to tokens(C) <= B
+For task $q$, state $S$, model $M$, budget $B$:
 
-U = Q(C,M) + eta*CacheReuse(C,M) - lambda*Cost(C,M) - mu*Latency(C) - rho*StaleRisk(C)
+$$\max_{C, M} \quad \mathcal{U}(C, M \mid q, S)$$
+$$\text{subject to} \quad \text{Tokens}(C) \le B$$
+
+$$\mathcal{U} = \mathcal{Q}(C, M) + \eta \cdot \text{CacheReuse}(C, M) - \lambda \cdot \text{Cost}(C, M) - \mu \cdot \text{Latency}(C) - \rho \cdot \text{StaleRisk}(C)$$
 
 Operational constraint:
-P(success | C,M,q,S) >= tau
+$$P(\text{success} \mid C, M, q, S) \ge \tau$$
 
 ## State
 S = (repo, revision, work_item, trajectory, memory_graph, cache_state, provider_state)
@@ -65,7 +66,8 @@ Deterministic: git revisions, file/symbol existence, dependency edges, hashes, p
 Learned: semantic relevance, marginal utility, compression choice, prefetch probability, model choice.
 
 ## v0 scoring baseline
-score(m) = 1.0*semantic + 1.2*graph + 0.8*freshness + 1.0*authority + 0.8*reuse + 0.8*task_affinity - 1.0*stale_risk - 0.3*tokens_normalized
+
+$$\text{Score}(m) = 1.0 \cdot \text{Semantic} + 1.2 \cdot \text{Graph} + 0.8 \cdot \text{Freshness} + 1.0 \cdot \text{Authority} + 0.8 \cdot \text{Reuse} + 0.8 \cdot \text{TaskAffinity} - 1.0 \cdot \text{StaleRisk} - 0.3 \cdot \text{Tokens}_{\text{norm}}$$
 
 Use cost-scaled greedy selection as a baseline. Later replace score with learned marginal-utility estimates.
 

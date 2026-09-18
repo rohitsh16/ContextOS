@@ -111,12 +111,12 @@ $$\text{Score}(m_i) = \text{RRF}(m_i) \cdot \text{Authority}(m_i) \cdot \text{Fr
 
 #### Authority Weights:
 $$\text{Authority}(m_i) = \begin{cases}
-1.00 & \text{if } \text{auth} \in \{\text{"user"}, \text{"explicit"}\} \\
-0.99 & \text{if } \text{auth} = \text{"test"} \\
-0.97 & \text{if } \text{auth} = \text{"source"} \\
-0.94 & \text{if } \text{auth} = \text{"commit"} \\
-0.86 & \text{if } \text{auth} = \text{"doc"} \\
-0.55 & \text{if } \text{auth} = \text{"inference"} \quad \implies \mathbf{Hard \; Rejection} \\
+1.00 & \text{if } \text{auth} \in \{\text{user}, \text{explicit}\} \\
+0.99 & \text{if } \text{auth} = \text{test} \\
+0.97 & \text{if } \text{auth} = \text{source} \\
+0.94 & \text{if } \text{auth} = \text{commit} \\
+0.86 & \text{if } \text{auth} = \text{doc} \\
+0.55 & \text{if } \text{auth} = \text{inference} \quad \implies \mathbf{Hard \; Rejection} \\
 0.45 & \text{otherwise} \quad \implies \mathbf{Hard \; Rejection}
 \end{cases}$$
 

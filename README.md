@@ -243,11 +243,12 @@ The core uses the system SQLite3 library through cgo. On macOS, the default Appl
 
 The core problem is **minimum-sufficient context**:
 
-> Given a task *q*, model *M*, and success threshold *τ*, find the smallest context set *C* such that *P(success | C, q, M) ≥ τ*.
+> Given a task $q$, model $M$, and success threshold $\tau$, find the smallest context set $C^*$ such that:
+> $$C^* = \arg\min_C \text{Tokens}(C) \quad \text{subject to} \quad P(\text{success} \mid C, q, M) \ge \tau$$
 
-The current implementation uses an inspectable deterministic baseline. The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
+The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
 
-See [`ASC-1-SPEC.md`](ASC-1-SPEC.md) for the formal problem definition, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+See [`CONTEXT.md`](CONTEXT.md) for the architecture manual, [`RESEARCH.md`](RESEARCH.md) for formal mathematical theory and bounds, [`ASC-1-SPEC.md`](ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
 
 ---
 

@@ -39,8 +39,8 @@ How can an AI software-engineering agent dynamically allocate a bounded context 
 
 Formal target:
 
-pi* = argmax_pi E[ Success - lambda*Cost - mu*Latency - nu*Waste - rho*Staleness ]
-subject to Tokens <= B and P(success | state, task, action) >= tau.
+$$\pi^* = \arg\max_\pi \mathbb{E}[\text{Success} - \lambda \cdot \text{Cost} - \mu \cdot \text{Latency} - \nu \cdot \text{Waste} - \rho \cdot \text{Staleness}]$$
+$$\text{subject to} \quad \text{Tokens} \le B \quad \text{and} \quad P(\text{success} \mid \text{state}, \text{task}, \text{action}) \ge \tau$$
 
 ## Important conclusion from prior-art review
 Persistent coding-agent memory alone is too crowded to be novel.
@@ -85,12 +85,11 @@ Most important flagship research problem:
 
 Minimum Sufficient Context:
 
-C* = argmin_C Tokens(C)
-subject to P(success | C, q, M) >= tau.
+$$C^* = \arg\min_C \text{Tokens}(C)$$
+$$\text{subject to} \quad P(\text{success} \mid C, q, M) \ge \tau$$
 
 Important distinction:
-minimum tokens != minimum cost
-because stable prefixes may be provider-cacheable and therefore more economical.
+$\text{minimum tokens} \ne \text{minimum cost}$ because stable prefixes may be provider-cacheable and therefore more economical.
 
 ## System abstractions
 Primary persisted object should NOT be a chat session.
@@ -197,9 +196,9 @@ Global knowledge
 ## Retrieve-or-not decision
 Retrieval is itself optional.
 
-EV(retrieve) = P(help|q,S)*Gain - retrievalCost - noiseRisk.
+$$\text{EV}(\text{retrieve}) = P(\text{help} \mid q, S) \cdot \text{Gain} - \text{RetrievalCost} - \text{NoiseRisk}$$
 
-Retrieve only when EV > 0.
+Retrieve only when $\text{EV} > 0$.
 Optimal context can be empty.
 
 ## Representation choices
@@ -231,13 +230,13 @@ Candidate score should combine:
 - cache reuse
 
 A baseline score:
-Score_i = w1*Semantic + w2*Structural + w3*Temporal + w4*Authority + w5*Reuse + w6*TaskAffinity - w7*Tokens - w8*Staleness.
+$$\text{Score}_i = w_1 \cdot \text{Semantic} + w_2 \cdot \text{Structural} + w_3 \cdot \text{Temporal} + w_4 \cdot \text{Authority} + w_5 \cdot \text{Reuse} + w_6 \cdot \text{TaskAffinity} - w_7 \cdot \text{Tokens} - w_8 \cdot \text{Staleness}$$
 
 ## Marginal utility
-For context item m_i:
-Delta_i = P(success|C) - P(success|C \ {m_i}).
+For context item $m_i$:
+$$\Delta_i = P(\text{success} \mid C) - P(\text{success} \mid C \setminus \{m_i\})$$
 
-Density_i = Delta_i / Tokens_i.
+$$\text{Density}_i = \frac{\Delta_i}{\text{Tokens}_i}$$
 
 First implementation can use deterministic approximations.
 Later learn a model for Delta_i from ablation traces.
@@ -253,7 +252,7 @@ Use established approximation machinery as a baseline, while focusing novelty on
 
 Potential empirical test for approximate submodularity:
 
-epsilon_sub = max_{A subset B, i} [Delta_i(B) - Delta_i(A)].
+$$\epsilon_{\text{sub}} = \max_{A \subseteq B, \, i} [\Delta_i(B) - \Delta_i(A)]$$
 
 If near zero empirically, greedy allocation gets theoretical support.
 
@@ -305,16 +304,16 @@ Avoid naive embedding-only response cache because same semantic query can mean d
 
 ## Cache value
 Approximate:
-V_cache = P(reuse) * avoidedCost - storageCost - stalenessRisk.
+$$V_{\text{cache}} = P(\text{reuse}) \cdot \text{AvoidedCost} - \text{StorageCost} - \text{StalenessRisk}$$
 
 Potential research direction:
 semantic cache management as online learning/contextual bandit.
 
 ## Prefetch
-For memory/object m:
-EV_prefetch(m) = P(next-needed|state) * avoidedLatency - prefetchCost.
+For memory/object $m$:
+$$\text{EV}_{\text{prefetch}}(m) = P(\text{next-needed} \mid \text{state}) \cdot \text{AvoidedLatency} - \text{PrefetchCost}$$
 
-Prefetch if EV > 0.
+Prefetch if $\text{EV} > 0$.
 
 Learn developer working set W_t from:
 - current repo
@@ -329,7 +328,7 @@ Learn developer working set W_t from:
 
 ## Model routing
 Choose model and context jointly:
-(C*, M*) = argmax_{C,M} Quality(C,M) - lambda*Cost(C,M) - mu*Latency(C,M).
+$$(C^*, M^*) = \arg\max_{C, M} \left[ \text{Quality}(C, M) - \lambda \cdot \text{Cost}(C, M) - \mu \cdot \text{Latency}(C, M) \right]$$
 
 A cheap model with huge context may be more expensive than a premium model with compact, cacheable context.
 
@@ -349,14 +348,14 @@ VARIABLE SUFFIX
 - dynamic state
 
 Ordering is itself an optimization variable:
-T* = argmax_T Quality(T(C)) + eta*CacheReuse(T(C)).
+$$T^* = \arg\max_T \left[ \text{Quality}(T(C)) + \eta \cdot \text{CacheReuse}(T(C)) \right]$$
 
 ## POMDP perspective
 True state is partially observable.
 Belief state:
-b_t(S)=P(S_t=S | observations).
+$$b_t(S) = P(S_t = S \mid \text{observations})$$
 
-Controller can be modeled as policy pi(a | belief, task).
+Controller can be modeled as policy $\pi(a \mid \text{belief}, \text{task})$.
 
 Actions:
 - retrieve
@@ -395,10 +394,10 @@ Task Success per 1K Input Tokens
 Task Success per $.
 
 Define:
-B_tau = min B such that P(success) >= tau.
+$$B_\tau = \min \{ B : P(\text{success} \mid B) \ge \tau \}$$
 
 Define context elasticity:
-E(B) = d Success / dB approximately [Success(B+delta)-Success(B)]/delta.
+$$E(B) = \frac{d\text{Success}}{dB} \approx \frac{\text{Success}(B + \delta) - \text{Success}(B)}{\delta}$$
 
 ## Benchmark design
 Need longitudinal software engineering tasks, not only single-shot SWE-bench.
@@ -436,13 +435,13 @@ Adversarial cases:
 - no-context-needed case
 
 ## Research hypotheses
-H1: For fixed task success target tau, B_tau(ContextOS) < B_tau(best baseline).
-H2: ContextOS reduces effective monetary cost at equal task success.
-H3: ContextOS reduces rediscovery rate.
-H4: ContextOS improves cross-agent handoff success.
-H5: ContextOS reduces stale-memory-induced errors.
-H6: cache-aware context topology can beat pure token minimization economically.
-H7: repository-aware localization improves context utility density.
+- **H1**: For fixed task success target $\tau$, $B_\tau(\text{ContextOS}) < B_\tau(\text{best baseline})$.
+- **H2**: ContextOS reduces effective monetary cost at equal task success.
+- **H3**: ContextOS reduces rediscovery rate.
+- **H4**: ContextOS improves cross-agent handoff success.
+- **H5**: ContextOS reduces stale-memory-induced errors.
+- **H6**: Cache-aware context topology can beat pure token minimization economically.
+- **H7**: Repository-aware localization improves context utility density.
 
 ## Existing prototype status
 ContextOS has reached **v0.6.0** production-grade research prototype status in this repository.

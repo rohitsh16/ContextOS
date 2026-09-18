@@ -45,13 +45,9 @@ Report the minimum budget that reaches target success.
 
 ### Context efficiency
 
-\[
-CE = Success / (InputTokens/1000)
-\]
+$$CE = \frac{\text{Success}}{\text{InputTokens} / 1000}$$
 
-\[
-B_{\\tau} = min\\{B: P(success) >= \\tau\\}
-\]
+$$B_\tau = \min \{ B : P(\text{success}) \ge \tau \}$$
 
 ### Memory health
 
@@ -73,11 +69,9 @@ B_{\\tau} = min\\{B: P(success) >= \\tau\\}
 
 ## Counterfactual context utility
 
-For a completed task with context set `C`, estimate the marginal value of an item `m` using ablation:
+For a completed task with context set $C$, estimate the marginal value of an item $m$ using ablation:
 
-\[
-\\Delta_m = U(C) - U(C \\setminus \\{m\\})
-\]
+$$\Delta_m = U(C) - U(C \setminus \{m\})$$
 
 These observations can later train the ContextOS marginal-utility estimator.
 
