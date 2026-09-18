@@ -166,6 +166,83 @@
     loadIntegrations();
   });
 
+  // Report Modal
+  const btnOpenReport = document.getElementById('btn-open-report');
+  const modalReport = document.getElementById('modal-report');
+  const btnCloseReport = document.getElementById('btn-close-report');
+  const btnDoneReport = document.getElementById('btn-done-report');
+  const reportPreview = document.getElementById('report-markdown-preview');
+  const btnCopyReportMd = document.getElementById('btn-copy-report-md');
+  const btnDownloadReportMd = document.getElementById('btn-download-report-md');
+  const btnDownloadReportJson = document.getElementById('btn-download-report-json');
+
+  let currentReportMarkdown = '';
+  let currentReportData = null;
+
+  async function openReportModal() {
+    if (!modalReport) return;
+    modalReport.classList.add('open');
+    if (reportPreview) reportPreview.textContent = 'Generating latest benchmark report...';
+    try {
+      const res = await fetch('/api/report');
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      currentReportData = data.report;
+      currentReportMarkdown = data.markdown;
+      if (reportPreview) reportPreview.textContent = currentReportMarkdown;
+    } catch (err) {
+      if (reportPreview) reportPreview.textContent = 'Error generating report: ' + err.message;
+    }
+  }
+
+  function closeReportModal() {
+    if (modalReport) modalReport.classList.remove('open');
+  }
+
+  if (btnOpenReport) btnOpenReport.addEventListener('click', openReportModal);
+  if (btnCloseReport) btnCloseReport.addEventListener('click', closeReportModal);
+  if (btnDoneReport) btnDoneReport.addEventListener('click', closeReportModal);
+
+  if (btnCopyReportMd) {
+    btnCopyReportMd.addEventListener('click', async () => {
+      if (!currentReportMarkdown) return;
+      try {
+        await navigator.clipboard.writeText(currentReportMarkdown);
+        const originalText = btnCopyReportMd.innerHTML;
+        btnCopyReportMd.innerHTML = '✓ Copied!';
+        setTimeout(() => { btnCopyReportMd.innerHTML = originalText; }, 2000);
+      } catch (e) {
+        alert('Failed to copy: ' + e.message);
+      }
+    });
+  }
+
+  function downloadBlob(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  if (btnDownloadReportMd) {
+    btnDownloadReportMd.addEventListener('click', () => {
+      if (!currentReportMarkdown) return;
+      downloadBlob(currentReportMarkdown, 'BENCHMARK_REPORT.md', 'text/markdown');
+    });
+  }
+
+  if (btnDownloadReportJson) {
+    btnDownloadReportJson.addEventListener('click', () => {
+      if (!currentReportData) return;
+      downloadBlob(JSON.stringify(currentReportData, null, 2), 'results.json', 'application/json');
+    });
+  }
+
   // Render Plan Results
   function renderPlanResults(data, budget) {
     const plan = data.plan || {};

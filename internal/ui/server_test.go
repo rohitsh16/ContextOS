@@ -112,3 +112,26 @@ func TestServerStaticIndex(t *testing.T) {
 		t.Fatalf("expected index.html to contain ContextOS")
 	}
 }
+
+func TestServerReportEndpoint(t *testing.T) {
+	root, s := setupTestRepo(t)
+	defer s.Close()
+
+	srv := NewServer(s, root, 8765)
+	handler := srv.Handler()
+
+	req := httptest.NewRequest("GET", "/api/report", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected report 200, got %d: %s", w.Code, w.Body.String())
+	}
+	var res map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := res["markdown"]; !ok {
+		t.Fatal("expected markdown field in report response")
+	}
+}
+

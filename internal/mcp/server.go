@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"contextos/internal/server"
@@ -30,12 +31,36 @@ func New(s *server.Service) *MCP { return &MCP{S: s} }
 func (m *MCP) Run(in io.Reader, out io.Writer) error {
 	sc := bufio.NewScanner(in)
 	sc.Buffer(make([]byte, 4096), 8*1024*1024)
+	debugLog, _ := os.OpenFile("/Users/rohitshukla/Desktop/ContextOS/data/mcp_debug.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	defer func() {
+		if debugLog != nil {
+			debugLog.Close()
+		}
+	}()
 	for sc.Scan() {
+		raw := sc.Bytes()
+		if debugLog != nil {
+			fmt.Fprintf(debugLog, "RECV: %s\n", string(raw))
+		}
 		var q Request
-		if json.Unmarshal(sc.Bytes(), &q) != nil {
+		if json.Unmarshal(raw, &q) != nil {
+			if debugLog != nil {
+				fmt.Fprintf(debugLog, "UNMARSHAL_ERR\n")
+			}
 			continue
 		}
-		b, _ := json.Marshal(m.handle(q))
+		resp := m.handle(q)
+		// Per JSON-RPC 2.0, notifications (requests without an ID) must never elicit a response
+		if q.ID == nil {
+			if debugLog != nil {
+				fmt.Fprintf(debugLog, "NOTIFICATION_IGNORED\n")
+			}
+			continue
+		}
+		b, _ := json.Marshal(resp)
+		if debugLog != nil {
+			fmt.Fprintf(debugLog, "SENT: %s\n", string(b))
+		}
 		fmt.Fprintln(out, string(b))
 	}
 	return sc.Err()
@@ -51,7 +76,29 @@ func prop(t string) map[string]any { return map[string]any{"type": t} }
 func (m *MCP) handle(q Request) Response {
 	switch q.Method {
 	case "initialize":
-		return ok(q.ID, map[string]any{"protocolVersion": "2026-07-28", "capabilities": map[string]any{"tools": map[string]any{}, "resources": map[string]any{}}, "serverInfo": map[string]any{"name": "contextos", "version": "0.6.0"}})
+		ver := "2024-11-05"
+		var initParams struct {
+			ProtocolVersion string `json:"protocolVersion"`
+		}
+		if len(q.Params) > 0 {
+			_ = json.Unmarshal(q.Params, &initParams)
+			if initParams.ProtocolVersion != "" {
+				ver = initParams.ProtocolVersion
+			}
+		}
+		return ok(q.ID, map[string]any{
+			"protocolVersion": ver,
+			"capabilities": map[string]any{
+				"tools":     map[string]any{},
+				"resources": map[string]any{},
+			},
+			"serverInfo": map[string]any{
+				"name":    "contextos",
+				"version": "0.6.0",
+			},
+		})
+	case "notifications/initialized", "initialized":
+		return Response{}
 	case "ping":
 		return ok(q.ID, map[string]any{})
 	case "tools/list":
@@ -228,8 +275,9 @@ func (m *MCP) handle(q Request) Response {
 			return fail(q.ID, "resource not found")
 		}
 	default:
-		// Current MCP is moving toward stateless operation. We remain compatible
-		// with older clients by tolerating legacy initialize/initialized traffic.
+		if strings.HasPrefix(q.Method, "notifications/") {
+			return Response{}
+		}
 		return fail(q.ID, strings.TrimSpace(q.Method)+" not implemented")
 	}
 }

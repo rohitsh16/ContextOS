@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"contextos/internal/integrations"
+	"contextos/internal/report"
 	"contextos/internal/server"
 )
 
@@ -56,6 +57,7 @@ func (srv *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/sessions", srv.handleSessions)
 	mux.HandleFunc("/api/integrations", srv.handleIntegrations)
 	mux.HandleFunc("/api/install", srv.handleInstall)
+	mux.HandleFunc("/api/report", srv.handleReport)
 
 	return mux
 }
@@ -367,6 +369,22 @@ func (srv *Server) handleInstall(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jsonResponse(w, http.StatusOK, res)
+}
+
+func (srv *Server) handleReport(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		jsonError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	rep, err := report.Generate(srv.svc)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, map[string]any{
+		"report":   rep,
+		"markdown": rep.ToMarkdown(),
+	})
 }
 
 func fileExists(p string) bool {

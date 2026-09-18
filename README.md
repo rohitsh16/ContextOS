@@ -307,5 +307,5 @@ See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RES
 
 ## License
 
-Research and educational use only. See [`LICENSE`](LICENSE).
+For non-commercial research and evaluation purposes only. All other rights reserved.
 

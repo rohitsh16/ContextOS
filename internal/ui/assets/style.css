@@ -912,6 +912,34 @@ textarea.input-text {
   gap: 10px;
 }
 
+.modal-dialog.modal-lg {
+  max-width: 820px;
+}
+
+.report-actions-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.report-preview-box {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.report-preview-box pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .metric-ribbon { grid-template-columns: repeat(2, 1fr); }

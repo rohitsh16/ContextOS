@@ -13,6 +13,7 @@ import (
 	"contextos/internal/gitidx"
 	"contextos/internal/hook"
 	"contextos/internal/integrations"
+	"contextos/internal/report"
 	"contextos/internal/router"
 	"contextos/internal/server"
 	"contextos/internal/store"
@@ -51,6 +52,8 @@ func main() {
 	toPath := fs.String("to-path", "", "custom target storage path")
 	keepDays := fs.Int("keep-days", 30, "days to retain ephemeral records for ctx gc")
 	dryRun := fs.Bool("dry-run", false, "dry-run for ctx gc")
+	format := fs.String("format", "markdown", "output format for report: markdown or json")
+	outputFile := fs.String("output", "", "output file path for report/publish")
 
 	_ = fs.Parse(os.Args[2:])
 	dp := *dbPath
@@ -348,6 +351,34 @@ func main() {
 			die(e)
 		}
 		printJSON(map[string]any{"ok": true})
+	case "report", "publish":
+		rep, err := report.Generate(s)
+		if err != nil {
+			die(err)
+		}
+		var content string
+		if strings.ToLower(*format) == "json" {
+			var err error
+			content, err = rep.ToJSON()
+			if err != nil {
+				die(err)
+			}
+		} else {
+			content = rep.ToMarkdown()
+		}
+
+		if *outputFile != "" {
+			outPath := *outputFile
+			if !filepath.IsAbs(outPath) {
+				outPath = filepath.Join(rp, outPath)
+			}
+			if err := os.WriteFile(outPath, []byte(content), 0644); err != nil {
+				die(fmt.Errorf("write report to %s: %w", outPath, err))
+			}
+			fmt.Printf("Benchmark report successfully published to: %s\n", outPath)
+		} else {
+			fmt.Println(content)
+		}
 	default:
 		usage()
 	}
@@ -375,6 +406,8 @@ Commands:
   ctx route      -task "..." -budget 4000               Recommend optimal model
   ctx install    -repo PATH -agent NAME                 Install agent hook & MCP
   ctx setup      -repo PATH                             Index + install all integrations
+  ctx report     -repo PATH [-format md|json] [-output] Generate evaluation/benchmark report
+  ctx publish    -repo PATH [-output FILE]              Publish empirical test results to markdown
   ctx ui         -repo PATH [-port 8765]                Launch real-time web UI dashboard
 
 Storage & Feature Flags:
