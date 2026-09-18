@@ -8,11 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"contextos/internal/gitidx"
 	"contextos/internal/hook"
 	"contextos/internal/integrations"
 	"contextos/internal/router"
 	"contextos/internal/server"
+	"contextos/internal/store"
 )
 
 func main() {
@@ -23,7 +26,9 @@ func main() {
 	sub := os.Args[1]
 	fs := flag.NewFlagSet(sub, flag.ExitOnError)
 	repo := fs.String("repo", ".", "repository path")
-	dbPath := fs.String("db", "", "SQLite database path")
+	dbPath := fs.String("db", "", "database or storage path")
+	storage := fs.String("storage", "", "storage engine: sqlite or file (or CONTEXTOS_STORAGE)")
+	autoPrune := fs.Bool("auto-prune", false, "opt-in automatic storage pruning (or CONTEXTOS_AUTO_PRUNE=1)")
 	task := fs.String("task", "", "task text")
 	modelName := fs.String("model", "", "model name")
 	budget := fs.Int("budget", 4000, "token budget")
@@ -38,11 +43,21 @@ func main() {
 	title := fs.String("title", "", "work item title")
 	payload := fs.String("payload", "", "event payload")
 	render := fs.Bool("render", false, "render plan as context text")
-	dp := *dbPath
+	fromStorage := fs.String("from", "", "source storage for migration (sqlite or file)")
+	toStorage := fs.String("to", "", "target storage for migration (sqlite or file)")
+	fromPath := fs.String("from-path", "", "custom source storage path")
+	toPath := fs.String("to-path", "", "custom target storage path")
+	keepDays := fs.Int("keep-days", 30, "days to retain ephemeral records for ctx gc")
+	dryRun := fs.Bool("dry-run", false, "dry-run for ctx gc")
+
 	_ = fs.Parse(os.Args[2:])
-	dp = *dbPath
+	dp := *dbPath
 	if dp == "" && os.Getenv("CONTEXTOS_DB") != "" {
 		dp = os.Getenv("CONTEXTOS_DB")
+	}
+	stg := *storage
+	if stg == "" && os.Getenv("CONTEXTOS_STORAGE") != "" {
+		stg = os.Getenv("CONTEXTOS_STORAGE")
 	}
 
 	if sub == "hook" {
@@ -63,7 +78,10 @@ func main() {
 		if dp == "" {
 			dp = server.DefaultDBPath()
 		}
-		s, e := server.New(dp, rp)
+		s, e := server.NewWithOptions(dp, rp, server.Options{
+			StorageType: stg,
+			AutoPrune:   *autoPrune,
+		})
 		if e != nil {
 			die(e)
 		}
@@ -76,20 +94,20 @@ func main() {
 		hookBin := filepath.Join(filepath.Dir(bin), "ctx-hook")
 		mcpBin := filepath.Join(filepath.Dir(bin), "contextd")
 		var results []any
-		for _, a := range []string{"claude", "cursor", "codex", "gemini"} {
+		for _, a := range []string{"claude", "cursor", "codex", "gemini", "antigravity"} {
 			res, e := integrations.Install(a, rp, hookBin, mcpBin)
 			if e != nil {
 				die(e)
 			}
 			results = append(results, res)
 		}
-		printJSON(map[string]any{"ok": true, "repo": rp, "integrations": results})
+		printJSON(map[string]any{"ok": true, "repo": rp, "storage": stg, "integrations": results})
 		return
 	}
 	if sub == "install" {
 		a := *agent
 		if a == "" {
-			die(fmt.Errorf("-agent is required (claude|cursor|codex|gemini|all)"))
+			die(fmt.Errorf("-agent is required (claude|cursor|codex|gemini|antigravity|all)"))
 		}
 		rp, _ := filepath.Abs(*repo)
 		bin, _ := os.Executable()
@@ -97,7 +115,7 @@ func main() {
 		mcpBin := filepath.Join(filepath.Dir(bin), "contextd")
 		if strings.EqualFold(a, "all") {
 			var results []any
-			for _, name := range []string{"claude", "cursor", "codex", "gemini"} {
+			for _, name := range []string{"claude", "cursor", "codex", "gemini", "antigravity"} {
 				res, e := integrations.Install(name, rp, hookBin, mcpBin)
 				if e != nil {
 					die(e)
@@ -122,19 +140,96 @@ func main() {
 		printJSON(p)
 		return
 	}
+
 	rp, _ := filepath.Abs(*repo)
 	if dp == "" {
 		dp = server.DefaultDBPath()
 	}
-	if err := os.MkdirAll(filepath.Dir(dp), 0700); err != nil {
-		dp = filepath.Join(".contextos", "context.db")
-		_ = os.MkdirAll(filepath.Dir(dp), 0700)
+
+	// Subcommand: migrate (transfers data between storage engines)
+	if sub == "migrate" {
+		dstType := strings.ToLower(*toStorage)
+		if dstType == "" {
+			die(fmt.Errorf("-to is required (sqlite or file)"))
+		}
+		srcType := strings.ToLower(*fromStorage)
+		if srcType == "" {
+			if dstType == "file" {
+				srcType = "sqlite"
+			} else {
+				srcType = "file"
+			}
+		}
+		srcP := *fromPath
+		if srcP == "" {
+			if srcType == "sqlite" {
+				srcP = dp
+			} else {
+				srcP = filepath.Join(filepath.Dir(dp), "data")
+			}
+		}
+		dstP := *toPath
+		if dstP == "" {
+			if dstType == "file" {
+				dstP = filepath.Join(filepath.Dir(dp), "data")
+			} else {
+				dstP = dp
+			}
+		}
+
+		var srcStore, dstStore store.Store
+		if srcType == "sqlite" {
+			var err error
+			srcStore, err = store.NewSQLiteStore(srcP)
+			if err != nil {
+				die(fmt.Errorf("open source sqlite store %s: %w", srcP, err))
+			}
+		} else {
+			var err error
+			srcStore, err = store.NewFileStore(srcP)
+			if err != nil {
+				die(fmt.Errorf("open source file store %s: %w", srcP, err))
+			}
+		}
+		defer srcStore.Close()
+
+		if dstType == "file" {
+			var err error
+			dstStore, err = store.NewFileStore(dstP)
+			if err != nil {
+				die(fmt.Errorf("open destination file store %s: %w", dstP, err))
+			}
+		} else {
+			var err error
+			dstStore, err = store.NewSQLiteStore(dstP)
+			if err != nil {
+				die(fmt.Errorf("open destination sqlite store %s: %w", dstP, err))
+			}
+		}
+		defer dstStore.Close()
+
+		repObj, err := gitidx.Detect(rp)
+		if err != nil {
+			die(err)
+		}
+
+		rep, err := store.Migrate(srcStore, dstStore, repObj)
+		if err != nil {
+			die(err)
+		}
+		printJSON(rep)
+		return
 	}
-	s, e := server.New(dp, rp)
+
+	s, e := server.NewWithOptions(dp, rp, server.Options{
+		StorageType: stg,
+		AutoPrune:   *autoPrune,
+	})
 	if e != nil {
 		die(e)
 	}
 	defer s.Close()
+
 	switch sub {
 	case "init", "index":
 		if e := s.Index(); e != nil {
@@ -196,6 +291,19 @@ func main() {
 			die(e)
 		}
 		printJSON(x)
+	case "gc":
+		rep, err := s.GC(store.PruneOptions{
+			RepoID:          s.RepoID,
+			CurrentRevision: s.Repo.Revision,
+			CacheTTL:        time.Duration(*keepDays) * 24 * time.Hour,
+			MaxTraces:       500,
+			EventTTL:        time.Duration(*keepDays) * 24 * time.Hour,
+			DryRun:          *dryRun,
+		})
+		if err != nil {
+			die(err)
+		}
+		printJSON(rep)
 	case "work":
 		if *title == "" {
 			die(fmt.Errorf("-title is required"))
@@ -223,24 +331,42 @@ func main() {
 		usage()
 	}
 }
+
 func usage() {
 	fmt.Println(`ContextOS CLI
 
+Usage:
+  ctx <command> [flags]
+
 Commands:
-  ctx init|index -repo PATH
-  ctx remember -repo PATH -kind decision -content '...'
-  ctx plan -repo PATH -task '...' [-model MODEL] -budget 4000 [-render]
-  ctx resume -repo PATH
-  ctx handoff -repo PATH -task '...' -target codex -budget 4000
-  ctx invalidate -repo PATH -id MEMORY_ID
-  ctx work -repo PATH -title "Implement failover"
-  ctx session -repo PATH -agent codex
-  ctx event -repo PATH -session SESSION_ID -event tool_call -payload '{"tool":"git"}'
-  ctx stats -repo PATH
-  ctx route -task "complex distributed debugging" -budget 4000
-  ctx install -repo PATH -agent claude|cursor|codex|gemini|all
-  ctx setup -repo PATH    # index repo + install all supported integrations
-  ctx hook -agent claude -event UserPromptSubmit < hook.json`)
+  ctx init|index -repo PATH                             Index repository symbols
+  ctx remember   -repo PATH -kind K -content '...'      Persist a memory
+  ctx plan       -repo PATH -task '...' -budget 4000    Build context plan
+  ctx resume     -repo PATH                             Recover active work state
+  ctx handoff    -repo PATH -task '...' -target AGENT   Cross-agent context handoff
+  ctx invalidate -repo PATH -id MEMORY_ID               Invalidate stale memory
+  ctx gc         -repo PATH [-keep-days 30] [-dry-run]  Garbage collect expired cache & traces
+  ctx migrate    -to file|sqlite [-from file|sqlite]    Transfer data between storage engines
+  ctx work       -repo PATH -title "..."                Start a work item
+  ctx session    -repo PATH -agent NAME                 Start an agent session
+  ctx event      -repo PATH -event TYPE -payload JSON   Record lifecycle event
+  ctx stats      -repo PATH                             Display runtime statistics
+  ctx route      -task "..." -budget 4000               Recommend optimal model
+  ctx install    -repo PATH -agent NAME                 Install agent hook & MCP
+  ctx setup      -repo PATH                             Index + install all integrations
+
+Storage & Feature Flags:
+  -storage sqlite|file   Choose storage engine (default: sqlite, or file for zero-DB)
+  -auto-prune            Opt-in automatic pruning during context planning (default: false)
+  -db PATH               Custom database or storage data path`)
 }
-func printJSON(v any) { b, _ := json.MarshalIndent(v, "", "  "); fmt.Println(string(b)) }
-func die(e error)     { fmt.Fprintln(os.Stderr, "contextos:", e); os.Exit(1) }
+
+func printJSON(v any) {
+	b, _ := json.MarshalIndent(v, "", "  ")
+	fmt.Println(string(b))
+}
+
+func die(e error) {
+	fmt.Fprintln(os.Stderr, "contextos:", e)
+	os.Exit(1)
+}

@@ -24,7 +24,11 @@ ctx setup
 
 That's it. Your agents now have persistent context.
 
-> **Database location**: ContextOS stores state in `~/.contextos/context.db` by default. Override with `CONTEXTOS_DB=/path/to/db`.
+> **Storage engines**: ContextOS supports two storage backends:
+> - **SQLite** (default): High-performance embedded DB with WAL mode and FTS5.
+> - **FileStore** (`-storage file` or `CONTEXTOS_STORAGE=file`): Zero-dependency, pure Go standard library storage engine (zero CGO, zero external libraries). Ideal when SQLite or CGO is unavailable.
+>
+> Default database path is `~/.contextos/context.db` (SQLite) or `~/.contextos/data` (FileStore). Override via `-db PATH` or `CONTEXTOS_DB=/path/to/storage`.
 
 ---
 
@@ -78,6 +82,32 @@ ctx stats -repo .
 ctx route -task "distributed lock migration" -budget 8000
 ```
 
+### Switch storage engines (Migrate SQLite ↔ FileStore)
+Transfer all repositories, AST nodes, memories, work items, sessions, events, and traces without data loss:
+```bash
+# Transfer SQLite data to zero-DB FileStore
+ctx migrate -to file
+
+# Transfer FileStore data back to SQLite
+ctx migrate -to sqlite
+
+# Specify custom source and destination paths
+ctx migrate -from sqlite -to file -from-path ~/.contextos/context.db -to-path ~/.contextos/data
+```
+
+### Storage Garbage Collection (Opt-In Pruning)
+```bash
+# Dry run to see what expired entries would be pruned
+ctx gc -repo . -keep-days 30 -dry-run
+
+# Run garbage collection
+ctx gc -repo . -keep-days 30
+
+# Enable automated pruning during context planning (opt-in feature flag)
+ctx plan -task "refactor storage" -auto-prune
+# Or set CONTEXTOS_AUTO_PRUNE=1
+```
+
 ---
 
 ## Full CLI Reference
@@ -86,10 +116,12 @@ ctx route -task "distributed lock migration" -budget 8000
 ctx init|index     -repo PATH                          Index repository symbols
 ctx remember       -repo PATH -kind K -content '...'   Persist a memory
 ctx plan           -repo PATH -task '...' [-model M]   Build context plan
-                   [-budget N] [-render]
+                   [-budget N] [-render] [-auto-prune]
 ctx resume         -repo PATH                          Recover work state
 ctx handoff        -repo PATH -task '...' -target M    Cross-agent handoff
 ctx invalidate     -repo PATH -id MEMORY_ID            Invalidate a memory
+ctx gc             -repo PATH [-keep-days N] [-dry-run]Garbage collect expired cache & traces
+ctx migrate        -to file|sqlite [-from file|sqlite] Transfer data between storage engines
 ctx work           -repo PATH -title "..."             Start a work item
 ctx session        -repo PATH -agent NAME              Start an agent session
 ctx event          -repo PATH -event TYPE -payload J   Record an event
@@ -99,6 +131,11 @@ ctx install        -repo PATH -agent claude|cursor|    Install for one agent
                    codex|gemini|all
 ctx setup          -repo PATH                          Index + install all
 ctx hook           -agent NAME -event TYPE < stdin     Process hook event
+
+Storage Options & Feature Flags:
+  -storage sqlite|file    Choose storage engine (or CONTEXTOS_STORAGE)
+  -auto-prune             Opt-in automated storage pruning (or CONTEXTOS_AUTO_PRUNE=1)
+  -db PATH                Custom SQLite DB or file store directory
 ```
 
 ---
@@ -214,17 +251,25 @@ The scoring combines:
 
 ## Building
 
-**Requirements**: Go 1.23+, system SQLite3 library, C compiler.
+**Requirements**: Go 1.23+.
 
 ```bash
-make          # Build all binaries to bin/
+make          # Build all binaries to bin/ (SQLite support enabled)
 make test     # Run all tests
 make bench    # Run synthetic policy benchmark
 make install-user  # Install to ~/.local/bin
 make clean    # Remove build artifacts
 ```
 
-The core uses the system SQLite3 library through cgo. On macOS, the default Apple clang works. On Linux, gcc or clang with libsqlite3-dev.
+The default build links system SQLite3 through CGO. On macOS, Apple clang works automatically. On Linux, install `libsqlite3-dev`.
+
+### Zero-Dependency / Pure-Go Build (No CGO, No SQLite)
+ContextOS can be built completely without CGO or external libraries for sandboxed or minimal environments:
+```bash
+CGO_ENABLED=0 go build -o bin/ctx ./cmd/ctx
+CGO_ENABLED=0 go build -o bin/contextd ./cmd/contextd
+```
+When built with `CGO_ENABLED=0`, ContextOS defaults to the pure-Go **FileStore** engine automatically.
 
 ---
 
@@ -243,12 +288,15 @@ The core uses the system SQLite3 library through cgo. On macOS, the default Appl
 
 The core problem is **minimum-sufficient context**:
 
-> Given a task $q$, model $M$, and success threshold $\tau$, find the smallest context set $C^*$ such that:
-> $$C^* = \arg\min_C \text{Tokens}(C) \quad \text{subject to} \quad P(\text{success} \mid C, q, M) \ge \tau$$
+Given a task $q$, target model $\mathcal{A}$, and success threshold $\tau$, find the smallest context set $C^*$ such that:
+
+$$
+C^* = \arg\min_C \text{Tokens}(C) \quad \text{subject to} \quad P(\text{success} \mid C, q, \mathcal{A}) \ge \tau
+$$
 
 The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
 
-See [`CONTEXT.md`](CONTEXT.md) for the architecture manual, [`RESEARCH.md`](RESEARCH.md) for formal mathematical theory and bounds, [`ASC-1-SPEC.md`](ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
 
 ---
 

@@ -7,13 +7,18 @@ Minimize the cost/latency of context supplied to a software-engineering agent wh
 
 For task $q$, state $S$, model $M$, budget $B$:
 
-$$\max_{C, M} \quad \mathcal{U}(C, M \mid q, S)$$
-$$\text{subject to} \quad \text{Tokens}(C) \le B$$
+$$
+\begin{aligned}
+\max_{C, M} \quad & \mathcal{U}(C, M \mid q, S) \\
+\text{subject to} \quad & \text{Tokens}(C) \le B \quad \text{and} \quad P(\text{success} \mid C, M, q, S) \ge \tau
+\end{aligned}
+$$
 
-$$\mathcal{U} = \mathcal{Q}(C, M) + \eta \cdot \text{CacheReuse}(C, M) - \lambda \cdot \text{Cost}(C, M) - \mu \cdot \text{Latency}(C) - \rho \cdot \text{StaleRisk}(C)$$
+where:
 
-Operational constraint:
-$$P(\text{success} \mid C, M, q, S) \ge \tau$$
+$$
+\mathcal{U} = \mathcal{Q}(C, M) + \eta \cdot \text{CacheReuse}(C, M) - \lambda \cdot \text{Cost}(C, M) - \mu \cdot \text{Latency}(C) - \rho \cdot \text{StaleRisk}(C)
+$$
 
 ## State
 S = (repo, revision, work_item, trajectory, memory_graph, cache_state, provider_state)
@@ -67,7 +72,9 @@ Learned: semantic relevance, marginal utility, compression choice, prefetch prob
 
 ## v0 scoring baseline
 
-$$\text{Score}(m) = 1.0 \cdot \text{Semantic} + 1.2 \cdot \text{Graph} + 0.8 \cdot \text{Freshness} + 1.0 \cdot \text{Authority} + 0.8 \cdot \text{Reuse} + 0.8 \cdot \text{TaskAffinity} - 1.0 \cdot \text{StaleRisk} - 0.3 \cdot \text{Tokens}_{\text{norm}}$$
+$$
+\text{Score}(m) = 1.0 \cdot \text{Semantic} + 1.2 \cdot \text{Graph} + 0.8 \cdot \text{Freshness} + 1.0 \cdot \text{Authority} + 0.8 \cdot \text{Reuse} + 0.8 \cdot \text{TaskAffinity} - 1.0 \cdot \text{StaleRisk} - 0.3 \cdot \text{Tokens}_{\text{norm}}
+$$
 
 Use cost-scaled greedy selection as a baseline. Later replace score with learned marginal-utility estimates.
 

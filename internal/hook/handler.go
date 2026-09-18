@@ -58,8 +58,13 @@ func Normalize(agent, event string, raw []byte) (model.HookEvent, error) {
 	} else if err := json.Unmarshal(raw, &m); err != nil {
 		return model.HookEvent{}, err
 	}
-	cwd := readString(m, "cwd", "working_directory", "project_dir", "GEMINI_CWD")
-	session := readString(m, "session_id", "sessionId", "conversation_id", "thread_id", "GEMINI_SESSION_ID")
+	cwd := readString(m, "cwd", "working_directory", "project_dir", "workspace_path", "workspacePath", "GEMINI_CWD")
+	if cwd == "" {
+		if arr, ok := m["workspacePaths"].([]any); ok && len(arr) > 0 {
+			cwd = fmt.Sprint(arr[0])
+		}
+	}
+	session := readString(m, "session_id", "sessionId", "conversation_id", "conversationId", "thread_id", "GEMINI_SESSION_ID")
 	prompt := readString(m, "prompt", "user_prompt", "userPrompt", "message", "prompt_text")
 	if prompt == "" {
 		if v, ok := m["prompt_input"]; ok {
@@ -68,7 +73,12 @@ func Normalize(agent, event string, raw []byte) (model.HookEvent, error) {
 	}
 	output := readString(m, "output", "response", "tool_output", "tool_result")
 	tool := readString(m, "tool_name", "tool", "name")
-	failure := strings.Contains(strings.ToLower(event), "failure") || strings.Contains(strings.ToLower(event), "error")
+	if tool == "" {
+		if tc, ok := m["toolCall"].(map[string]any); ok {
+			tool = readString(tc, "name", "tool")
+		}
+	}
+	failure := strings.Contains(strings.ToLower(event), "failure") || strings.Contains(strings.ToLower(event), "error") || readString(m, "error") != ""
 	if cwd == "" {
 		cwd, _ = os.Getwd()
 	}
@@ -157,7 +167,7 @@ func Handle(agent, event string, raw []byte) ([]byte, error) {
 	a := strings.ToLower(agent)
 	e := strings.ToLower(event)
 	ctx := ""
-	if a == "claude" || a == "cursor" || a == "gemini" {
+	if a == "claude" || a == "cursor" || a == "gemini" || a == "antigravity" || a == "agy" {
 		ctx = contextFor(s, ev)
 	}
 
@@ -174,7 +184,11 @@ func Handle(agent, event string, raw []byte) ([]byte, error) {
 				out = map[string]any{"additional_context": ctx}
 			}
 		} else if e == "beforesubmitprompt" {
-			out = map[string]any{"continue": true}
+			res := map[string]any{"continue": true}
+			if ctx != "" {
+				res["additional_context"] = ctx
+			}
+			out = res
 		}
 	case "gemini":
 		if e == "sessionstart" || e == "beforeagent" {
@@ -182,6 +196,20 @@ func Handle(agent, event string, raw []byte) ([]byte, error) {
 			if ctx != "" {
 				out.(map[string]any)["hookSpecificOutput"].(map[string]any)["additionalContext"] = ctx
 			}
+		}
+	case "antigravity", "agy":
+		if e == "preinvocation" {
+			steps := []any{}
+			if ctx != "" {
+				steps = append(steps, map[string]any{
+					"ephemeralMessage": ctx,
+				})
+			}
+			out = map[string]any{"injectSteps": steps}
+		} else if e == "stop" {
+			out = map[string]any{"decision": "allow"}
+		} else {
+			out = map[string]any{}
 		}
 	case "codex":
 		// Codex hook output capabilities differ by release; durable capture remains

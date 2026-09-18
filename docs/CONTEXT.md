@@ -36,10 +36,10 @@ ContextOS is a local-first, model-neutral context runtime designed for software 
                      +------------------------+------------------------+
                      v                                                 v
           +-----------------------+                         +----------------------+
-          |   Git State Engine    |                         | SQLite State Store   |
-          |  - Revision & Branch  |                         |  - WAL Mode + FTS5   |
-          |  - Diff & Invalidation|                         |  - Typed Memories    |
-          |  - Graph Centrality   |                         |  - WorkItems/Sessions|
+          |   Git State Engine    |                         | Pluggable Store Engine|
+          |  - Revision & Branch  |                         |  - SQLite (WAL+FTS5) |
+          |  - Diff & Invalidation|                         |  - FileStore(Pure Go)|
+          |  - Graph Centrality   |                         |  - Bidirectional Migr|
           +-----------------------+                         +----------------------+
 ```
 
@@ -49,7 +49,8 @@ ContextOS is a local-first, model-neutral context runtime designed for software 
 |---|---|---|
 | [`internal/allocator`](file:///Users/rohitshukla/Desktop/ContextOS/internal/allocator) | 6-pass budget-constrained context optimization algorithm (ASC-1) | [`allocator.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/allocator/allocator.go), [`allocator_test.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/allocator/allocator_test.go) |
 | [`internal/model`](file:///Users/rohitshukla/Desktop/ContextOS/internal/model) | Canonical domain entities, memory structures, candidate envelopes, context plans | [`types.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/model/types.go) |
-| [`internal/store`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store) | Local SQLite persistence, FTS5 full-text queries, transactions, schema migrations | [`store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/store.go) |
+| [`internal/store`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store) | Pluggable persistence layer: SQLiteStore (WAL+FTS5) and FileStore (Pure-Go stdlib), bidirectional migration (`ctx migrate`), and opt-in pruning | [`store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/store.go), [`sqlite_store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/sqlite_store.go), [`file_store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/file_store.go), [`migrate.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/migrate.go) |
+| [`internal/db`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db) | Low-level SQLite driver with build-tag isolation (`//go:build cgo` and `sqlite_nocgo.go` stubs) | [`sqlite.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db/sqlite.go), [`sqlite_nocgo.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db/sqlite_nocgo.go) |
 | [`internal/textutil`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil) | Robertson-Sparck Jones BM25, Locality-Sensitive HashSemantic, token estimation | [`textutil.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil/textutil.go), [`textutil_test.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil/textutil_test.go) |
 | [`internal/gitutil`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitutil) | Git working tree inspection, HEAD commit hash resolution, branch detection | [`gitutil.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitutil/gitutil.go) |
 | [`internal/mcp`](file:///Users/rohitshukla/Desktop/ContextOS/internal/mcp) | Model Context Protocol JSON-RPC server (12 tools, 5 resources) | [`server.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/mcp/server.go) |
@@ -90,7 +91,14 @@ To guarantee that code agents do not hallucinate over unverified notes or priori
 ### Confidence Gating (`model.Memory.Confidence`)
 
 The `Confidence` field ($c \in [0.0, 1.0]$) gates the composite score multiplicatively:
-$$W_{\text{conf}}(c) = \begin{cases} 1.0 & \text{if } c \le 0 \quad (\text{backward compatibility / unstated}) \\ \max(0.1, c) & \text{if } c > 0 \end{cases}$$
+
+$$
+W_{\text{conf}}(c) = \begin{cases}
+1.00 & \text{if } c \le 0 \quad (\text{backward compatibility / unstated}) \\
+\max(0.10, \, c) & \text{if } c > 0
+\end{cases}
+$$
+
 This dampens uncertain memories without completely blinding the system to tentative discoveries.
 
 ### Temporal Validity & Git Invalidation
@@ -142,15 +150,27 @@ Final ContextPlan
    - Graph structural centrality proxy derived from file path and package namespace depth.
 2. **Pass 2 — Reciprocal Rank Fusion (RRF)**:
    - Rank sorting along Semantic, Lexical, and TaskAffinity lists:
-     $$\text{RRF}(i) = \sum_{S \in \{\text{sem}, \text{lex}, \text{aff}\}} \frac{1}{60 + \text{rank}_S(i)}$$
+
+$$
+\text{RRF}(i) = \sum_{S \in \{\text{sem}, \, \text{lex}, \, \text{aff}\}} \frac{1}{60 + \text{rank}_S(i)}
+$$
+
    - Multiplicative gating:
-     $$\text{Score}_i = \text{RRF}(i) \cdot \text{Authority}_i \cdot \text{Freshness}_i \cdot W_{\text{conf}}(\text{Confidence}_i)$$
+
+$$
+\text{Score}_i = \text{RRF}(i) \cdot \text{Authority}_i \cdot \text{Freshness}_i \cdot W_{\text{conf}}(\text{Confidence}_i)
+$$
+
 3. **Pass 3 — Marginal-Utility Greedy Knapsack**:
    - Candidates sorted descending by marginal density: $\rho_i = \text{Score}_i / \text{Tokens}_i$.
    - Greedy accumulation while $\sum \text{Tokens} \le B$.
 4. **Pass 4 — Singleton Rescue (Chvátal / Sviridenko Guarantee)**:
    - Evaluates:
-     $$m^* = \arg\max \{ \text{Score}_j : \text{Tokens}_j \le B \}$$
+
+$$
+m^* = \arg\max_{j : \text{Tokens}_j \le B \land \text{Valid}(j)} \text{Score}_j
+$$
+
    - If $\text{Score}_{m^*} > \sum_{j \in S_{\text{greedy}}} \text{Score}_j$, replace $S_{\text{greedy}}$ with $\{m^*\}$.
    - Restores theoretical $(1 - 1/e) \approx 0.632$ worst-case performance guarantee for 0/1 knapsack problems.
 5. **Pass 5 — Residual Fill Pass**:
@@ -200,6 +220,33 @@ ctx remember -kind failure -authority test \
   -content "Pessimistic locking caused deadlocks under 50 concurrent workers"
 ```
 
+### Switching Storage Engines (`ctx migrate`)
+ContextOS provides seamless bidirectional data migration between SQLite and FileStore:
+```bash
+# Migrate existing SQLite database to zero-DB FileStore
+ctx migrate -to file
+
+# Migrate FileStore data back to SQLite
+ctx migrate -to sqlite
+
+# Explicit paths for custom directory structures
+ctx migrate -from sqlite -to file -from-path /var/data/context.db -to-path /var/data/store
+```
+
+### Ephemeral Storage Management & Garbage Collection (`ctx gc`)
+Storage growth from high-frequency execution traces and cached plans is strictly opt-in:
+```bash
+# Dry run: view expired traces and cache entries eligible for pruning
+ctx gc -repo . -keep-days 30 -dry-run
+
+# Execute garbage collection
+ctx gc -repo . -keep-days 30
+
+# Opt-in background pruning during normal context planning
+ctx plan -task "refactor checkout" -auto-prune
+# Or set environment variable CONTEXTOS_AUTO_PRUNE=1
+```
+
 ---
 
 ## 5. Verification & Test Suite
@@ -213,6 +260,14 @@ make all           # Compiles cmd/ctx and cmd/contextd binaries
 ```
 
 ### Test Suite Breakdown:
+- **`internal/store` (Contract & Migration Tests)**:
+  - *Unified Contract*: Identical repository lifecycle, node graph indexing, memory storage/retrieval, work item tracking, session lifecycle, lifecycle events, and trace recording across both `SQLiteStore` and `FileStore`.
+  - *Bidirectional Migration*: Validates zero-loss roundtrip migration (`SQLite -> FileStore -> SQLite`) preserving memory IDs, work items, agent sessions, and execution events.
+  - *Pure Go Compatibility*: Full test pass under both `CGO_ENABLED=1` and pure-Go `CGO_ENABLED=0`.
+- **`internal/server` (Service Lifecycle Tests)**:
+  - *Cache Invalidation*: Verifies that file modifications change worktree hash and invalidate context cache.
+  - *FileStore Integration*: Verifies end-to-end service lifecycle with pure Go FileStore.
+  - *Opt-In Auto-Prune*: Verifies that `--auto-prune` / `CONTEXTOS_AUTO_PRUNE=1` triggers background GC during context planning while defaulting to off.
 - **`internal/allocator` (30 Tests)**:
   - *Edge Cases*: Zero budget, negative budget, empty candidate list, all-rejected inputs, exact fit, single-item overflow.
   - *Scoring Bounds*: Low-authority hard rejection ($<0.6$), explicit invalidation rejection ($-\infty$ density), confidence dampening ($0.95$ vs $0.30$), revision freshness penalties.

@@ -137,7 +137,87 @@ func Install(agent, repoRoot, hookBinary, mcpBinary string) (InstallResult, erro
 		if err := mergeMapFile(mcpPath, mcpJSON(mcpBinary, ".")); err != nil {
 			return InstallResult{}, err
 		}
-		return InstallResult{Agent: agent, Files: []string{hookPath, mcpPath}, Action: "installed Cursor hooks + MCP"}, nil
+		rulePath := filepath.Join(repoRoot, ".cursor", "rules", "contextos.mdc")
+		cursorRule := `---
+description: ContextOS persistent context runtime
+globs: *
+alwaysApply: true
+---
+
+# ContextOS Integration for Cursor
+
+This project uses ContextOS for persistent, budget-aware context management.
+
+- Call ` + "`context_resume`" + ` when resuming work to recover active work items and past context.
+- Use ` + "`context_plan`" + ` to build token-budgeted context packages before executing complex tasks.
+- Persist architectural decisions and constraints with ` + "`context_remember`" + ` (kind: "decision" or "constraint").
+- Document negative knowledge / failed approaches with ` + "`context_remember`" + ` (kind: "failure").
+- Use ` + "`context_handoff`" + ` for cross-model or cross-session context transfers.
+`
+		_ = os.MkdirAll(filepath.Dir(rulePath), 0700)
+		_ = os.WriteFile(rulePath, []byte(cursorRule), 0644)
+		return InstallResult{Agent: agent, Files: []string{hookPath, mcpPath, rulePath}, Action: "installed Cursor hooks + MCP + rules"}, nil
+	case "antigravity", "agy":
+		mcpPath := filepath.Join(repoRoot, ".agents", "mcp_config.json")
+		if err := mergeMapFile(mcpPath, map[string]any{
+			"mcpServers": map[string]any{
+				"contextos": map[string]any{
+					"command": mcpBinary,
+					"args":    []any{"-repo", ".", "-mcp"},
+				},
+			},
+		}); err != nil {
+			return InstallResult{}, err
+		}
+		hookPath := filepath.Join(repoRoot, ".agents", "hooks.json")
+		hookGroup := func(event string) []any {
+			return []any{map[string]any{
+				"matcher": "*",
+				"hooks": []any{
+					map[string]any{
+						"type":    "command",
+						"command": hookCommand(hookBinary, "antigravity", event),
+						"timeout": 15,
+					},
+				},
+			}}
+		}
+		flatHook := func(event string) []any {
+			return []any{map[string]any{
+				"type":    "command",
+				"command": hookCommand(hookBinary, "antigravity", event),
+				"timeout": 15,
+			}}
+		}
+		hooksCfg := map[string]any{
+			"contextos": map[string]any{
+				"PreInvocation": flatHook("PreInvocation"),
+				"PostToolUse":   hookGroup("PostToolUse"),
+				"Stop":          flatHook("Stop"),
+			},
+		}
+		if err := mergeMapFile(hookPath, hooksCfg); err != nil {
+			return InstallResult{}, err
+		}
+		rulePath := filepath.Join(repoRoot, ".agents", "rules", "contextos.md")
+		ruleContent := `# ContextOS Rules for Antigravity
+
+This repository uses ContextOS for persistent, token-bounded context management.
+
+## Guidelines
+- Call ` + "`context_resume`" + ` at the beginning of a task to restore previous decisions and active work state.
+- Use ` + "`context_plan`" + ` to assemble minimum-sufficient context for complex coding tasks under budget constraints.
+- Record durable architectural choices with ` + "`context_remember`" + ` (kind: "decision", authority: "user").
+- Record failed approaches or dead ends with ` + "`context_remember`" + ` (kind: "failure") so future sessions avoid repeating mistakes.
+- Use ` + "`context_handoff`" + ` when transferring engineering state to another agent or model.
+`
+		_ = os.MkdirAll(filepath.Dir(rulePath), 0700)
+		_ = os.WriteFile(rulePath, []byte(ruleContent), 0644)
+		return InstallResult{
+			Agent:  agent,
+			Files:  []string{mcpPath, hookPath, rulePath},
+			Action: "installed Antigravity hooks + MCP + rules",
+		}, nil
 	case "codex":
 		hookPath := filepath.Join(repoRoot, ".codex", "hooks.json")
 		grp := func(event string) []any {

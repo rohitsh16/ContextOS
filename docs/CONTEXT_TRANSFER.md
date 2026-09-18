@@ -39,8 +39,12 @@ How can an AI software-engineering agent dynamically allocate a bounded context 
 
 Formal target:
 
-$$\pi^* = \arg\max_\pi \mathbb{E}[\text{Success} - \lambda \cdot \text{Cost} - \mu \cdot \text{Latency} - \nu \cdot \text{Waste} - \rho \cdot \text{Staleness}]$$
-$$\text{subject to} \quad \text{Tokens} \le B \quad \text{and} \quad P(\text{success} \mid \text{state}, \text{task}, \text{action}) \ge \tau$$
+$$
+\begin{aligned}
+\pi^* = \arg\max_\pi \quad & \mathbb{E}[\text{Success} - \lambda \cdot \text{Cost} - \mu \cdot \text{Latency} - \nu \cdot \text{Waste} - \rho \cdot \text{Staleness}] \\
+\text{subject to} \quad & \text{Tokens} \le B \quad \text{and} \quad P(\text{success} \mid \text{state}, \text{task}, \text{action}) \ge \tau
+\end{aligned}
+$$
 
 ## Important conclusion from prior-art review
 Persistent coding-agent memory alone is too crowded to be novel.
@@ -85,8 +89,12 @@ Most important flagship research problem:
 
 Minimum Sufficient Context:
 
-$$C^* = \arg\min_C \text{Tokens}(C)$$
-$$\text{subject to} \quad P(\text{success} \mid C, q, M) \ge \tau$$
+$$
+\begin{aligned}
+C^* = \arg\min_C \quad & \text{Tokens}(C) \\
+\text{subject to} \quad & P(\text{success} \mid C, q, M) \ge \tau
+\end{aligned}
+$$
 
 Important distinction:
 $\text{minimum tokens} \ne \text{minimum cost}$ because stable prefixes may be provider-cacheable and therefore more economical.
@@ -390,8 +398,8 @@ Core metrics:
 - Prefetch Waste
 
 Key headline metrics:
-Task Success per 1K Input Tokens
-Task Success per $.
+- Task Success per 1K Input Tokens
+- Task Success per \$ (USD)
 
 Define:
 $$B_\tau = \min \{ B : P(\text{success} \mid B) \ge \tau \}$$

@@ -23,7 +23,11 @@ We prove the theoretical approximation guarantees, detail the algorithmic invari
 ## 1. Mathematical Formulation
 
 Let $\mathcal{M} = \{m_1, m_2, \dots, m_n\}$ denote the universe of candidate memory objects available in the local repository store. Each candidate memory $m_i$ is characterized by a tuple:
-$$m_i = \left( \text{content}_i, \, c_i, \, \text{kind}_i, \, \text{auth}_i, \, \text{conf}_i, \, \text{rev}_i^{\text{start}}, \, \text{rev}_i^{\text{end}}, \, \text{reuse}_i \right)$$
+
+$$
+m_i = \left( \text{content}_i, \, c_i, \, \text{kind}_i, \, \text{auth}_i, \, \text{conf}_i, \, \text{rev}_i^{\text{start}}, \, \text{rev}_i^{\text{end}}, \, \text{reuse}_i \right)
+$$
+
 where $c_i \in \mathbb{N}^+$ denotes the token cost ($c_i = \text{Tokens}(m_i)$).
 
 Let $q$ denote the task query, $S = (\text{repo}, \text{rev}_{\text{curr}}, \mathcal{W})$ denote the repository working state at HEAD revision $\text{rev}_{\text{curr}}$, and $B \in \mathbb{N}^+$ denote the hard token budget allocated to context injection.
@@ -32,8 +36,12 @@ Let $q$ denote the task query, $S = (\text{repo}, \text{rev}_{\text{curr}}, \mat
 
 The foundational objective of ContextOS is to identify a context subset $C^* \subseteq \mathcal{M}$ such that:
 
-$$C^* = \arg\min_{C \subseteq \mathcal{M}} \quad \text{Cost}(C, \mathcal{A})$$
-$$\text{subject to} \quad \sum_{m_i \in C} c_i \le B \quad \text{and} \quad P(\text{Success} \mid C, q, S, \mathcal{A}) \ge \tau$$
+$$
+\begin{aligned}
+C^* = \arg\min_{C \subseteq \mathcal{M}} \quad & \text{Cost}(C, \mathcal{A}) \\
+\text{subject to} \quad & \sum_{m_i \in C} c_i \le B \quad \text{and} \quad P(\text{Success} \mid C, q, S, \mathcal{A}) \ge \tau
+\end{aligned}
+$$
 
 where $\mathcal{A}$ is the target inference model and $\tau \in (0, 1]$ is the acceptable threshold for task success (e.g. passing test execution or clean code review).
 
@@ -41,13 +49,19 @@ where $\mathcal{A}$ is the target inference model and $\tau \in (0, 1]$ is the a
 
 To account for latency, cache reuse, token cost, and staleness poisoning, we define the scalar net utility $\mathcal{U}(C \mid q, S, \mathcal{A})$:
 
-$$\mathcal{U}(C \mid q, S, \mathcal{A}) = \mathcal{Q}(C, \mathcal{A} \mid q) + \eta \cdot \mathcal{R}_{\text{cache}}(C) - \lambda \cdot \mathcal{K}_{\text{cost}}(C, \mathcal{A}) - \mu \cdot \mathcal{L}(C) - \rho \cdot \mathcal{S}_{\text{stale}}(C, \text{rev}_{\text{curr}})$$
+$$
+\mathcal{U}(C \mid q, S, \mathcal{A}) = \mathcal{Q}(C, \mathcal{A} \mid q) + \eta \cdot \mathcal{R}_{\text{cache}}(C) - \lambda \cdot \mathcal{K}_{\text{cost}}(C, \mathcal{A}) - \mu \cdot \mathcal{L}(C) - \rho \cdot \mathcal{S}_{\text{stale}}(C, \text{rev}_{\text{curr}})
+$$
 
 where:
 - $\mathcal{Q}(C, \mathcal{A} \mid q)$ is the expected quality of model generation under context $C$.
 - $\mathcal{R}_{\text{cache}}(C)$ is the KV-cache hit efficiency (proportional to the length of the stable prefix).
 - $\mathcal{K}_{\text{cost}}(C, \mathcal{A})$ is the actual dollar cost of the prompt under provider pricing asymmetries:
-  $$\mathcal{K}_{\text{cost}}(C, \mathcal{A}) = p_{\text{cached}} \cdot |C_{\text{prefix}}| + p_{\text{uncached}} \cdot |C_{\text{variable}}| + p_{\text{out}} \cdot Y_{\text{out}}$$
+
+  $$
+  \mathcal{K}_{\text{cost}}(C, \mathcal{A}) = p_{\text{cached}} \cdot |C_{\text{prefix}}| + p_{\text{uncached}} \cdot |C_{\text{variable}}| + p_{\text{out}} \cdot Y_{\text{out}}
+  $$
+
   Because $p_{\text{cached}} \approx 0.10 \cdot p_{\text{uncached}}$ across major providers (Anthropic, OpenAI, DeepSeek), a larger context with a reusable prefix can be strictly cheaper than a smaller context with a non-cached prefix.
 - $\mathcal{L}(C)$ is the token-dependent Time-To-First-Token (TTFT) latency.
 - $\mathcal{S}_{\text{stale}}(C)$ is the penalty for including invalidated or conflicting historical memories.
@@ -60,7 +74,9 @@ where:
 
 Rather than simple Jaccard or unweighted token overlap, ContextOS implements the Robertson-Sparck Jones BM25 probabilistic model (Robertson & Zaragoza, 2009). For task query terms $t \in q$ and candidate document content $d = m_i.\text{content}$:
 
-$$\text{BM25}(q, d) = \sum_{t \in q \cap d} \text{IDF}(t) \cdot \frac{f(t, d) \cdot (k_1 + 1)}{f(t, d) + k_1 \cdot \left( 1 - b + b \cdot \frac{|d|}{\bar{L}} \right)}$$
+$$
+\text{BM25}(q, d) = \sum_{t \in q \cap d} \text{IDF}(t) \cdot \frac{f(t, d) \cdot (k_1 + 1)}{f(t, d) + k_1 \cdot \left( 1 - b + b \cdot \frac{|d|}{\bar{L}} \right)}
+$$
 
 where:
 - $f(t, d)$ is the term frequency of $t$ in $d$.
@@ -70,15 +86,27 @@ where:
 - $b = 0.75$ controls document length normalization.
 
 The score is normalized into $[0, 1]$:
-$$\text{Lexical}(m_i) = \frac{\text{BM25}(q, m_i.\text{content})}{\text{BM25}(q, q)}$$
+
+$$
+\text{Lexical}(m_i) = \frac{\text{BM25}(q, m_i.\text{content})}{\text{BM25}(q, q)}
+$$
+
 This explicitly penalizes bloated candidates and prevents sprawling code files from crowding out concise architectural decisions.
 
 ### 2.2 HashSemantic Locality-Sensitive Representation
 
 To enable instantaneous semantic matching in local CLI environments without loading heavy neural embedding models (e.g. 500MB ONNX runtimes), ContextOS employs a 64-bit feature hashing space:
-$$\mathbf{v}(d) = \sum_{w \in d} \text{weight}(w) \cdot \mathbf{e}_{\text{FNV-1a}(w) \pmod D}$$
+
+$$
+\mathbf{v}(d) = \sum_{w \in d} \text{weight}(w) \cdot \mathbf{e}_{\text{FNV-1a}(w) \bmod D}
+$$
+
 The similarity $\text{Semantic}(m_i)$ is computed as the normalized cosine between the hashed query vector $\mathbf{v}(q)$ and candidate vector $\mathbf{v}(d)$:
-$$\text{Semantic}(m_i) = \frac{\langle \mathbf{v}(q), \mathbf{v}(d) \rangle}{\|\mathbf{v}(q)\| \cdot \|\mathbf{v}(d)\|}$$
+
+$$
+\text{Semantic}(m_i) = \frac{\langle \mathbf{v}(q), \, \mathbf{v}(d) \rangle}{\|\mathbf{v}(q)\| \cdot \|\mathbf{v}(d)\|}
+$$
+
 Properties verified by test suite:
 - Self-similarity: $\text{Semantic}(d, d) \approx 1.0$.
 - Symmetry: $\text{Semantic}(a, b) = \text{Semantic}(b, a)$.
@@ -88,7 +116,9 @@ Properties verified by test suite:
 
 Directly summing heterogeneous scores (e.g. cosine similarity $\in [0, 1]$, BM25 $\in [0, \infty)$, affinity $\in [0, 1]$) introduces calibration bias: a single metric with high variance dominates the ordering. ContextOS applies Reciprocal Rank Fusion (Cormack et al., 2009):
 
-$$\text{RRF}(m_i) = \sum_{\ell \in \{\text{sem}, \, \text{lex}, \, \text{aff}\}} \frac{1}{k + r_\ell(m_i)}$$
+$$
+\text{RRF}(m_i) = \sum_{\ell \in \{\text{sem}, \, \text{lex}, \, \text{aff}\}} \frac{1}{k + r_\ell(m_i)}
+$$
 
 where:
 - $r_\ell(m_i) \in \{1, 2, \dots, n\}$ is the ordinal rank of candidate $m_i$ in ranking list $\ell$.
@@ -107,35 +137,52 @@ where:
 
 Candidate quality cannot be determined solely by lexical or semantic similarity. A hallucinated or outdated statement matching all task terms must not displace a user instruction. The composite score is constructed multiplicatively:
 
-$$\text{Score}(m_i) = \text{RRF}(m_i) \cdot \text{Authority}(m_i) \cdot \text{Freshness}(m_i) \cdot W_{\text{conf}}(\text{Confidence}_i)$$
+$$
+\text{Score}(m_i) = \text{RRF}(m_i) \cdot \text{Authority}(m_i) \cdot \text{Freshness}(m_i) \cdot W_{\text{conf}}(\text{Confidence}_i)
+$$
 
 #### Authority Weights:
-$$\text{Authority}(m_i) = \begin{cases}
-1.00 & \text{if } \text{auth} \in \{\text{user}, \text{explicit}\} \\
-0.99 & \text{if } \text{auth} = \text{test} \\
-0.97 & \text{if } \text{auth} = \text{source} \\
-0.94 & \text{if } \text{auth} = \text{commit} \\
-0.86 & \text{if } \text{auth} = \text{doc} \\
-0.55 & \text{if } \text{auth} = \text{inference} \quad \implies \mathbf{Hard \; Rejection} \\
-0.45 & \text{otherwise} \quad \implies \mathbf{Hard \; Rejection}
-\end{cases}$$
+
+$$
+\text{Authority}(m_i) = \begin{cases}
+1.00 & \text{if } \text{auth}_i \in \{\text{user}, \text{explicit}\} \\
+0.99 & \text{if } \text{auth}_i = \text{test} \\
+0.97 & \text{if } \text{auth}_i = \text{source} \\
+0.94 & \text{if } \text{auth}_i = \text{commit} \\
+0.86 & \text{if } \text{auth}_i = \text{doc} \\
+0.55 & \text{if } \text{auth}_i = \text{inference} \quad (\text{hard rejection}) \\
+0.45 & \text{otherwise} \quad (\text{hard rejection})
+\end{cases}
+$$
 
 **Invariant 1 (Authority Threshold):** Any candidate with $\text{Authority}(m_i) < 0.60$ is assigned $\text{Density} = -\infty$ and rejected before optimization.
 
 #### Confidence Weight Function:
-$$W_{\text{conf}}(c) = \begin{cases}
-1.0 & \text{if } c \le 0 \quad (\text{backward compatibility / unstated}) \\
-\max(0.1, c) & \text{if } c > 0
-\end{cases}$$
-The floor at $0.1$ prevents total suppression while penalizing speculative assertions.
+
+$$
+W_{\text{conf}}(c) = \begin{cases}
+1.00 & \text{if } c \le 0 \quad (\text{backward compatibility / unstated}) \\
+\max(0.10, \, c) & \text{if } c > 0
+\end{cases}
+$$
+
+The floor at $0.10$ prevents total suppression while penalizing speculative assertions.
 
 #### Temporal Staleness Evaluation:
-$$\text{Freshness}(m_i) = 1.0 - \text{Penalty}(m_i)$$
-$$\text{Penalty}(m_i) = \begin{cases}
-1.0 & \text{if } m_i.\text{InvalidatedAtRevision} \ne \emptyset \quad \implies \mathbf{Hard \; Invalidation} \, (\text{Density} = -\infty) \\
-0.25 & \text{if } m_i.\text{ValidFromRevision} \ne \text{rev}_{\text{curr}} \quad (\text{soft revision drift}) \\
-0.0 & \text{otherwise}
-\end{cases}$$
+
+$$
+\text{Freshness}(m_i) = 1.00 - \text{Penalty}(m_i)
+$$
+
+where:
+
+$$
+\text{Penalty}(m_i) = \begin{cases}
+1.00 & \text{if } \text{rev}_i^{\text{end}} \ne \emptyset \quad (\text{hard invalidation}, \, \rho_i = -\infty) \\
+0.25 & \text{if } \text{rev}_i^{\text{start}} \ne \text{rev}_{\text{curr}} \quad (\text{soft revision drift}) \\
+0.00 & \text{otherwise}
+\end{cases}
+$$
 
 ---
 
@@ -146,44 +193,85 @@ Context allocation subject to a token budget $B$ is an instance of the classical
 ### 4.1 Vulnerability of Standard Greedy Packing
 
 Let candidates be sorted descending by marginal density:
-$$\rho_i = \frac{\text{Score}(m_i)}{c_i}, \quad \rho_1 \ge \rho_2 \ge \dots \ge \rho_n$$
+
+$$
+\rho_i = \frac{\text{Score}(m_i)}{c_i}, \quad \rho_1 \ge \rho_2 \ge \dots \ge \rho_n
+$$
+
 Greedy packing selects items in index order until adding item $k$ would exceed budget $B$.
 
 **Failure Mode:** Consider two candidates:
 - $m_1$: $c_1 = 1$, $\text{Score}_1 = 2$ ($\rho_1 = 2.0$).
 - $m_2$: $c_2 = B$, $\text{Score}_2 = 1.5 B$ ($\rho_2 = 1.5$).
+
 For large $B$ (e.g. $B = 4000$ tokens), greedy packing selects only $\{m_1\}$ yielding total score $2$. The optimal solution is $\{m_2\}$ yielding score $6000$. The approximation ratio of pure greedy packing is unbounded: $\frac{\text{OPT}}{\text{Greedy}} \to \infty$.
 
 ### 4.2 Chvátal-Sviridenko Singleton Rescue (1/2-Approximation)
 
 To eliminate this pathological bound, ContextOS implements **Pass 4 (Singleton Rescue)** (Chvátal 1975; Sviridenko 2004):
 
-1. Let $S_{\text{greedy}}$ denote the candidate set selected by greedy density packing:
-   $$S_{\text{greedy}} = \{m_1, m_2, \dots, m_{k-1}\}, \quad \sum_{j \in S_{\text{greedy}}} c_j \le B$$
-2. Identify the single best-scoring valid candidate fitting within budget:
-   $$m^* = \arg\max_{m_i \in \mathcal{M} : c_i \le B \land m_i \text{ is valid}} \text{Score}(m_i)$$
-3. If $\text{Score}(m^*) > \sum_{m_j \in S_{\text{greedy}}} \text{Score}(m_j)$, replace $S_{\text{greedy}}$ with $\{m^*\}$.
+1. **Greedy Density Accumulation:** Let $S_{\text{greedy}}$ denote the candidate set selected by greedy marginal density packing:
+
+$$
+S_{\text{greedy}} = \{m_1, m_2, \dots, m_{k-1}\}, \quad \sum_{j \in S_{\text{greedy}}} c_j \le B
+$$
+
+2. **Singleton Search:** Identify the single best-scoring valid candidate fitting within budget:
+
+$$
+m^* = \arg\max_{m_i \in \mathcal{M} : c_i \le B \land \text{Valid}(m_i)} \text{Score}(m_i)
+$$
+
+3. **Rescue Comparison:** If $\text{Score}(m^*) > \sum_{m_j \in S_{\text{greedy}}} \text{Score}(m_j)$, replace $S_{\text{greedy}}$ with $\{m^*\}$.
 
 #### Theorem 1 (Approximation Bound Guarantee)
 Let $S^*$ be the selection produced by the greedy algorithm with Singleton Rescue. Then:
-$$\sum_{m \in S^*} \text{Score}(m) \ge \frac{1}{2} \text{OPT}_{\text{0/1}}$$
-where $\text{OPT}_{\text{0/1}}$ is the optimal 0/1 knapsack value.
+
+$$
+\sum_{m \in S^*} \text{Score}(m) \ge \frac{1}{2} \, \text{OPT}_{0/1}
+$$
+
+where $\text{OPT}_{0/1}$ is the optimal 0/1 knapsack value.
 
 *Proof Sketch:*  
-Let $m_k$ be the first item rejected by greedy packing due to budget overflow. It is well known from Dantzig (1957) that the fractional relaxation upper bound is:
-$$\text{OPT}_{\text{LP}} = \sum_{j=1}^{k-1} \text{Score}(m_j) + \alpha \cdot \text{Score}(m_k), \quad \alpha \in (0, 1)$$
-Since $\text{OPT}_{\text{0/1}} \le \text{OPT}_{\text{LP}}$:
-$$\text{OPT}_{\text{0/1}} \le \sum_{j=1}^{k-1} \text{Score}(m_j) + \text{Score}(m_k)$$
+Let $m_k$ be the first item rejected by greedy packing due to budget overflow. From Dantzig (1957), the fractional LP relaxation upper bound satisfies:
+
+$$
+\text{OPT}_{\text{LP}} = \sum_{j=1}^{k-1} \text{Score}(m_j) + \alpha \cdot \text{Score}(m_k), \quad \alpha \in (0, 1)
+$$
+
+Since $\text{OPT}_{0/1} \le \text{OPT}_{\text{LP}}$:
+
+$$
+\text{OPT}_{0/1} \le \sum_{j=1}^{k-1} \text{Score}(m_j) + \text{Score}(m_k)
+$$
+
 Because $\sum_{j=1}^{k-1} \text{Score}(m_j) = \text{Score}(S_{\text{greedy}})$ and $\text{Score}(m_k) \le \text{Score}(m^*)$:
-$$\text{OPT}_{\text{0/1}} \le \text{Score}(S_{\text{greedy}}) + \text{Score}(m^*) \le 2 \cdot \max \{ \text{Score}(S_{\text{greedy}}), \text{Score}(m^*) \} = 2 \cdot \text{Score}(S^*)$$
-$$\implies \text{Score}(S^*) \ge \frac{1}{2} \text{OPT}_{\text{0/1}} \quad \blacksquare$$
+
+$$
+\begin{aligned}
+\text{OPT}_{0/1} &\le \text{Score}(S_{\text{greedy}}) + \text{Score}(m^*) \\
+&\le 2 \cdot \max \left\{ \text{Score}(S_{\text{greedy}}), \, \text{Score}(m^*) \right\} \\
+&= 2 \cdot \text{Score}(S^*)
+\end{aligned}
+$$
+
+which directly yields:
+
+$$
+\text{Score}(S^*) \ge \frac{1}{2} \, \text{OPT}_{0/1} \qquad \blacksquare
+$$
 
 Under submodular diminishing returns, this guarantee naturally extends to $(1 - 1/e) \approx 0.632$.
 
 ### 4.3 George-Kim Greedy Residue Packing (Fill Pass)
 
 When a singleton item $m^*$ rescues the context, it consumes $c(m^*) \le B$ tokens, leaving a residual capacity:
-$$R = B - c(m^*)$$
+
+$$
+R = B - c(m^*)
+$$
+
 Rather than discarding this remaining budget, **Pass 5 (Fill Pass)** scans the remaining unselected candidates in density order and greedily packs any eligible candidate satisfying $c_i \le R$. This guarantees maximum token utilization without disturbing the singleton's score dominance.
 
 ### 4.4 Computational Complexity
@@ -209,7 +297,10 @@ Modern LLM inference engines (vLLM, Anthropic, OpenAI, DeepSeek) implement prefi
 ### 5.1 The Two-Partition Topology Theorem
 
 ContextOS orders selected context $S^*$ into two distinct partitions:
-$$S^* = \left[ \Pi_{\text{stable}}, \, \Pi_{\text{variable}} \right]$$
+
+$$
+S^* = \left[ \Pi_{\text{stable}}, \, \Pi_{\text{variable}} \right]
+$$
 
 ```
 +-------------------------------------------------------------------------+
@@ -237,18 +328,31 @@ The current ASC-1 implementation uses deterministic approximations for marginal 
 ### 6.1 Counterfactual Marginal Contribution Formulation
 
 For a completed software engineering trajectory $T = \langle q, C, \mathcal{A}, y, \text{outcome} \rangle$ where $\text{outcome} \in \{0, 1\}$ (test suite pass/fail):
-$$\Delta_i = P(\text{Success} \mid C) - P(\text{Success} \mid C \setminus \{m_i\})$$
+
+$$
+\Delta_i = P(\text{Success} \mid C) - P(\text{Success} \mid C \setminus \{m_i\})
+$$
 
 We record longitudinal telemetry tuples:
-$$\mathcal{D} = \left\{ \left( q, \, S, \, m_i, \, c_i, \, \text{Rank}(m_i), \, \Delta_i \right) \right\}$$
+
+$$
+\mathcal{D} = \left\{ \left( q, \, S, \, m_i, \, c_i, \, \text{Rank}(m_i), \, \Delta_i \right) \right\}
+$$
 
 ### 6.2 Contextual Bandit Objective
 
 We parameterize a scoring model $\psi_\theta(q, S, m_i)$ to predict the marginal probability contribution $\hat{\Delta}_i$:
-$$\theta^* = \arg\min_\theta \sum_{(q, S, m_i, \Delta_i) \in \mathcal{D}} \ell\left( \psi_\theta(q, S, m_i), \, \Delta_i \right) + \Omega(\theta)$$
+
+$$
+\theta^* = \arg\min_\theta \sum_{(q, S, m_i, \Delta_i) \in \mathcal{D}} \ell\left( \psi_\theta(q, S, m_i), \, \Delta_i \right) + \Omega(\theta)
+$$
 
 Once trained, Pass 3 substitutes:
-$$\rho_i = \frac{\max(0, \, \psi_\theta(q, S, m_i))}{c_i}$$
+
+$$
+\rho_i = \frac{\max(0, \, \psi_\theta(q, S, m_i))}{c_i}
+$$
+
 This smoothly transitions ContextOS from an axiomatic rule-based optimizer into a learned, data-driven context policy.
 
 ---
@@ -275,12 +379,24 @@ We establish the standard benchmarking methodology for ContextOS evaluation acro
 ### 8.1 Key Headline Metrics
 
 1. **Context Efficiency ($CE$):**
-   $$CE = \frac{\text{Task Success Rate}}{\text{Input Tokens} / 1000}$$
+
+$$
+CE = \frac{\text{Task Success Rate}}{\text{Input Tokens} / 1000}
+$$
+
 2. **Minimum Sufficient Budget ($B_\tau$):**
-   $$B_\tau = \min \{ B \in \mathbb{N}^+ : P(\text{Success} \mid B) \ge \tau \}$$
+
+$$
+B_\tau = \min \{ B \in \mathbb{N}^+ : P(\text{Success} \mid B) \ge \tau \}
+$$
+
 3. **Context Waste Ratio ($W$):**
-   $$W = 1 - \frac{\text{Tokens of memories referenced in successful diff}}{\text{Total context tokens injected}}$$
-4. **Rediscovery Rate ($R_{\text{rediscovery}}$):**
+
+$$
+W = 1 - \frac{\text{Tokens of memories referenced in successful diff}}{\text{Total context tokens injected}}
+$$
+
+4. **Rediscovery Rate ($R_{\text{rediscovery}}$):**  
    Frequency with which an agent re-executes tests or re-reads code to rediscover a decision already documented in a prior session.
 
 ### 8.2 Longitudinal Agent Handoff Benchmark

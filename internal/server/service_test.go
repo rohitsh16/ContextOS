@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"contextos/internal/store"
 )
 
 func TestServicePersistenceAndCache(t *testing.T) {
@@ -116,4 +118,114 @@ func runGit(dir string, args ...string) error {
 	c := exec.Command("git", args...)
 	c.Dir = dir
 	return c.Run()
+}
+
+func TestFileStoreService(t *testing.T) {
+	root := t.TempDir()
+	dataDir := t.TempDir()
+	if err := runGit(root, "init", "-q"); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "config", "user.email", "test@example.com"); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "config", "user.name", "Test"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nfunc main() {}\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "add", "."); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "commit", "-qm", "init"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize Service using pure-Go FileStore
+	s, err := NewWithOptions(dataDir, root, Options{StorageType: "file"})
+	if err != nil {
+		t.Fatalf("NewWithOptions(file) failed: %v", err)
+	}
+	defer s.Close()
+
+	if err := s.Index(); err != nil {
+		t.Fatalf("Index failed: %v", err)
+	}
+	if _, err := s.Remember("decision", "Use pure Go file storage for zero DB dependencies", "user", "repo", "", 0.95, nil); err != nil {
+		t.Fatalf("Remember failed: %v", err)
+	}
+	p, err := s.Plan("zero DB dependencies", "gpt-5.3-codex", 4000)
+	if err != nil || len(p.Selected) == 0 {
+		t.Fatalf("Plan failed: %+v %v", p, err)
+	}
+	if p.CacheHit {
+		t.Fatal("first plan should not be cache hit")
+	}
+
+	p2, err := s.Plan("zero DB dependencies", "gpt-5.3-codex", 4000)
+	if err != nil || !p2.CacheHit {
+		t.Fatalf("second plan expected cache hit: %+v %v", p2, err)
+	}
+
+	st, err := s.Stats()
+	if err != nil || st["memories"].(int) != 1 {
+		t.Fatalf("Stats failed: %+v %v", st, err)
+	}
+}
+
+func TestAutoPruneFeatureFlag(t *testing.T) {
+	root := t.TempDir()
+	dbPath := filepath.Join(root, "ctx.db")
+	if err := runGit(root, "init", "-q"); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "config", "user.email", "test@example.com"); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "config", "user.name", "Test"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nfunc main() {}\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "add", "."); err != nil {
+		t.Fatal(err)
+	}
+	if err := runGit(root, "commit", "-qm", "init"); err != nil {
+		t.Fatal(err)
+	}
+
+	// 1. By default, AutoPrune is false
+	sDefault, err := New(dbPath, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sDefault.AutoPrune {
+		t.Fatal("expected AutoPrune to be false by default")
+	}
+	sDefault.Close()
+
+	// 2. Opt-in: AutoPrune is true
+	sOptIn, err := NewWithOptions(dbPath, root, Options{AutoPrune: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sOptIn.Close()
+	if !sOptIn.AutoPrune {
+		t.Fatal("expected AutoPrune to be true when opted in")
+	}
+
+	// 3. Test explicit GC execution
+	rep, err := sOptIn.GC(store.PruneOptions{
+		RepoID:          sOptIn.RepoID,
+		CurrentRevision: sOptIn.Repo.Revision,
+		DryRun:          true,
+	})
+	if err != nil {
+		t.Fatalf("GC failed: %v", err)
+	}
+	if !rep.DryRun {
+		t.Fatal("expected DryRun = true")
+	}
 }

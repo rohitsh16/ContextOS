@@ -12,12 +12,17 @@ import (
 
 func main() {
 	repo := flag.String("repo", ".", "repository path")
-	dbPath := flag.String("db", "", "SQLite database path")
+	dbPath := flag.String("db", "", "SQLite or file store database/data path")
+	storage := flag.String("storage", "", "storage engine: sqlite or file (or CONTEXTOS_STORAGE)")
+	autoPrune := flag.Bool("auto-prune", false, "enable automated background pruning of stale events/traces")
 	index := flag.Bool("index", false, "index repository and exit")
 	mcpMode := flag.Bool("mcp", false, "run MCP JSON-RPC over stdio")
 	flag.Parse()
 	rp, _ := filepath.Abs(*repo)
 	dp := *dbPath
+	if dp == "" && os.Getenv("CONTEXTOS_DB") != "" {
+		dp = os.Getenv("CONTEXTOS_DB")
+	}
 	if dp == "" {
 		dp = server.DefaultDBPath()
 	}
@@ -25,7 +30,14 @@ func main() {
 		dp = filepath.Join(".contextos", "context.db")
 		_ = os.MkdirAll(filepath.Dir(dp), 0700)
 	}
-	s, e := server.New(dp, rp)
+	stg := *storage
+	if stg == "" && os.Getenv("CONTEXTOS_STORAGE") != "" {
+		stg = os.Getenv("CONTEXTOS_STORAGE")
+	}
+	s, e := server.NewWithOptions(dp, rp, server.Options{
+		StorageType: stg,
+		AutoPrune:   *autoPrune,
+	})
 	if e != nil {
 		fmt.Fprintln(os.Stderr, e)
 		os.Exit(1)
