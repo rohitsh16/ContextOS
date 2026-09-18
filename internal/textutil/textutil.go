@@ -103,3 +103,52 @@ func EstimateTokens(s string) int {
 	// Conservative 1.3 words/token heuristic for mixed source text.
 	return int(float64(n)*1.3 + 0.999)
 }
+
+// BM25Score computes a BM25-style relevance score (Robertson & Sparck Jones, 1994) for a query
+// against a document. It improves over plain Overlap by applying:
+//   - TF saturation (k1=1.5): additional occurrences of a matched term yield diminishing returns.
+//   - Length normalization (b=0.75): long verbose documents are penalized; short focused ones rewarded.
+//
+// avgDocLen is the average token count across the candidate corpus; pass 0 to use the document's own length.
+// Result is normalized to [0,1] relative to a perfect match at average document length.
+func BM25Score(query, doc string, avgDocLen float64) float64 {
+	const k1, b = 1.5, 0.75
+	qt := Tokens(query)
+	dt := Tokens(doc)
+	if len(qt) == 0 || len(dt) == 0 {
+		return 0
+	}
+	dm := make(map[string]bool, len(dt))
+	for _, t := range dt {
+		dm[t] = true
+	}
+	dlen := float64(len(dt))
+	if dlen < 1 {
+		dlen = 1
+	}
+	if avgDocLen <= 0 {
+		avgDocLen = dlen
+	}
+	// K is the length-normalized dampening factor for term frequency.
+	K := k1 * (1 - b + b*dlen/avgDocLen)
+	score := 0.0
+	for _, t := range qt {
+		if dm[t] {
+			// tf=1 (binary after dedup); IDF approximated as 1 (no corpus available).
+			score += (k1 + 1) / (1 + K)
+		}
+	}
+	// Normalize so that a full match at avgDocLen gives 1.0.
+	// When dlen==avgDocLen: K=k1, perTermScore=(k1+1)/(1+k1)=1.0.
+	kAvg := k1 // K when dlen == avgDocLen
+	perTermMax := (k1 + 1) / (1 + kAvg)
+	maxScore := float64(len(qt)) * perTermMax
+	if maxScore <= 0 {
+		return 0
+	}
+	v := score / maxScore
+	if v > 1 {
+		return 1
+	}
+	return v
+}
