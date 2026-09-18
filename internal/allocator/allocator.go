@@ -76,10 +76,22 @@ func kindBoost(kind string) float64 {
 	}
 }
 
+// confWeight converts a raw Memory.Confidence value to a multiplicative score gate in [0.1, 1.0].
+// When Confidence is unset (0.0), returns 1.0 for backward compatibility with memories stored before
+// confidence tracking was introduced. Positive values are floored at 0.1 to prevent total suppression
+// of uncertain-but-useful memories.
+func confWeight(c float64) float64 {
+	if c <= 0 {
+		return 1.0 // Not specified → full confidence assumed.
+	}
+	return math.Max(0.1, c)
+}
+
 // Score evaluates a single candidate memory against a planning request.
 // It computes BM25 lexical overlap, hash-based semantic similarity, authority weighting,
-// graph centrality, and staleness risk. The Score and Density fields are preliminary;
-// Plan() overwrites them with RRF-fused values after cross-candidate ranking.
+// confidence weighting, graph centrality, and staleness risk.
+// The Score and Density fields are preliminary; Plan() overwrites them with RRF-fused values
+// after cross-candidate ranking.
 func Score(req Request, m model.Memory) model.Candidate {
 	tok := m.TokenCost
 	if tok <= 0 {
@@ -90,10 +102,11 @@ func Score(req Request, m model.Memory) model.Candidate {
 	sem := textutil.HashSemantic(req.Task, m.Content)
 	freshRisk, hardStale := stale(m, req.RepoRevision)
 	auth := authorityScore(m.Authority)
+	conf := confWeight(m.Confidence)
 	reuse := math.Min(1, float64(m.ReuseCount)/10.0)
 	affinity := 0.6*lex + 0.4*kindBoost(m.Kind)
 
-	// Graph centrality proxy: structural path indicators (e.g. file paths, package refs).
+	// Graph centrality proxy: count structural path indicators (file paths, package refs).
 	lower := strings.ToLower(m.Content)
 	pathSeps := strings.Count(lower, "/") + strings.Count(lower, ".") + strings.Count(lower, "::")
 	graph := 0.0
@@ -109,7 +122,7 @@ func Score(req Request, m model.Memory) model.Candidate {
 	}
 	cacheValue := reuse*0.8 + 0.2*math.Min(1, float64(tok)/8000.0)
 
-	// Preliminary linear score (used as stable tiebreaker; overwritten by Plan via RRF).
+	// Preliminary linear score (stable tiebreaker; overwritten by Plan() via RRF × confidence).
 	score := 1.15*sem + 1.0*lex + 0.9*affinity + 0.75*auth + 0.6*evidence + 0.45*reuse + 0.35*graph - 1.5*freshRisk - 0.15*math.Min(1, float64(tok)/4000.0)
 	density := score / float64(max(1, tok))
 
@@ -133,7 +146,7 @@ func Score(req Request, m model.Memory) model.Candidate {
 	return model.Candidate{
 		Source: src, Location: m.Location, ID: m.ID, Kind: m.Kind, Content: m.Content,
 		Tokens: tok, Semantic: sem, Lexical: lex, Graph: graph,
-		Freshness: 1 - freshRisk, Authority: auth, Reuse: reuse,
+		Freshness: 1 - freshRisk, Authority: auth, Confidence: conf, Reuse: reuse,
 		TaskAffinity: affinity, Evidence: evidence, StaleRisk: freshRisk,
 		CacheValue: cacheValue, MarginalEstimate: score, Density: density, Score: score, Reason: reason,
 	}
@@ -141,13 +154,13 @@ func Score(req Request, m model.Memory) model.Candidate {
 
 // rrfScore computes Reciprocal Rank Fusion (Cormack et al., 2009) across 3 signal rankings.
 // Each signal contributes 1/(k+rank) where k=60 dampens single-list dominance.
-// RRF is scale-independent: it fuses signals by position rather than raw score magnitude.
+// RRF is scale-independent: it fuses signals by rank position rather than raw score magnitude.
 func rrfScore(semRank, lexRank, affRank int) float64 {
 	const k = 60.0
 	return 1/(k+float64(semRank)) + 1/(k+float64(lexRank)) + 1/(k+float64(affRank))
 }
 
-// rankBy returns index permutation sorted descending by the given less comparator.
+// rankBy returns an index permutation [0..n-1] sorted descending by the given less comparator.
 func rankBy(n int, less func(i, j int) bool) []int {
 	idx := make([]int, n)
 	for i := range idx {
@@ -158,16 +171,21 @@ func rankBy(n int, less func(i, j int) bool) []int {
 }
 
 // Plan executes the budget-constrained context optimization algorithm across a collection of memories.
-// It uses three mathematically-grounded improvements:
+// It applies four mathematically-grounded passes in sequence:
 //
-//  1. BM25 Lexical Scoring: TF saturation + length normalization (Robertson & Sparck Jones 1994).
+//  1. BM25 Lexical Scoring  — TF saturation + length normalization (Robertson & Sparck Jones 1994).
+//     Replaces raw Jaccard overlap; penalizes verbose docs, rewards precise term matches.
 //
-//  2. Reciprocal Rank Fusion: combines semantic, lexical, and affinity signals by rank position
-//     rather than raw score, eliminating inter-signal scale bias (Cormack et al., 2009).
+//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position,
+//     not raw score, eliminating inter-signal scale bias (Cormack et al., 2009).
+//     Gated multiplicatively by authority × freshness × confidence.
 //
-//  3. Singleton Rescue: after greedy packing, if a single item that fits the full budget has
-//     a higher score than the entire current selection, it replaces it. This provides the
-//     (1-1/e) ≈ 0.63 approximation guarantee for the knapsack problem (Sviridenko 2004).
+//  3. Singleton Rescue — after greedy packing, if a single item that fits the full budget has a
+//     higher aggregate score than the entire greedy selection, it replaces the selection.
+//     Provides the (1-1/e) ≈ 0.63 approximation guarantee (Sviridenko 2004).
+//
+//  4. Fill Pass — after the primary selection (including any rescue), fill remaining budget
+//     with the highest-density eligible items not yet selected.
 func Plan(req Request, ms []model.Memory) model.ContextPlan {
 	if req.Budget <= 0 {
 		req.Budget = 4000
@@ -191,7 +209,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		return model.ContextPlan{Task: req.Task, Budget: req.Budget}
 	}
 
-	// Pass 2: rank candidates by each signal independently for RRF fusion.
+	// Pass 2: rank candidates by each signal independently, then compute RRF-fused scores.
 	n := len(cands)
 	semRanks := make([]int, n)
 	lexRanks := make([]int, n)
@@ -207,15 +225,14 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		affRanks[i] = rank + 1
 	}
 
-	// Recompute Score and Density using RRF × authority × freshness.
-	// Authority and freshness multiplicatively gate the RRF signal:
-	// an invalid or low-authority item cannot win even if its content is on-topic.
+	// RRF × authority × freshness × confidence: any hard-rejected item cannot win even if
+	// its content is on-topic. Confidence down-weights low-certainty memories.
 	for i := range cands {
 		rrf := rrfScore(semRanks[i], lexRanks[i], affRanks[i])
-		fused := rrf * cands[i].Authority * cands[i].Freshness
+		fused := rrf * cands[i].Authority * cands[i].Freshness * cands[i].Confidence
 		cands[i].Score = fused
 		cands[i].Density = fused / float64(max(1, cands[i].Tokens))
-		// Hard-rejected items sort to the bottom.
+		// Hard-rejected items sort to the bottom regardless of content quality.
 		if strings.HasPrefix(cands[i].Reason, "rejected:") {
 			cands[i].Density = math.Inf(-1)
 		}
@@ -240,22 +257,20 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 	}
 
 	// Pass 4: singleton rescue — (1-1/e) knapsack approximation guarantee.
-	// If a single item that fits the full budget has a higher aggregate score than the entire
-	// greedy selection, replace the selection with that single item.
+	// If a single valid item fits the full budget and its score exceeds the sum of the current
+	// greedy selection, replace the entire selection with that singleton.
 	// (Sviridenko 2004; Ghosh & McGregor 2024, O(n²) complexity bound.)
 	selectedScore := 0.0
 	for _, c := range selected {
 		selectedScore += c.Score
 	}
-	// Singleton rescue considers all non-selected items that are NOT hard-rejected
-	// (i.e., items rejected only by budget are still eligible).
 	var bestSingleton *model.Candidate
 	for i := range cands {
 		c := &cands[i]
 		if c.Selected {
 			continue
 		}
-		// Hard-rejected items (invalidated / low authority) cannot participate in rescue.
+		// Only hard-rejected items (not budget-rejected) are excluded from rescue consideration.
 		if c.Reason == "rejected: explicitly invalidated" || c.Reason == "rejected: low authority" {
 			continue
 		}
@@ -285,8 +300,31 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		}
 	}
 
-	// Pass 5: partition selected into stable prefix (maximizes KV-cache reuse) and variable context.
-	// Stable prefix = invariant facts/decisions/constraints; variable = dynamic runtime state.
+	// Pass 5: fill pass — after singleton rescue, fill remaining budget with the highest-density
+	// eligible unselected items. Items are already density-sorted (from Pass 3), so iteration
+	// order is optimal. Hard-rejected items are never reconsidered.
+	remaining := req.Budget - used
+	for i := range cands {
+		if remaining <= 0 {
+			break
+		}
+		if cands[i].Selected {
+			continue
+		}
+		if cands[i].Reason == "rejected: explicitly invalidated" || cands[i].Reason == "rejected: low authority" {
+			continue
+		}
+		if cands[i].Tokens <= remaining {
+			cands[i].Selected = true
+			cands[i].Reason = "selected: fill pass"
+			selected = append(selected, cands[i])
+			used += cands[i].Tokens
+			remaining -= cands[i].Tokens
+		}
+	}
+
+	// Pass 6: partition selected into stable prefix (maximises KV-cache reuse) and variable context.
+	// Stable prefix = invariant decisions/constraints/code/facts; variable = dynamic runtime state.
 	sort.SliceStable(selected, func(i, j int) bool {
 		isStable := func(c model.Candidate) int {
 			if c.Kind == "decision" || c.Kind == "constraint" || c.Kind == "code" || c.Kind == "fact" {
@@ -311,7 +349,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 	}
 }
 
-// max returns the greater of two integers; used to avoid zero-division when calculating token density.
+// max returns the greater of two integers; guards against zero-division in token density calculations.
 func max(a, b int) int {
 	if a > b {
 		return a

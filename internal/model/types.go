@@ -30,6 +30,7 @@ type Candidate struct {
 	Graph            float64 `json:"graph"`
 	Freshness        float64 `json:"freshness"`
 	Authority        float64 `json:"authority"`
+	Confidence       float64 `json:"confidence"`
 	Reuse            float64 `json:"reuse"`
 	TaskAffinity     float64 `json:"task_affinity"`
 	Evidence         float64 `json:"evidence"`
