@@ -29,10 +29,14 @@ import "C"
 
 import (
 	"fmt"
+	"sync"
 	"unsafe"
 )
 
-type DB struct{ ptr *C.sqlite3 }
+type DB struct {
+	sync.Mutex
+	ptr *C.sqlite3
+}
 
 func Open(path string) (*DB, error) {
 	cpath := C.CString(path)
@@ -54,13 +58,20 @@ func Open(path string) (*DB, error) {
 }
 
 func (d *DB) Close() {
-	if d != nil && d.ptr != nil {
+	if d == nil {
+		return
+	}
+	d.Lock()
+	defer d.Unlock()
+	if d.ptr != nil {
 		C.ctx_close(d.ptr)
 		d.ptr = nil
 	}
 }
 
 func (d *DB) Exec(sql string, args ...any) (int64, error) {
+	d.Lock()
+	defer d.Unlock()
 	stmtSQL := C.CString(sql)
 	defer C.free(unsafe.Pointer(stmtSQL))
 	var stmt *C.sqlite3_stmt
@@ -85,6 +96,8 @@ func (d *DB) Exec(sql string, args ...any) (int64, error) {
 }
 
 func (d *DB) ExecScript(sql string) error {
+	d.Lock()
+	defer d.Unlock()
 	csql := C.CString(sql)
 	defer C.free(unsafe.Pointer(csql))
 	var cerr *C.char
@@ -102,6 +115,8 @@ func (d *DB) ExecScript(sql string) error {
 type Row []string
 
 func (d *DB) Query(sql string, args ...any) ([]Row, error) {
+	d.Lock()
+	defer d.Unlock()
 	stmtSQL := C.CString(sql)
 	defer C.free(unsafe.Pointer(stmtSQL))
 	var stmt *C.sqlite3_stmt

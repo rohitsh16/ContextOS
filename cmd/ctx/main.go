@@ -16,6 +16,7 @@ import (
 	"contextos/internal/router"
 	"contextos/internal/server"
 	"contextos/internal/store"
+	"contextos/internal/ui"
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 	sub := os.Args[1]
 	fs := flag.NewFlagSet(sub, flag.ExitOnError)
 	repo := fs.String("repo", ".", "repository path")
+	port := fs.Int("port", 8765, "HTTP server port for UI dashboard")
 	dbPath := fs.String("db", "", "database or storage path")
 	storage := fs.String("storage", "", "storage engine: sqlite or file (or CONTEXTOS_STORAGE)")
 	autoPrune := fs.Bool("auto-prune", false, "opt-in automatic storage pruning (or CONTEXTOS_AUTO_PRUNE=1)")
@@ -71,6 +73,25 @@ func main() {
 		}
 		// Do not print anything but JSON to stdout: required by supported hooks.
 		fmt.Fprintln(os.Stdout, string(out))
+		return
+	}
+	if sub == "ui" || sub == "dashboard" {
+		rp, _ := filepath.Abs(*repo)
+		if dp == "" {
+			dp = server.DefaultDBPath()
+		}
+		s, e := server.NewWithOptions(dp, rp, server.Options{
+			StorageType: stg,
+			AutoPrune:   *autoPrune,
+		})
+		if e != nil {
+			die(e)
+		}
+		defer s.Close()
+		fmt.Printf("ContextOS Dashboard starting on http://localhost:%d\n", *port)
+		if err := ui.StartServer(s, rp, *port); err != nil {
+			die(err)
+		}
 		return
 	}
 	if sub == "setup" {
@@ -354,6 +375,7 @@ Commands:
   ctx route      -task "..." -budget 4000               Recommend optimal model
   ctx install    -repo PATH -agent NAME                 Install agent hook & MCP
   ctx setup      -repo PATH                             Index + install all integrations
+  ctx ui         -repo PATH [-port 8765]                Launch real-time web UI dashboard
 
 Storage & Feature Flags:
   -storage sqlite|file   Choose storage engine (default: sqlite, or file for zero-DB)

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "contextos": {
+      "args": [
+        "-repo",
+        ".",
+        "-mcp"
+      ],
+      "command": "/Users/rohitshukla/Desktop/ContextOS/bin/contextd",
+      "type": "stdio"
+    }
+  }
+}

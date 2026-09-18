@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'beforeSubmitPrompt'"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'postToolUse'"
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'postToolUseFailure'"
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'sessionStart'"
+      }
+    ],
+    "stop": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'stop'"
+      }
+    ],
+    "workspaceOpen": [
+      {
+        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'cursor' -event 'workspaceOpen'"
+      }
+    ]
+  },
+  "version": 1
+}

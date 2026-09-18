@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContextOS — Real-World Agent Context Runtime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar / Top Header -->
+    <header class="top-nav">
+      <div class="brand-group">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#818cf8"/>
+                <stop offset="0.5" stop-color="#38bdf8"/>
+                <stop offset="1" stop-color="#34d399"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <span class="brand-name">ContextOS</span>
+          <span class="brand-badge">ASC-1 Engine</span>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist">
+        <button class="nav-tab active" data-tab="playground" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Allocator Playground
+        </button>
+        <button class="nav-tab" data-tab="memories" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Memory Hub
+        </button>
+        <button class="nav-tab" data-tab="sessions" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Sessions & Traces
+        </button>
+        <button class="nav-tab" data-tab="integrations" role="tab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          IDE Integrations
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="status-indicator">
+          <span class="status-dot pulse"></span>
+          <span id="storage-engine-label">SQLite (WAL)</span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-open-add-memory">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Remember
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh" title="Refresh state">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Telemetry Metric Ribbon -->
+    <div class="metric-ribbon">
+      <div class="metric-card">
+        <div class="metric-label">REPOSITORY CONTEXT</div>
+        <div class="metric-value font-mono" id="stat-repo-branch">—</div>
+        <div class="metric-sub" id="stat-repo-commit">—</div>
+      </div>
+      <div class="metric-card highlight-emerald">
+        <div class="metric-label">TOKEN REDUCTION</div>
+        <div class="metric-value font-mono" id="stat-token-savings">73.4%</div>
+        <div class="metric-sub" id="stat-tokens-saved">~18.4k tokens saved</div>
+      </div>
+      <div class="metric-card highlight-indigo">
+        <div class="metric-label">ENGINEERING MEMORY</div>
+        <div class="metric-value font-mono" id="stat-total-memories">0</div>
+        <div class="metric-sub" id="stat-memories-breakdown">0 decisions · 0 failures</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">ACTIVE WORK ITEM</div>
+        <div class="metric-value font-mono text-truncate" id="stat-work-item">None</div>
+        <div class="metric-sub" id="stat-work-item-time">Ready for tasks</div>
+      </div>
+    </div>
+
+    <!-- Main Views Area -->
+    <main class="main-content">
+      <!-- TAB 1: ALLOCATOR PLAYGROUND -->
+      <section id="view-playground" class="tab-view active">
+        <div class="grid-layout-two-col">
+          <!-- Left Configuration Panel -->
+          <div class="card panel-config">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                ASC-1 Allocator Simulator
+              </h2>
+              <span class="badge badge-info">6-Pass Optimization</span>
+            </div>
+
+            <div class="card-body">
+              <div class="form-group">
+                <label for="input-task-prompt">Task Objective / Prompt</label>
+                <textarea id="input-task-prompt" rows="3" class="input-text" placeholder="e.g. Implement distributed lock failover with Redis redlock"></textarea>
+              </div>
+
+              <!-- Quick task presets -->
+              <div class="preset-chips">
+                <span class="preset-label">Presets:</span>
+                <button class="chip" data-preset="Implement distributed lock with Redis redlock">Redis Redlock</button>
+                <button class="chip" data-preset="Fix Kafka consumer race condition on partition rebalance">Kafka Rebalance</button>
+                <button class="chip" data-preset="Pluggable FileStore and SQLite storage engine migration">Storage Migration</button>
+                <button class="chip" data-preset="Antigravity IDE lifecycle hook context injection">Antigravity Hooks</button>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="select-target-model">Target Agent / Model</label>
+                  <select id="select-target-model" class="input-select">
+                    <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Anthropic)</option>
+                    <option value="gpt-5-codex">Codex / GPT-5 (OpenAI)</option>
+                    <option value="gemini-2-5-pro">Gemini 2.5 Pro (Google)</option>
+                    <option value="deepseek-r1">DeepSeek R1 (Reasoning)</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <div class="slider-header">
+                    <label for="range-budget">Token Budget</label>
+                    <span class="slider-val font-mono" id="label-budget-val">2,500 tok</span>
+                  </div>
+                  <input type="range" id="range-budget" min="400" max="8000" step="100" value="2500" class="input-range">
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-block" id="btn-run-plan">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Assemble Minimum Sufficient Context
+              </button>
+
+              <!-- Algorithm Steps Pipeline -->
+              <div class="pipeline-tracker">
+                <div class="pipeline-title">6-Pass Algorithmic Pipeline</div>
+                <div class="pipeline-steps">
+                  <div class="pstep completed">
+                    <span class="pdot">1</span>
+                    <span class="ptext">BM25 Lexical</span>
+                  </div>
+                  <div class="pstep completed">
+                    <span class="pdot">2</span>
+                    <span class="ptext">HashSemantic</span>
+                  </div>
+                  <div class="pstep completed">
+                    <span class="pdot">3</span>
+                    <span class="ptext">RRF Fusion</span>
+                  </div>
+                  <div class="pstep completed">
+                    <span class="pdot">4</span>
+                    <span class="ptext">Knapsack Pack</span>
+                  </div>
+                  <div class="pstep completed">
+                    <span class="pdot">5</span>
+                    <span class="ptext">(1-1/e) Rescue</span>
+                  </div>
+                  <div class="pstep completed">
+                    <span class="pdot">6</span>
+                    <span class="ptext">KV Cache Partition</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Budget Utilization Gauge -->
+              <div class="budget-gauge-box">
+                <div class="gauge-header">
+                  <span>Budget Utilization</span>
+                  <span class="font-mono" id="gauge-numbers">0 / 2500 tokens (0%)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="gauge-fill" style="width: 0%;"></div>
+                </div>
+                <div class="gauge-footer">
+                  <span class="badge-dot stable-prefix-dot">Stable Prefix (Cache-friendly)</span>
+                  <span class="badge-dot variable-ctx-dot">Variable Context</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Results Panel -->
+          <div class="card panel-results">
+            <div class="card-header flex-between">
+              <div class="tab-pills">
+                <button class="pill active" data-subtab="candidates">Selected Candidates (<span id="cand-count">0</span>)</button>
+                <button class="pill" data-subtab="preview">Rendered Prompt Preview</button>
+              </div>
+              <button class="btn btn-secondary btn-xs" id="btn-copy-preview">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Context
+              </button>
+            </div>
+
+            <div class="card-body scrollable">
+              <!-- Subtab 1: Candidates Breakdown Table -->
+              <div id="subtab-candidates" class="subtab-content active">
+                <div class="table-responsive">
+                  <table class="data-table" id="table-candidates">
+                    <thead>
+                      <tr>
+                        <th>Status</th>
+                        <th>Kind</th>
+                        <th>Content / Title</th>
+                        <th>Tokens</th>
+                        <th>RRF Score</th>
+                        <th>Density</th>
+                      </tr>
+                    </thead>
+                    <tbody id="candidates-tbody">
+                      <tr>
+                        <td colspan="6" class="text-center text-muted">Click "Assemble Context" to execute ASC-1 context allocation</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Subtab 2: Rendered Output Preview -->
+              <div id="subtab-preview" class="subtab-content">
+                <pre class="code-preview font-mono" id="plan-rendered-preview">/* Ready to render minimum-sufficient context */</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: MEMORY HUB -->
+      <section id="view-memories" class="tab-view">
+        <div class="card">
+          <div class="card-header flex-between">
+            <div class="filter-group">
+              <button class="filter-btn active" data-kind="all">All Memories</button>
+              <button class="filter-btn" data-kind="decision">Decisions</button>
+              <button class="filter-btn" data-kind="failure">Negative Knowledge</button>
+              <button class="filter-btn" data-kind="constraint">Constraints</button>
+              <button class="filter-btn" data-kind="fact">Facts</button>
+              <button class="filter-btn" data-kind="code">Code AST</button>
+            </div>
+            <div class="search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="memory-search-input" placeholder="Search engineering state...">
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="memory-grid" id="memory-cards-container">
+              <!-- Rendered via app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SESSIONS & HOOK TRACES -->
+      <section id="view-sessions" class="tab-view">
+        <div class="grid-layout-two-col">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Agent Sessions</h3>
+              <span class="badge badge-info" id="session-count">0 sessions</span>
+            </div>
+            <div class="card-body scrollable" id="sessions-container">
+              <!-- Rendered via app.js -->
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Hook Ingestion & Event Stream</h3>
+              <span class="badge badge-info" id="event-count">0 events</span>
+            </div>
+            <div class="card-body scrollable" id="events-container">
+              <!-- Rendered via app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: IDE INTEGRATIONS -->
+      <section id="view-integrations" class="tab-view">
+        <div class="integrations-grid">
+          <!-- Antigravity Card -->
+          <div class="integration-card" id="card-antigravity">
+            <div class="int-header">
+              <div class="int-icon antigravity-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+              </div>
+              <div>
+                <h3 class="int-name">Antigravity IDE</h3>
+                <span class="int-desc">Google Antigravity & AGY agent</span>
+              </div>
+              <span class="badge int-status-badge" id="badge-antigravity">Checking...</span>
+            </div>
+            <div class="int-body">
+              <p>Configures standard lifecycle hooks (<code>PreInvocation</code>, <code>PostToolUse</code>, <code>Stop</code>), MCP server, and guidance rules in <code>.agents/</code>.</p>
+              <div class="int-files">
+                <div class="file-item font-mono">📁 .agents/mcp_config.json</div>
+                <div class="file-item font-mono">📁 .agents/hooks.json</div>
+                <div class="file-item font-mono">📄 .agents/rules/contextos.md</div>
+              </div>
+            </div>
+            <div class="int-footer">
+              <button class="btn btn-primary btn-sm btn-install-agent" data-agent="antigravity">Configure Antigravity</button>
+            </div>
+          </div>
+
+          <!-- Cursor Card -->
+          <div class="integration-card" id="card-cursor">
+            <div class="int-header">
+              <div class="int-icon cursor-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 3 10 21 14 14 21 10 3 3"/></svg>
+              </div>
+              <div>
+                <h3 class="int-name">Cursor</h3>
+                <span class="int-desc">Cursor AI Code Editor</span>
+              </div>
+              <span class="badge int-status-badge" id="badge-cursor">Checking...</span>
+            </div>
+            <div class="int-body">
+              <p>Injects context on <code>beforeSubmitPrompt</code> with <code>additional_context</code>, configures MCP stdio, and defines <code>.cursor/rules/contextos.mdc</code>.</p>
+              <div class="int-files">
+                <div class="file-item font-mono">📁 .cursor/mcp.json</div>
+                <div class="file-item font-mono">📁 .cursor/hooks.json</div>
+                <div class="file-item font-mono">📄 .cursor/rules/contextos.mdc</div>
+              </div>
+            </div>
+            <div class="int-footer">
+              <button class="btn btn-primary btn-sm btn-install-agent" data-agent="cursor">Configure Cursor</button>
+            </div>
+          </div>
+
+          <!-- Claude Code Card -->
+          <div class="integration-card" id="card-claude">
+            <div class="int-header">
+              <div class="int-icon claude-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div>
+                <h3 class="int-name">Claude Code</h3>
+                <span class="int-desc">Anthropic CLI agent</span>
+              </div>
+              <span class="badge int-status-badge" id="badge-claude">Checking...</span>
+            </div>
+            <div class="int-body">
+              <p>Uses <code>SessionStart</code> and <code>UserPromptSubmit</code> hooks with <code>hookSpecificOutput</code> context injection and project-level <code>.mcp.json</code>.</p>
+              <div class="int-files">
+                <div class="file-item font-mono">📁 .claude/settings.local.json</div>
+                <div class="file-item font-mono">📁 .mcp.json</div>
+              </div>
+            </div>
+            <div class="int-footer">
+              <button class="btn btn-primary btn-sm btn-install-agent" data-agent="claude">Configure Claude</button>
+            </div>
+          </div>
+
+          <!-- Codex Card -->
+          <div class="integration-card" id="card-codex">
+            <div class="int-header">
+              <div class="int-icon codex-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              </div>
+              <div>
+                <h3 class="int-name">Codex</h3>
+                <span class="int-desc">OpenAI terminal assistant</span>
+              </div>
+              <span class="badge int-status-badge" id="badge-codex">Checking...</span>
+            </div>
+            <div class="int-body">
+              <p>Installs <code>.codex/config.toml</code> and durable hook interception in <code>.codex/hooks.json</code>.</p>
+              <div class="int-files">
+                <div class="file-item font-mono">📁 .codex/config.toml</div>
+                <div class="file-item font-mono">📁 .codex/hooks.json</div>
+              </div>
+            </div>
+            <div class="int-footer">
+              <button class="btn btn-primary btn-sm btn-install-agent" data-agent="codex">Configure Codex</button>
+            </div>
+          </div>
+
+          <!-- Gemini CLI Card -->
+          <div class="integration-card" id="card-gemini">
+            <div class="int-header">
+              <div class="int-icon gemini-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+              </div>
+              <div>
+                <h3 class="int-name">Gemini CLI</h3>
+                <span class="int-desc">Google Gemini developer CLI</span>
+              </div>
+              <span class="badge int-status-badge" id="badge-gemini">Checking...</span>
+            </div>
+            <div class="int-body">
+              <p>Configures integrated MCP server and <code>SessionStart</code>/<code>BeforeAgent</code> hooks in <code>.gemini/settings.json</code>.</p>
+              <div class="int-files">
+                <div class="file-item font-mono">📁 .gemini/settings.json</div>
+              </div>
+            </div>
+            <div class="int-footer">
+              <button class="btn btn-primary btn-sm btn-install-agent" data-agent="gemini">Configure Gemini</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ADD MEMORY MODAL -->
+  <div class="modal-backdrop" id="modal-add-memory">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Engineering Memory</h3>
+        <button class="modal-close" id="btn-close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="mem-kind">Knowledge Kind</label>
+          <select id="mem-kind" class="input-select">
+            <option value="decision">Decision (Architectural or design choice)</option>
+            <option value="failure">Failure (Negative knowledge postmortem to avoid repeating)</option>
+            <option value="constraint">Constraint (Hard invariant, SLA, or boundary)</option>
+            <option value="fact">Fact (Verified specification or environment detail)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="mem-content">Content / Rationale</label>
+          <textarea id="mem-content" rows="4" class="input-text" placeholder="e.g. Reject direct DB update inside goroutine; use transaction outbox to guarantee delivery"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="mem-authority">Authority</label>
+            <select id="mem-authority" class="input-select">
+              <option value="user">User (Highest priority, 1.0)</option>
+              <option value="source">Source code / Commit (0.85)</option>
+              <option value="test">Automated test result (0.80)</option>
+              <option value="doc">Documentation (0.75)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="mem-confidence">Confidence (0.1 - 1.0)</label>
+            <input type="number" id="mem-confidence" min="0.1" max="1.0" step="0.05" value="1.0" class="input-text">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-memory">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-memory">Save to ContextOS</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

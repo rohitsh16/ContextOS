@@ -1,0 +1,15 @@
+---
+description: ContextOS persistent context runtime
+globs: *
+alwaysApply: true
+---
+
+# ContextOS Integration for Cursor
+
+This project uses ContextOS for persistent, budget-aware context management.
+
+- Call `context_resume` when resuming work to recover active work items and past context.
+- Use `context_plan` to build token-budgeted context packages before executing complex tasks.
+- Persist architectural decisions and constraints with `context_remember` (kind: "decision" or "constraint").
+- Document negative knowledge / failed approaches with `context_remember` (kind: "failure").
+- Use `context_handoff` for cross-model or cross-session context transfers.

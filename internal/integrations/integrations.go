@@ -163,7 +163,7 @@ This project uses ContextOS for persistent, budget-aware context management.
 			"mcpServers": map[string]any{
 				"contextos": map[string]any{
 					"command": mcpBinary,
-					"args":    []any{"-repo", ".", "-mcp"},
+					"args":    []any{"-repo", repoRoot, "-mcp"},
 				},
 			},
 		}); err != nil {

@@ -4,7 +4,7 @@
 
 ContextOS is a local-first context runtime that keeps engineering state across sessions, agents, repository revisions, and machine restarts. It builds minimum-sufficient context packages under a token budget — so your agents remember decisions, avoid past failures, and stay efficient.
 
-Works with **Claude Code**, **Cursor**, **Codex**, and **Gemini CLI** out of the box.
+Works with **Claude Code**, **Cursor**, **Codex**, **Gemini CLI**, and **Antigravity** out of the box.
 
 ---
 
@@ -128,7 +128,7 @@ ctx event          -repo PATH -event TYPE -payload J   Record an event
 ctx stats          -repo PATH                          Show statistics
 ctx route          -task "..." -budget N               Recommend a model
 ctx install        -repo PATH -agent claude|cursor|    Install for one agent
-                   codex|gemini|all
+                   codex|gemini|antigravity|all
 ctx setup          -repo PATH                          Index + install all
 ctx hook           -agent NAME -event TYPE < stdin     Process hook event
 
@@ -145,35 +145,39 @@ Storage Options & Feature Flags:
 The MCP server runs locally over stdio — no network, no API keys:
 
 ```bash
-contextd -repo /path/to/repository -mcp
+# Start standalone MCP server for a repo
+ctx -repo /path/to/repo -mcp
+
+# Or via the daemon binary directly
+contextd -repo /path/to/repo -mcp
 ```
 
-### Tools
+### Supported Tools (12)
 
 | Tool | Description |
 |---|---|
-| `context_plan` | Select minimum-sufficient context under a token budget |
-| `context_search` | Search durable engineering memory |
-| `context_resume` | Recover latest work state |
+| `context_plan` | Build a minimum-sufficient context plan for a task |
+| `context_remember` | Persist a decision, constraint, pattern, failure, or fact |
+| `context_resume` | Recover active branch, work items, and recent context |
+| `context_invalidate` | Invalidate a stale or superseded memory |
+| `context_query` | Hybrid BM25 + semantic search over engineering memory |
 | `context_handoff` | Produce cross-agent handoff context |
-| `context_remember` | Persist engineering knowledge |
-| `context_invalidate` | Invalidate a memory at current revision |
-| `context_trace` | Show latest allocation trace |
-| `context_stats` | Show ContextOS statistics |
-| `context_work_start` | Start a persistent work item |
+| `context_session_summary` | Compact summary of the current session |
+| `context_work_item_start` | Start tracking a new task |
+| `context_work_item_close` | Close an active work item |
+| `context_work_item_current` | Inspect active work item |
 | `context_session_start` | Start an agent session |
 | `context_event` | Record an agent/tool event |
-| `context_route` | Recommend a model for task + budget |
 
-### Resources
+### Supported Resources (5)
 
-| URI | Description |
+| URI | Content |
 |---|---|
-| `context://repo/current` | Current repository state |
-| `context://work-item/current` | Active work item |
-| `context://memory/relevant` | Relevant memories |
+| `context://active` | Currently active context package |
+| `context://decisions` | All recorded architectural decisions |
+| `context://failures` | Negative knowledge and failure postmortems |
+| `context://graph` | File dependency and AST symbol graph |
 | `context://session/latest` | Latest agent session |
-| `context://trace/latest` | Latest context trace |
 
 ---
 
@@ -181,17 +185,18 @@ contextd -repo /path/to/repository -mcp
 
 `ctx setup` automatically configures hooks + MCP for all supported agents:
 
-| Agent | Hooks File | MCP Config |
-|---|---|---|
-| **Claude Code** | `.claude/settings.local.json` | `.mcp.json` |
-| **Cursor** | `.cursor/hooks.json` | `.cursor/mcp.json` |
-| **Codex** | `.codex/hooks.json` | `.codex/config.toml` |
-| **Gemini CLI** | `.gemini/settings.json` | `.gemini/settings.json` |
+| Agent | Hooks File | MCP Config | Rules / Context Guidance |
+|---|---|---|---|
+| **Claude Code** | `.claude/settings.local.json` | `.mcp.json` | — |
+| **Cursor** | `.cursor/hooks.json` | `.cursor/mcp.json` | `.cursor/rules/contextos.mdc` |
+| **Codex** | `.codex/hooks.json` | `.codex/config.toml` | — |
+| **Gemini CLI** | `.gemini/settings.json` | `.gemini/settings.json` | — |
+| **Antigravity** | `.agents/hooks.json` | `.agents/mcp_config.json` | `.agents/rules/contextos.md` |
 
 Install for a single agent:
 
 ```bash
-ctx install -repo . -agent claude
+ctx install -repo . -agent antigravity
 ```
 
 All installations are idempotent — running setup twice won't duplicate entries.
@@ -201,7 +206,7 @@ All installations are idempotent — running setup twice won't duplicate entries
 ## Architecture
 
 ```
-Claude / Cursor / Codex / Gemini
+Claude / Cursor / Codex / Gemini / Antigravity
              |
         MCP + hooks
              |
@@ -302,4 +307,5 @@ See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RES
 
 ## License
 
-Research prototype. See repository for terms.
+Research and educational use only. See [`LICENSE`](LICENSE).
+

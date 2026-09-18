@@ -1,6 +1,6 @@
 # ContextOS — Architectural & Operational Context Manual
 
-ContextOS is a local-first, model-neutral context runtime designed for software engineering workflows using AI coding agents (Claude Code, Cursor, Codex, Gemini CLI). It eliminates context loss across laptop restarts, agent switches, repository revisions, and long-running multi-turn tasks while systematically cutting input token spend, API cost, and inference latency.
+ContextOS is a local-first, model-neutral context runtime designed for software engineering workflows using AI coding agents (Claude Code, Cursor, Codex, Gemini CLI, Antigravity). It eliminates context loss across laptop restarts, agent switches, repository revisions, and long-running multi-turn tasks while systematically cutting input token spend, API cost, and inference latency.
 
 ---
 
@@ -9,7 +9,8 @@ ContextOS is a local-first, model-neutral context runtime designed for software 
 ```
                                   +-----------------------+
                                   |   AI Coding Agents    |
-                                  | Claude / Cursor / ... |
+                                  | Claude/Cursor/Codex/..|
+                                  | Gemini / Antigravity  |
                                   +-----------+-----------+
                                               |
                    +--------------------------+--------------------------+
@@ -52,9 +53,10 @@ ContextOS is a local-first, model-neutral context runtime designed for software 
 | [`internal/store`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store) | Pluggable persistence layer: SQLiteStore (WAL+FTS5) and FileStore (Pure-Go stdlib), bidirectional migration (`ctx migrate`), and opt-in pruning | [`store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/store.go), [`sqlite_store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/sqlite_store.go), [`file_store.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/file_store.go), [`migrate.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/store/migrate.go) |
 | [`internal/db`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db) | Low-level SQLite driver with build-tag isolation (`//go:build cgo` and `sqlite_nocgo.go` stubs) | [`sqlite.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db/sqlite.go), [`sqlite_nocgo.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/db/sqlite_nocgo.go) |
 | [`internal/textutil`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil) | Robertson-Sparck Jones BM25, Locality-Sensitive HashSemantic, token estimation | [`textutil.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil/textutil.go), [`textutil_test.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/textutil/textutil_test.go) |
-| [`internal/gitutil`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitutil) | Git working tree inspection, HEAD commit hash resolution, branch detection | [`gitutil.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitutil/gitutil.go) |
+| [`internal/gitidx`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitidx) | Git working tree inspection, HEAD commit hash resolution, branch detection | [`scanner.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/gitidx/scanner.go) |
 | [`internal/mcp`](file:///Users/rohitshukla/Desktop/ContextOS/internal/mcp) | Model Context Protocol JSON-RPC server (12 tools, 5 resources) | [`server.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/mcp/server.go) |
-| [`internal/hooks`](file:///Users/rohitshukla/Desktop/ContextOS/internal/hooks) | Shell wrappers and hook interceptors for Claude, Cursor, Codex, and Gemini | [`hooks.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/hooks/hooks.go) |
+| [`internal/hook`](file:///Users/rohitshukla/Desktop/ContextOS/internal/hook) | Hook ingestion, normalization, and context injection handlers for Claude, Cursor, Codex, Gemini, Antigravity | [`handler.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/hook/handler.go) |
+| [`internal/integrations`](file:///Users/rohitshukla/Desktop/ContextOS/internal/integrations) | Automated installer for hooks, MCP configuration, and agent guidelines | [`integrations.go`](file:///Users/rohitshukla/Desktop/ContextOS/internal/integrations/integrations.go) |
 | [`cmd/ctx`](file:///Users/rohitshukla/Desktop/ContextOS/cmd/ctx) | User and agent command line interface binary entry point | [`main.go`](file:///Users/rohitshukla/Desktop/ContextOS/cmd/ctx/main.go) |
 | [`cmd/contextd`](file:///Users/rohitshukla/Desktop/ContextOS/cmd/contextd) | Background context daemon & MCP standard-input/output engine | [`main.go`](file:///Users/rohitshukla/Desktop/ContextOS/cmd/contextd/main.go) |
 
@@ -189,7 +191,7 @@ $$
 cd /path/to/my-project
 ctx setup
 ```
-Initializes the SQLite schema in `~/.contextos/context.db`, scans Git revision state, indexes AST symbols, and installs hooks for Claude Code (`~/.claude`), Cursor (`.cursor/rules`), Codex, and Gemini.
+Initializes the storage schema in `~/.contextos/context.db` (or file store), scans Git revision state, indexes AST symbols, and installs hooks and MCP configs for Claude Code (`~/.claude`), Cursor (`.cursor`), Codex (`.codex`), Gemini (`.gemini`), and Antigravity (`.agents`).
 
 ### Resume State Across Sessions or Restarts
 ```bash
