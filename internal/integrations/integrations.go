@@ -213,10 +213,42 @@ This repository uses ContextOS for persistent, token-bounded context management.
 `
 		_ = os.MkdirAll(filepath.Dir(rulePath), 0700)
 		_ = os.WriteFile(rulePath, []byte(ruleContent), 0644)
+
+		skillPath := filepath.Join(repoRoot, ".agents", "skills", "contextos", "SKILL.md")
+		skillContent := `---
+name: contextos
+description: Use ContextOS to manage persistent agent context, execute 6-pass token allocations, recall durable engineering decisions, and record session traces.
+---
+
+# ContextOS Agent Workflow
+
+ContextOS provides deterministic, budget-bounded context management for autonomous AI workflows.
+
+## CLI Quick Access
+
+When working in this repository:
+
+` + "```bash" + `
+# Resume latest branch state, uncommitted changes, and active decisions
+ctx resume -repo .
+
+# Plan minimum-sufficient context under a strict token budget (e.g., 2000 tokens)
+ctx plan -repo . -task "Fix issue" -budget 2000
+
+# Remember key decisions or bug fixes
+ctx remember -repo . -kind decision -authority user -content "Decision..."
+
+# View allocation traces and cache token savings
+ctx stats -repo .
+` + "```" + `
+`
+		_ = os.MkdirAll(filepath.Dir(skillPath), 0700)
+		_ = os.WriteFile(skillPath, []byte(skillContent), 0644)
+
 		return InstallResult{
 			Agent:  agent,
-			Files:  []string{mcpPath, hookPath, rulePath},
-			Action: "installed Antigravity hooks + MCP + rules",
+			Files:  []string{mcpPath, hookPath, rulePath, skillPath},
+			Action: "installed Antigravity hooks + MCP + rules + skill",
 		}, nil
 	case "codex":
 		hookPath := filepath.Join(repoRoot, ".codex", "hooks.json")
