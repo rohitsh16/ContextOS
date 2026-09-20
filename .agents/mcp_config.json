@@ -1,12 +1,14 @@
 {
+  "_managedBy": "contextos",
+  "_version": "0.7.0",
   "mcpServers": {
     "contextos": {
       "args": [
         "-repo",
-        "/Users/rohitshukla/Desktop/ContextOS",
+        ".",
         "-mcp"
       ],
-      "command": "/Users/rohitshukla/Desktop/ContextOS/bin/contextd"
+      "command": "contextd"
     }
   }
 }

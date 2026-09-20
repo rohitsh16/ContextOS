@@ -22,6 +22,11 @@ func hookCommand(hookBinary, agent, event string) string {
 	return fmt.Sprintf("%s -agent %s -event %s", shellQuote(hookBinary), shellQuote(agent), shellQuote(event))
 }
 
+// mergeMapFile reads an existing JSON file, structurally merges the new entries,
+// and writes the result back. It uses identity-based dedup for arrays
+// (matching on "command" or "name" keys where available) so that repeated
+// installations do not duplicate ContextOS entries while preserving
+// unrelated user configuration.
 func mergeMapFile(path string, base map[string]any) error {
 	if b, err := os.ReadFile(path); err == nil && len(b) > 0 {
 		var existing map[string]any
@@ -51,7 +56,7 @@ func deepMerge(dst, src map[string]any) map[string]any {
 		} else if sa, ok := v.([]any); ok {
 			da, _ := dst[k].([]any)
 			for _, x := range sa {
-				if !containsJSON(da, x) {
+				if !containsJSONByIdentity(da, x) {
 					da = append(da, x)
 				}
 			}
@@ -63,7 +68,20 @@ func deepMerge(dst, src map[string]any) map[string]any {
 	return dst
 }
 
-func containsJSON(arr []any, needle any) bool {
+// containsJSONByIdentity uses stable identity fields (command, name)
+// to detect existing installations rather than full JSON comparison.
+// This is structurally aware per PR-01 Step 5.
+func containsJSONByIdentity(arr []any, needle any) bool {
+	nID := identityKey(needle)
+	if nID != "" {
+		for _, x := range arr {
+			if identityKey(x) == nID {
+				return true
+			}
+		}
+		return false
+	}
+	// Fallback to full JSON comparison for non-map items
 	a, _ := json.Marshal(needle)
 	for _, x := range arr {
 		b, _ := json.Marshal(x)
@@ -74,14 +92,44 @@ func containsJSON(arr []any, needle any) bool {
 	return false
 }
 
+// identityKey extracts a stable identity from a map for dedup purposes.
+// Uses hook.command or server.name or mcp.server.name as the identity.
+func identityKey(v any) string {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return ""
+	}
+	// Check for "command" key (hook identity)
+	if cmd, ok := m["command"].(string); ok && strings.Contains(cmd, "ctx-hook") {
+		return "hook:" + cmd
+	}
+	// Check for nested hooks with command
+	if hooks, ok := m["hooks"].([]any); ok && len(hooks) > 0 {
+		if hm, ok := hooks[0].(map[string]any); ok {
+			if cmd, ok := hm["command"].(string); ok && strings.Contains(cmd, "ctx-hook") {
+				return "hook:" + cmd
+			}
+		}
+	}
+	// Check for "name" key (server/tool identity)
+	if name, ok := m["name"].(string); ok {
+		return "name:" + name
+	}
+	return ""
+}
+
 func mcpJSON(command, repoPlaceholder string) map[string]any {
-	return map[string]any{"mcpServers": map[string]any{
-		"contextos": map[string]any{
-			"type":    "stdio",
-			"command": command,
-			"args":    []any{"-repo", repoPlaceholder, "-mcp"},
+	return map[string]any{
+		"_managedBy": ManagedBy,
+		"_version":   ConfigVersion,
+		"mcpServers": map[string]any{
+			"contextos": map[string]any{
+				"type":    "stdio",
+				"command": command,
+				"args":    []any{"-repo", repoPlaceholder, "-mcp"},
+			},
 		},
-	}}
+	}
 }
 
 func mcpTOML(command, repoPlaceholder string) string {
@@ -105,10 +153,28 @@ func ensureTomlSection(path, section string) error {
 	return os.WriteFile(path, []byte(text), 0600)
 }
 
+// Install configures agent integrations (hooks, MCP, rules) for the given agent.
+// Binary paths can be:
+//   - Absolute paths (backward compatible)
+//   - Relative paths (resolved from repoRoot)
+//   - Bare names (resolved via ResolveBinary)
+//
+// The installation is idempotent: Install(Install(R)) = Install(R).
+// Existing unrelated configuration is preserved.
 func Install(agent, repoRoot, hookBinary, mcpBinary string) (InstallResult, error) {
 	repoRoot, _ = filepath.Abs(repoRoot)
-	hookBinary, _ = filepath.Abs(hookBinary)
-	mcpBinary, _ = filepath.Abs(mcpBinary)
+
+	// Resolve binaries portably — don't require absolute paths
+	var err error
+	hookBinary, err = resolveBinaryPath(hookBinary, repoRoot)
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("resolve hook binary: %w", err)
+	}
+	mcpBinary, err = resolveBinaryPath(mcpBinary, repoRoot)
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("resolve mcp binary: %w", err)
+	}
+
 	switch agent {
 	case "claude":
 		hookPath := filepath.Join(repoRoot, ".claude", "settings.local.json")
@@ -116,7 +182,12 @@ func Install(agent, repoRoot, hookBinary, mcpBinary string) (InstallResult, erro
 			return map[string]any{"hooks": []any{map[string]any{"type": "command", "command": hookCommand(hookBinary, agent, event)}}}
 		}
 		hooks := map[string]any{"SessionStart": []any{group("SessionStart")}, "UserPromptSubmit": []any{group("UserPromptSubmit")}, "PostToolUse": []any{group("PostToolUse")}, "PostToolUseFailure": []any{group("PostToolUseFailure")}, "Stop": []any{group("Stop")}, "SessionEnd": []any{group("SessionEnd")}}
-		if err := mergeMapFile(hookPath, map[string]any{"hooks": hooks}); err != nil {
+		base := map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
+			"hooks":      hooks,
+		}
+		if err := mergeMapFile(hookPath, base); err != nil {
 			return InstallResult{}, err
 		}
 		mcpPath := filepath.Join(repoRoot, ".mcp.json")
@@ -130,7 +201,13 @@ func Install(agent, repoRoot, hookBinary, mcpBinary string) (InstallResult, erro
 			return []any{map[string]any{"command": hookCommand(hookBinary, agent, event)}}
 		}
 		hooks := map[string]any{"sessionStart": arr("sessionStart"), "beforeSubmitPrompt": arr("beforeSubmitPrompt"), "postToolUse": arr("postToolUse"), "postToolUseFailure": arr("postToolUseFailure"), "stop": arr("stop"), "workspaceOpen": arr("workspaceOpen")}
-		if err := mergeMapFile(hookPath, map[string]any{"version": 1, "hooks": hooks}); err != nil {
+		base := map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
+			"version":    1,
+			"hooks":      hooks,
+		}
+		if err := mergeMapFile(hookPath, base); err != nil {
 			return InstallResult{}, err
 		}
 		mcpPath := filepath.Join(repoRoot, ".cursor", "mcp.json")
@@ -160,6 +237,8 @@ This project uses ContextOS for persistent, budget-aware context management.
 	case "antigravity", "agy":
 		mcpPath := filepath.Join(repoRoot, ".agents", "mcp_config.json")
 		if err := mergeMapFile(mcpPath, map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
 			"mcpServers": map[string]any{
 				"contextos": map[string]any{
 					"command": mcpBinary,
@@ -190,6 +269,8 @@ This project uses ContextOS for persistent, budget-aware context management.
 			}}
 		}
 		hooksCfg := map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
 			"contextos": map[string]any{
 				"PreInvocation": flatHook("PreInvocation"),
 				"PostToolUse":   hookGroup("PostToolUse"),
@@ -256,7 +337,12 @@ ctx stats -repo .
 			return []any{map[string]any{"hooks": []any{map[string]any{"type": "command", "command": hookCommand(hookBinary, agent, event)}}}}
 		}
 		hooks := map[string]any{"SessionStart": grp("SessionStart"), "UserPromptSubmit": grp("UserPromptSubmit"), "PreToolUse": grp("PreToolUse"), "PostToolUse": grp("PostToolUse"), "PostToolUseFailure": grp("PostToolUseFailure"), "Stop": grp("Stop")}
-		if err := mergeMapFile(hookPath, map[string]any{"hooks": hooks}); err != nil {
+		base := map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
+			"hooks":      hooks,
+		}
+		if err := mergeMapFile(hookPath, base); err != nil {
 			return InstallResult{}, err
 		}
 		mcpPath := filepath.Join(repoRoot, ".codex", "config.toml")
@@ -270,7 +356,12 @@ ctx stats -repo .
 			return []any{map[string]any{"hooks": []any{map[string]any{"type": "command", "name": "contextos-" + event, "command": hookCommand(hookBinary, agent, event), "timeout": 5000}}}}
 		}
 		hooks := map[string]any{"SessionStart": grp("SessionStart"), "BeforeAgent": grp("BeforeAgent"), "BeforeTool": grp("BeforeTool"), "AfterTool": grp("AfterTool"), "AfterAgent": grp("AfterAgent"), "SessionEnd": grp("SessionEnd")}
-		base := map[string]any{"hooks": hooks, "mcpServers": mcpJSON(mcpBinary, ".")["mcpServers"]}
+		base := map[string]any{
+			"_managedBy": ManagedBy,
+			"_version":   ConfigVersion,
+			"hooks":      hooks,
+			"mcpServers": mcpJSON(mcpBinary, ".")["mcpServers"],
+		}
 		if err := mergeMapFile(p, base); err != nil {
 			return InstallResult{}, err
 		}
@@ -278,4 +369,29 @@ ctx stats -repo .
 	default:
 		return InstallResult{}, fmt.Errorf("unsupported agent %q", agent)
 	}
+}
+
+// resolveBinaryPath resolves a binary path portably.
+// If the path is already absolute, it is returned as-is.
+// If it's a bare name, ResolveBinary is used for lookup.
+// If it's a relative path, it's resolved from repoRoot.
+func resolveBinaryPath(binary, repoRoot string) (string, error) {
+	if filepath.IsAbs(binary) {
+		return binary, nil
+	}
+	// Check if it looks like a relative path (contains separator)
+	if strings.Contains(binary, string(filepath.Separator)) || strings.Contains(binary, "/") {
+		abs, err := filepath.Abs(filepath.Join(repoRoot, binary))
+		if err != nil {
+			return "", err
+		}
+		return abs, nil
+	}
+	// Bare name — use portable resolution
+	resolved, err := ResolveBinary(binary, repoRoot)
+	if err != nil {
+		// Fall back to using the name as-is (for testing / PATH availability later)
+		return binary, nil
+	}
+	return resolved, nil
 }

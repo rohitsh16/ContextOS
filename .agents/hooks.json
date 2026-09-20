@@ -1,10 +1,12 @@
 {
+  "_managedBy": "contextos",
+  "_version": "0.7.0",
   "contextos": {
     "PostToolUse": [
       {
         "hooks": [
           {
-            "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'antigravity' -event 'PostToolUse'",
+            "command": "'ctx-hook' -agent 'antigravity' -event 'PostToolUse'",
             "timeout": 15,
             "type": "command"
           }
@@ -14,14 +16,14 @@
     ],
     "PreInvocation": [
       {
-        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'antigravity' -event 'PreInvocation'",
+        "command": "'ctx-hook' -agent 'antigravity' -event 'PreInvocation'",
         "timeout": 15,
         "type": "command"
       }
     ],
     "Stop": [
       {
-        "command": "'/Users/rohitshukla/Desktop/ContextOS/bin/ctx-hook' -agent 'antigravity' -event 'Stop'",
+        "command": "'ctx-hook' -agent 'antigravity' -event 'Stop'",
         "timeout": 15,
         "type": "command"
       }

@@ -31,7 +31,10 @@ func New(s *server.Service) *MCP { return &MCP{S: s} }
 func (m *MCP) Run(in io.Reader, out io.Writer) error {
 	sc := bufio.NewScanner(in)
 	sc.Buffer(make([]byte, 4096), 8*1024*1024)
-	debugLog, _ := os.OpenFile("/Users/rohitshukla/Desktop/ContextOS/data/mcp_debug.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	var debugLog *os.File
+	if logPath := os.Getenv("CONTEXTOS_DEBUG_LOG"); logPath != "" {
+		debugLog, _ = os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	}
 	defer func() {
 		if debugLog != nil {
 			debugLog.Close()

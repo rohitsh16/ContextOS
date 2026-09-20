@@ -1,4 +1,6 @@
 {
+  "_managedBy": "contextos",
+  "_version": "0.7.0",
   "mcpServers": {
     "contextos": {
       "args": [
@@ -6,7 +8,7 @@
         ".",
         "-mcp"
       ],
-      "command": "/Users/rohitshukla/Desktop/ContextOS/bin/contextd",
+      "command": "contextd",
       "type": "stdio"
     }
   }
