@@ -162,3 +162,42 @@ func TestBudgetSweep(t *testing.T) {
 		}
 	}
 }
+
+func TestLongitudinalBenchmark(t *testing.T) {
+	cfg := DefaultLongitudinalConfig()
+	cfg.Generations = 6
+	cfg.TasksPerGen = 4
+	cfg.Budget = 2048
+	cfg.Seed = 42
+
+	report := RunLongitudinalBenchmark(cfg)
+
+	if len(report.ContextOS.Generations) != 6 {
+		t.Fatalf("expected 6 generations, got %d", len(report.ContextOS.Generations))
+	}
+
+	// ContextOS should have lower rediscovery rate than Stateless
+	if report.ContextOS.AvgRediscovery >= report.Stateless.AvgRediscovery {
+		t.Fatalf("expected ContextOS to have lower rediscovery rate than stateless (got %f vs %f)",
+			report.ContextOS.AvgRediscovery, report.Stateless.AvgRediscovery)
+	}
+
+	// ContextOS should have higher handoff success than Stateless
+	if report.ContextOS.AvgHandoff <= report.Stateless.AvgHandoff {
+		t.Fatalf("expected ContextOS to have higher handoff success than stateless (got %f vs %f)",
+			report.ContextOS.AvgHandoff, report.Stateless.AvgHandoff)
+	}
+
+	// Verify sample lifecycles
+	if len(report.MemoryLifecycles) == 0 {
+		t.Fatalf("expected memory lifecycles in report")
+	}
+	for _, lc := range report.MemoryLifecycles {
+		if lc.Utility <= 0 {
+			t.Fatalf("expected positive memory utility, got %f", lc.Utility)
+		}
+		if lc.EstimatedHalfLife <= 0 {
+			t.Fatalf("expected positive estimated half-life, got %f", lc.EstimatedHalfLife)
+		}
+	}
+}

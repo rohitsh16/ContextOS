@@ -15,6 +15,8 @@ func main() {
 	n := flag.Int("n", 100, "number of synthetic tasks to evaluate")
 	budget := flag.Int("budget", 2048, "token budget for context packing")
 	sweep := flag.Bool("sweep", false, "run budget sweep across [512, 1024, 2048, 4096, 8192, 16384, 32768]")
+	longitudinal := flag.Bool("longitudinal", false, "run longitudinal multi-generation evolutionary benchmark (PR-12)")
+	generations := flag.Int("generations", 10, "number of generations for longitudinal simulation")
 	baselinesFlag := flag.String("baselines", "", "comma-separated list of baselines (e.g. B0,B3,B7,B9 or empty for all)")
 	ablations := flag.Bool("ablations", false, "run ablation experiment comparing full system against disabled subsystems")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
@@ -66,6 +68,38 @@ func main() {
 						fmt.Printf("    * %-30s Success: %.2f%% Cost: $%.5f\n", p.Name, p.Success*100, p.Cost)
 					}
 				}
+			}
+		}
+		return
+	}
+
+	if *longitudinal {
+		longCfg := bench.DefaultLongitudinalConfig()
+		longCfg.Generations = *generations
+		longCfg.Budget = *budget
+		longCfg.Seed = *seed
+		report := bench.RunLongitudinalBenchmark(longCfg)
+
+		if *jsonOutput {
+			b, err := json.MarshalIndent(report, "", "  ")
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "json marshal error: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println(string(b))
+		} else {
+			fmt.Println("=== ContextOS Longitudinal Adaptive Context Benchmark (PR-12) ===")
+			fmt.Printf("Generations: %d | Budget: %d tokens | Churn: 20%%\n\n", *generations, *budget)
+			fmt.Println(report.Summary)
+			fmt.Println("\n--- Generation by Generation: ContextOS Adaptive ---")
+			for _, gm := range report.ContextOS.Generations {
+				fmt.Printf("Gen %2d | Success: %5.1f%% | Rediscovery: %5.1f%% | Handoff: %5.1f%% | Memories: %2d (Stale: %d) | Cost: $%.5f\n",
+					gm.Generation, gm.SuccessRate*100, gm.RediscoveryRate*100, gm.HandoffSuccess*100, gm.TotalMemories, gm.StaleMemories, gm.CumulativeCost)
+			}
+			fmt.Println("\n--- Generation by Generation: Stateless Cold ---")
+			for _, gm := range report.Stateless.Generations {
+				fmt.Printf("Gen %2d | Success: %5.1f%% | Rediscovery: %5.1f%% | Handoff: %5.1f%% | Cost: $%.5f\n",
+					gm.Generation, gm.SuccessRate*100, gm.RediscoveryRate*100, gm.HandoffSuccess*100, gm.CumulativeCost)
 			}
 		}
 		return
