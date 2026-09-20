@@ -63,10 +63,9 @@ func Overlap(a, b string) float64 {
 	return float64(hit) / float64(len(at))
 }
 
-// HashSemantic provides a dependency-free semantic-ish similarity signal.
-// It is deliberately not called an embedding: it hashes token and character
-// features into a fixed-dimensional bag and measures cosine similarity.
-func HashSemantic(a, b string) float64 {
+// FeatureHashSimilarity provides a zero-dependency lexical/subword hash feature similarity signal (PR-06).
+// It hashes token and character n-gram features into a fixed-dimensional bag and measures cosine similarity.
+func FeatureHashSimilarity(a, b string) float64 {
 	const dims = 128
 	va := make([]float64, dims)
 	vb := make([]float64, dims)
@@ -99,6 +98,11 @@ func HashSemantic(a, b string) float64 {
 		return 0
 	}
 	return dot / (sqrt(na) * sqrt(nb))
+}
+
+// HashSemantic is retained as a backward-compatible alias to FeatureHashSimilarity.
+func HashSemantic(a, b string) float64 {
+	return FeatureHashSimilarity(a, b)
 }
 
 func sqrt(v float64) float64 {

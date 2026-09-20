@@ -1,23 +1,27 @@
 package allocator
 
 import (
+	"context"
 	"math"
 	"sort"
 	"strings"
 
 	"contextos/internal/model"
+	"contextos/internal/semantic"
 	"contextos/internal/textutil"
 )
 
 // Request defines the input parameters for a context planning and allocation query.
 type Request struct {
-	Task         string             // Task description or query prompt from the user/agent.
-	Budget       int                // Maximum total token budget allocated for context packing.
-	Model        string             // Target model identifier.
-	RepoRevision string                 // Current git revision/commit hash used to evaluate freshness and staleness.
-	AvgDocLen    float64                // Average document token length for BM25 normalization; 0 = auto-computed from candidates.
-	GraphScores  map[string]float64     // Graph centrality scores from internal/graph (PR-03).
-	CorpusStats  *textutil.CorpusStats  // Corpus-level document frequency statistics for BM25 (PR-05).
+	Task              string                      // Task description or query prompt from the user/agent.
+	Budget            int                         // Maximum total token budget allocated for context packing.
+	Model             string                      // Target model identifier.
+	RepoRevision      string                      // Current git revision/commit hash used to evaluate freshness and staleness.
+	AvgDocLen         float64                     // Average document token length for BM25 normalization; 0 = auto-computed from candidates.
+	GraphScores       map[string]float64          // Graph centrality scores from internal/graph (PR-03).
+	CorpusStats       *textutil.CorpusStats       // Corpus-level document frequency statistics for BM25 (PR-05).
+	EmbeddingProvider semantic.EmbeddingProvider  // Dense embedding provider for pluggable semantic retrieval (PR-06).
+	DenseScores       map[string]float64          // Dense cosine similarity scores keyed by memory ID or location (PR-06).
 }
 
 // authorityScore maps the provenance or source authority string of a memory to a numeric weight in [0.45, 1.0].
@@ -110,7 +114,18 @@ func Score(req Request, m model.Memory) model.Candidate {
 	} else {
 		lex = textutil.BM25Score(req.Task, m.Content, req.AvgDocLen)
 	}
-	sem := textutil.HashSemantic(req.Task, m.Content)
+	// Semantic scoring: check dense scores first, then fallback to feature hash similarity (PR-06).
+	sem := 0.0
+	if req.DenseScores != nil {
+		if s, ok := req.DenseScores[m.ID]; ok {
+			sem = s
+		} else if s, ok := req.DenseScores[m.Location]; ok {
+			sem = s
+		}
+	}
+	if sem == 0.0 {
+		sem = textutil.FeatureHashSimilarity(req.Task, m.Content)
+	}
 	freshRisk, hardStale := stale(m, req.RepoRevision)
 	auth := authorityScore(m.Authority)
 	conf := confWeight(m.Confidence)
@@ -227,6 +242,26 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 			docs[i] = m.Content
 		}
 		req.CorpusStats = textutil.NewCorpusStats(docs)
+	}
+
+	// PR-06: Compute dense similarity scores using EmbeddingProvider if available and not precomputed.
+	if req.EmbeddingProvider != nil && req.DenseScores == nil && len(ms) > 0 {
+		req.DenseScores = make(map[string]float64, len(ms))
+		texts := make([]string, len(ms)+1)
+		texts[0] = req.Task
+		for i, m := range ms {
+			texts[i+1] = m.Content
+		}
+		embeds, err := req.EmbeddingProvider.Embed(context.Background(), texts)
+		if err == nil && len(embeds) == len(texts) {
+			qVec := embeds[0]
+			for i, m := range ms {
+				sim, simErr := semantic.CosineSimilarity(qVec, embeds[i+1])
+				if simErr == nil && sim > 0 {
+					req.DenseScores[m.ID] = float64(sim)
+				}
+			}
+		}
 	}
 
 	// Pass 1: score all candidates individually.
