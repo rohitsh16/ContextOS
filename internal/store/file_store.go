@@ -219,6 +219,65 @@ func (fs *FileStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return append([]NodeRecord(nil), fs.nodes[repoID]...), nil
 }
 
+func (fs *FileStore) ListEdges(repoID string) ([]EdgeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	return append([]EdgeRecord(nil), fs.edges[repoID]...), nil
+}
+
+func (fs *FileStore) UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	deletedMap := make(map[string]bool)
+	for _, p := range deletedPaths {
+		deletedMap[p] = true
+	}
+	for _, f := range files {
+		deletedMap[f.Path] = true
+	}
+
+	var surviving []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if !deletedMap[n.Path] {
+			surviving = append(surviving, n)
+		}
+	}
+
+	for _, f := range files {
+		surviving = append(surviving, NodeRecord{
+			ID:          hashID("file|" + f.Path),
+			RepoID:      repoID,
+			Kind:        "file",
+			Path:        f.Path,
+			Name:        filepath.Base(f.Path),
+			StartLine:   1,
+			EndLine:     f.Lines,
+			ContentHash: f.Hash,
+		})
+	}
+	for _, s := range syms {
+		surviving = append(surviving, NodeRecord{
+			ID:          hashID(s.Kind + "|" + s.Path + "|" + s.Name),
+			RepoID:      repoID,
+			Kind:        s.Kind,
+			Path:        s.Path,
+			Name:        s.Name,
+			StartLine:   s.Start,
+			EndLine:     s.End,
+			Signature:   s.Signature,
+			ContentHash: s.Hash,
+		})
+	}
+	fs.nodes[repoID] = surviving
+
+	if edges != nil {
+		fs.edges[repoID] = edges
+	}
+	_ = fs.save()
+	return nil
+}
+
 func (fs *FileStore) Remember(repoID string, mem model.Memory, provenance []string) (model.Memory, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()

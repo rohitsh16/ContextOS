@@ -15,6 +15,7 @@ import (
 	"contextos/internal/db"
 	"contextos/internal/gitidx"
 	"contextos/internal/graph"
+	"contextos/internal/indexer"
 	"contextos/internal/model"
 	"contextos/internal/router"
 	"contextos/internal/store"
@@ -139,20 +140,18 @@ func (s *Service) Index() error {
 	if e := s.RefreshRepo(); e != nil {
 		return e
 	}
-	syms, e := gitidx.WalkSymbols(s.Repo.Path)
-	if e != nil {
+	idx := indexer.New(s.Store, s.Repo.Path, s.RepoID)
+	_, err := idx.Index(false, s.Repo.Revision)
+	return err
+}
+
+func (s *Service) IndexFull() error {
+	if e := s.RefreshRepo(); e != nil {
 		return e
 	}
-	files, _ := gitidx.ListSourceFiles(s.Repo.Path)
-
-	// Save nodes and collect file references
-	if err := s.Store.SaveNodesAndEdges(s.RepoID, files, syms, nil); err != nil {
-		return err
-	}
-
-	// Lightweight deterministic import/dependency edges
-	_ = s.buildEdges()
-	return nil
+	idx := indexer.New(s.Store, s.Repo.Path, s.RepoID)
+	_, err := idx.Index(true, s.Repo.Revision)
+	return err
 }
 
 func (s *Service) buildEdges() error {

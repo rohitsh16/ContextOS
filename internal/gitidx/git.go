@@ -341,3 +341,38 @@ func WalkSymbols(root string) ([]Symbol, error) {
 	})
 	return out, err
 }
+
+// ParseSymbolsForFile extracts symbols for a single file.
+func ParseSymbolsForFile(relPath, fullPath string) ([]Symbol, error) {
+	b, e := os.ReadFile(fullPath)
+	if e != nil {
+		return nil, e
+	}
+	return ParseSymbolsForContent(relPath, string(b))
+}
+
+// ParseSymbolsForContent extracts symbols from content string.
+func ParseSymbolsForContent(relPath, content string) ([]Symbol, error) {
+	var out []Symbol
+	lines := strings.Split(content, "\n")
+	h := sha256.Sum256([]byte(content))
+	hs := hex.EncodeToString(h[:])
+	for i, line := range lines {
+		for _, p := range symbolPatterns {
+			if m := p.re.FindStringSubmatch(line); len(m) > 1 {
+				out = append(out, Symbol{
+					Path:      filepath.ToSlash(relPath),
+					Kind:      p.kind,
+					Name:      m[1],
+					Signature: strings.TrimSpace(line),
+					Start:     i + 1,
+					End:       i + 1,
+					Hash:      hs,
+				})
+				break
+			}
+		}
+	}
+	return out, nil
+}
+

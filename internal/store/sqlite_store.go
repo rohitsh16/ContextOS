@@ -128,6 +128,44 @@ func (s *SQLiteStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return out, nil
 }
 
+func (s *SQLiteStore) ListEdges(repoID string) ([]EdgeRecord, error) {
+	rows, err := s.DB.Query(`SELECT src_id, dst_id, kind FROM edges WHERE src_id IN (SELECT id FROM nodes WHERE repo_id=?)`, repoID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]EdgeRecord, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, EdgeRecord{
+			SrcID: r[0],
+			DstID: r[1],
+			Kind:  r[2],
+		})
+	}
+	return out, nil
+}
+
+func (s *SQLiteStore) UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error {
+	for _, p := range deletedPaths {
+		_, _ = s.DB.Exec(`DELETE FROM nodes WHERE repo_id=? AND path=?`, repoID, p)
+	}
+	for _, f := range files {
+		_, _ = s.DB.Exec(`DELETE FROM nodes WHERE repo_id=? AND path=?`, repoID, f.Path)
+		_, _ = s.DB.Exec(`INSERT OR REPLACE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash) VALUES(?,?,?,?,?,?,?,?)`,
+			repoID, "file", f.Path, filepath.Base(f.Path), 1, f.Lines, "", f.Hash)
+	}
+	for _, x := range syms {
+		_, _ = s.DB.Exec(`INSERT OR REPLACE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash) VALUES(?,?,?,?,?,?,?,?)`,
+			repoID, x.Kind, x.Path, x.Name, x.Start, x.End, x.Signature, x.Hash)
+	}
+	if edges != nil {
+		_, _ = s.DB.Exec(`DELETE FROM edges WHERE src_id IN (SELECT id FROM nodes WHERE repo_id=?) OR dst_id IN (SELECT id FROM nodes WHERE repo_id=?)`, repoID, repoID)
+		for _, e := range edges {
+			_, _ = s.DB.Exec(`INSERT OR IGNORE INTO edges(src_id,dst_id,kind) VALUES(?,?,?)`, e.SrcID, e.DstID, e.Kind)
+		}
+	}
+	return nil
+}
+
 func (s *SQLiteStore) Remember(repoID string, mem model.Memory, provenance []string) (model.Memory, error) {
 	kind := mem.Kind
 	if kind == "" {

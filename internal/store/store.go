@@ -97,9 +97,11 @@ type Store interface {
 	UpdateRepo(repoID, revision, branch, worktreeHash string) error
 	AddRevision(repoID, revision, branch string) error
 
-	// Nodes & Edges (AST symbol indexing)
+	// Nodes & Edges (AST symbol indexing & incremental updates)
 	SaveNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, edges []EdgeRecord) error
+	UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error
 	ListNodes(repoID string) ([]NodeRecord, error)
+	ListEdges(repoID string) ([]EdgeRecord, error)
 
 	// Typed Memories
 	Remember(repoID string, mem model.Memory, provenance []string) (model.Memory, error)
