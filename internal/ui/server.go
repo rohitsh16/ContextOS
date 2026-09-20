@@ -13,6 +13,7 @@ import (
 
 	"contextos/internal/integrations"
 	"contextos/internal/report"
+	"contextos/internal/router"
 	"contextos/internal/server"
 )
 
@@ -306,10 +307,17 @@ func (srv *Server) handleSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	traces, _ := srv.svc.Store.ListTraces(repoFilter, 1000)
+	statsEvents, invocations, usedModels, _ := srv.svc.Store.SessionEventStats(sessID)
 	jsonResponse(w, http.StatusOK, map[string]any{
 		"sessions": sessions,
 		"events":   events,
 		"traces":   traces,
+		"models":   router.Profiles(),
+		"session_telemetry": map[string]any{
+			"total_events":    statsEvents,
+			"llm_invocations": invocations,
+			"models":          usedModels,
+		},
 	})
 }
 

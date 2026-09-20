@@ -436,6 +436,8 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 			_ = s.Store.IncrementCacheHit(key)
 			p.CacheHit = true
 			p.CreatedAt = time.Now().UTC()
+			prof := profile(modelName)
+			p.EstimatedCost = float64(p.SelectedTokens) * prof.CachedInputPerM / 1e6
 			_ = s.trace(task, modelName, budget, p, true)
 			return p, nil
 		}

@@ -5,3 +5,5 @@ bin/
 *.db-wal
 *.tar.gz
 .DS_Store
+dist/
+dist-dashboard/

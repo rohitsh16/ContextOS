@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=7">
+  <link rel="stylesheet" href="/style.css?v=8">
 </head>
 <body>
   <div class="app-layout">
@@ -317,26 +317,56 @@
                   <div class="text-muted font-mono" id="analytics-session-id" style="font-size: 11px;"></div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px;">
-                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Tokens Saved</span>
-                    <div class="font-mono" id="metric-tokens-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">0</div>
+                <!-- Actual Cost vs Cost Saved & Token Reduction Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
+                  <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Actual Context Cost</span>
+                    <div class="font-mono" id="metric-actual-cost" style="font-size: 16px; font-weight: 700; color: #60a5fa;">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-actual-detail" style="font-size: 10px;">0 selected tokens</div>
+                  </div>
+                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Cost Saved</span>
+                    <div class="font-mono" id="metric-cost-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-cost-detail" style="font-size: 10px;">0% budget cut</div>
+                  </div>
+                  <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Baseline Cost</span>
+                    <div class="font-mono" id="metric-baseline-cost" style="font-size: 16px; font-weight: 700; color: var(--accent-amber);">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-baseline-detail" style="font-size: 10px;">unoptimized budget</div>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;">
+                  <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); padding: 8px 10px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Tokens Pruned</span>
+                    <div class="font-mono" id="metric-tokens-saved" style="font-size: 15px; font-weight: 700; color: var(--accent-emerald-light);">0</div>
                     <div class="text-muted font-mono" id="metric-tokens-pct" style="font-size: 10px;">0% pruned</div>
                   </div>
-                  <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); padding: 8px; border-radius: 6px;">
+                  <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); padding: 8px 10px; border-radius: 6px;">
                     <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Raw Dump Cut</span>
-                    <div class="font-mono" id="metric-raw-reduction" style="font-size: 16px; font-weight: 700; color: var(--accent-indigo-light);">0%</div>
-                    <div class="text-muted" id="metric-raw-detail" style="font-size: 10px;">vs 32k dump</div>
+                    <div class="font-mono" id="metric-raw-reduction" style="font-size: 15px; font-weight: 700; color: var(--accent-indigo-light);">0%</div>
+                    <div class="text-muted font-mono" id="metric-raw-detail" style="font-size: 10px;">vs 32k dump</div>
                   </div>
-                  <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px; border-radius: 6px;">
+                  <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.15); padding: 8px 10px; border-radius: 6px;">
                     <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">KV Cache Hit</span>
-                    <div class="font-mono" id="metric-cache-hits" style="font-size: 16px; font-weight: 700; color: #60a5fa;">0%</div>
-                    <div class="text-muted font-mono" id="metric-cache-detail" style="font-size: 10px;">0 hits</div>
+                    <div class="font-mono" id="metric-cache-hits" style="font-size: 15px; font-weight: 700; color: #60a5fa;">0%</div>
+                    <div class="text-muted font-mono" id="metric-cache-detail" style="font-size: 10px;">0 hits (discounted)</div>
                   </div>
-                  <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 8px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Cost Saved</span>
-                    <div class="font-mono" id="metric-cost-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-amber);">$0.00</div>
-                    <div class="text-muted font-mono" id="metric-cost-detail" style="font-size: 10px;">est. USD</div>
+                </div>
+
+                <!-- Host Agent Telemetry & Ingestion Notice -->
+                <div id="session-telemetry-banner" style="margin-bottom: 12px; padding: 8px 12px; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.18); border-radius: 6px; font-size: 11px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span style="color: var(--text-primary); font-weight: 600;">Host Agent Activity:</span>
+                      <span id="telemetry-invocations" class="font-mono text-secondary">0 LLM Invocations</span>
+                      <span class="text-muted">·</span>
+                      <span id="telemetry-events-count" class="font-mono text-muted">0 events</span>
+                    </div>
+                    <div id="telemetry-models-badges" style="display: flex; gap: 4px;"></div>
+                  </div>
+                  <div class="text-muted" style="margin-top: 4px; font-size: 10px; line-height: 1.4;">
+                    ℹ️ <em>ContextOS calculates context savings on task planning steps. Host multi-turn conversation history accumulates across agent invocations and is billed separately by your LLM provider.</em>
                   </div>
                 </div>
 
@@ -566,6 +596,6 @@
     </div>
   </div>
 
-  <script src="/app.js?v=7"></script>
+  <script src="/app.js?v=8"></script>
 </body>
 </html>

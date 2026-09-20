@@ -124,6 +124,7 @@ type Store interface {
 	// Events & Traces
 	AddEvent(repoID, sessionID, eventType string, payload string) error
 	ListEvents(sessionID string, limit int) ([]EventRecord, error)
+	SessionEventStats(sessionID string) (totalEvents int, invocations int, models map[string]int, err error)
 	AddTrace(trace ContextTraceRecord) error
 	LatestTrace(repoID string) (map[string]any, error)
 	ListTraces(repoID string, limit int) ([]ContextTraceRecord, error)

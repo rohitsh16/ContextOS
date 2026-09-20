@@ -2,6 +2,49 @@
 (function() {
   'use strict';
 
+  // Dual-mode static & live API resolver
+  const isStaticMode = window.__STATIC_MODE__ === true ||
+                       window.location.hostname.endsWith('github.io') ||
+                       window.location.protocol === 'file:';
+
+  const nativeFetch = window.fetch.bind(window);
+  async function fetch(endpoint, options) {
+    const isGet = !options || !options.method || options.method.toUpperCase() === 'GET';
+    if (isStaticMode) {
+      if (isGet) {
+        const cleanName = String(endpoint).replace(/^\/api\//, '').split('?')[0];
+        try {
+          const staticRes = await nativeFetch(`./data/${cleanName}.json`);
+          if (staticRes.ok) return staticRes;
+        } catch (err) {
+          console.warn(`Static data fallback failed for ${endpoint}:`, err);
+        }
+      } else {
+        alert("GitHub Pages Static Preview: Modifications and plan generation require running ContextOS locally ('ctx ui').");
+        return new Response(JSON.stringify({
+          error: "Static Mode: Live mutations disabled in GitHub Pages preview."
+        }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    try {
+      const res = await nativeFetch(endpoint, options);
+      if (res.ok) return res;
+      if (isGet) {
+        const cleanName = String(endpoint).replace(/^\/api\//, '').split('?')[0];
+        const staticFallback = await nativeFetch(`./data/${cleanName}.json`);
+        if (staticFallback.ok) return staticFallback;
+      }
+      return res;
+    } catch (netErr) {
+      if (isGet) {
+        const cleanName = String(endpoint).replace(/^\/api\//, '').split('?')[0];
+        return nativeFetch(`./data/${cleanName}.json`);
+      }
+      throw netErr;
+    }
+  }
+
   let currentMemories = [];
   let currentFilter = 'all';
 
@@ -328,7 +371,11 @@
       document.getElementById('stat-repo-commit').textContent = repo.revision ? repo.revision.substring(0, 7) : 'HEAD';
 
       const stg = data.storage || 'sqlite';
-      document.getElementById('storage-engine-label').textContent = stg === 'file' ? 'FileStore (Pure-Go)' : 'SQLite (WAL)';
+      if (isStaticMode) {
+        document.getElementById('storage-engine-label').textContent = 'FileStore (Static Snapshot)';
+      } else {
+        document.getElementById('storage-engine-label').textContent = stg === 'file' ? 'FileStore (Pure-Go)' : 'SQLite (WAL)';
+      }
 
       const stats = data.stats || {};
       const totalMemories = stats.memories || 0;
@@ -453,6 +500,20 @@
   let currentSessionFilter = null;
   let showAllRepos = false;
 
+  function resolveModelRates(modelName, modelProfiles) {
+    const m = (modelName || '').toLowerCase();
+    for (const p of (modelProfiles || [])) {
+      if (p.name && m.includes(p.name.toLowerCase())) {
+        return { input: p.input_per_m || 0, cached: p.cached_input_per_m || 0 };
+      }
+    }
+    if (m.includes('local')) return { input: 0, cached: 0 };
+    if (m.includes('claude')) return { input: 3.0, cached: 0.30 };
+    if (m.includes('gemini')) return { input: 2.0, cached: 0.20 };
+    if (m.includes('codex') || m.includes('gpt')) return { input: 1.75, cached: 0.175 };
+    return { input: 1.5, cached: 0.15 };
+  }
+
   async function loadSessions(filterSessionId = undefined) {
     if (filterSessionId !== undefined) {
       currentSessionFilter = filterSessionId;
@@ -468,11 +529,13 @@
       const data = await res.json();
       const sessions = data.sessions || [];
       const events = data.events || [];
+      const modelProfiles = data.models || [];
+      const telemetry = data.session_telemetry || {};
 
       document.getElementById('session-count').textContent = `${sessions.length} sessions`;
       document.getElementById('event-count').textContent = `${events.length} events`;
 
-      renderSessionEfficiency(sessions, data.traces || [], currentSessionFilter);
+      renderSessionEfficiency(sessions, data.traces || [], currentSessionFilter, modelProfiles, telemetry);
 
       const sessCont = document.getElementById('sessions-container');
       if (sessions.length === 0) {
@@ -488,16 +551,22 @@
             sTraces = (data.traces || []).filter(t => String(t.repo_id) === String(targetRepoId));
           }
 
-          let sBudget = 0, sSelected = 0, sCacheHits = 0;
+          let sBudget = 0, sSelected = 0, sCacheHits = 0, sActual = 0, sBaseline = 0;
           sTraces.forEach(t => {
-            sBudget += t.budget || 0;
-            sSelected += t.selected_tokens || 0;
+            const b = t.budget || 0;
+            const sel = t.selected_tokens || 0;
+            sBudget += b;
+            sSelected += sel;
             if (t.cache_hit) sCacheHits++;
+            const rates = resolveModelRates(t.model, modelProfiles);
+            const rate = t.cache_hit ? rates.cached : rates.input;
+            sActual += (sel / 1e6) * rate;
+            sBaseline += (b / 1e6) * rates.input;
           });
-          const sSaved = Math.max(0, sBudget - sSelected);
-          const sPct = sBudget > 0 ? ((sSaved / sBudget) * 100).toFixed(0) : "0";
+          const sSavedTok = Math.max(0, sBudget - sSelected);
+          const sPct = sBudget > 0 ? ((sSavedTok / sBudget) * 100).toFixed(0) : "0";
           const sCacheRate = sTraces.length > 0 ? ((sCacheHits / sTraces.length) * 100).toFixed(0) : "0";
-          const sCostSaved = ((sSaved / 1000000.0) * 3.00).toFixed(3);
+          const sCostSaved = Math.max(0, sBaseline - sActual);
 
           return `
           <div class="session-item ${isSelected ? "active" : ""}" data-id="${s.id}">
@@ -512,13 +581,13 @@
             ${sTraces.length > 0 ? `
               <div style="margin: 6px 0; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
                 <span style="color: var(--accent-emerald-light); font-weight: 600;">
-                  🌱 ${sSaved.toLocaleString()} tok saved (${sPct}%)
+                  🌱 ${sSavedTok.toLocaleString()} tok (${sPct}%)
                 </span>
                 <span style="color: #60a5fa; font-weight: 500;">
-                  ⚡ ${sCacheRate}% KV Hit (${sCacheHits}/${sTraces.length})
+                  ⚡ ${sCacheRate}% KV Hit
                 </span>
                 <span style="color: var(--accent-amber); font-weight: 500;">
-                  +$${sCostSaved}
+                  $${sActual.toFixed(4)} · +$${sCostSaved.toFixed(4)}
                 </span>
               </div>
             ` : ""}
@@ -711,18 +780,23 @@
   });
 
 
-  // Render Session Efficiency & Token Savings
-  function renderSessionEfficiency(sessions, traces, selectedSessionId) {
+  // Render Session Efficiency & Token Savings with Model-Specific Actual Cost vs Cost Saved
+  function renderSessionEfficiency(sessions, traces, selectedSessionId, modelProfiles, telemetry) {
     const titleEl = document.getElementById("analytics-title");
     const subtitleEl = document.getElementById("analytics-subtitle");
     const sessIdEl = document.getElementById("analytics-session-id");
+    const actualCostEl = document.getElementById("metric-actual-cost");
+    const actualDetailEl = document.getElementById("metric-actual-detail");
+    const baselineCostEl = document.getElementById("metric-baseline-cost");
+    const baselineDetailEl = document.getElementById("metric-baseline-detail");
+    const costSavedEl = document.getElementById("metric-cost-saved");
+    const costDetailEl = document.getElementById("metric-cost-detail");
     const savedEl = document.getElementById("metric-tokens-saved");
     const savedPctEl = document.getElementById("metric-tokens-pct");
     const rawReducEl = document.getElementById("metric-raw-reduction");
     const rawDetailEl = document.getElementById("metric-raw-detail");
     const cacheHitsEl = document.getElementById("metric-cache-hits");
     const cacheDetailEl = document.getElementById("metric-cache-detail");
-    const costSavedEl = document.getElementById("metric-cost-saved");
     const tracesSecEl = document.getElementById("analytics-traces-section");
     const tracesListEl = document.getElementById("analytics-traces-list");
     const traceCountEl = document.getElementById("analytics-trace-count");
@@ -748,18 +822,29 @@
     } else {
       sessIdEl.textContent = "All Sessions";
       titleEl.textContent = "Aggregated Efficiency Gains";
-      subtitleEl.textContent = "Context reduction, KV-cache reuse, and token savings across sessions";
+      subtitleEl.textContent = "Context reduction, KV-cache reuse, and model-specific cost savings";
       relevantTraces = traces;
     }
 
     let totalBudget = 0;
     let totalSelected = 0;
     let cacheHits = 0;
+    let totalActualCost = 0;
+    let totalBaselineCost = 0;
 
     relevantTraces.forEach(t => {
-      totalBudget += t.budget || 0;
-      totalSelected += t.selected_tokens || 0;
+      const b = t.budget || 0;
+      const s = t.selected_tokens || 0;
+      totalBudget += b;
+      totalSelected += s;
       if (t.cache_hit) cacheHits++;
+
+      const rates = resolveModelRates(t.model, modelProfiles);
+      const activeRate = t.cache_hit ? rates.cached : rates.input;
+      const traceActual = (s / 1e6) * activeRate;
+      const traceBaseline = (b / 1e6) * rates.input;
+      totalActualCost += traceActual;
+      totalBaselineCost += traceBaseline;
     });
 
     const netSaved = Math.max(0, totalBudget - totalSelected);
@@ -767,29 +852,59 @@
     const rawDump = relevantTraces.length * 32000;
     const rawReduc = rawDump > 0 ? ((1.0 - (totalSelected / rawDump)) * 100).toFixed(1) : "0.0";
     const cacheRate = relevantTraces.length > 0 ? ((cacheHits / relevantTraces.length) * 100).toFixed(1) : "0.0";
-    const costSaved = ((netSaved / 1000000.0) * 3.00).toFixed(4);
+    const netCostSaved = Math.max(0, totalBaselineCost - totalActualCost);
+    const costSavingsPct = totalBaselineCost > 0 ? ((netCostSaved / totalBaselineCost) * 100).toFixed(1) : "0.0";
+
+    if (actualCostEl) actualCostEl.textContent = "$" + totalActualCost.toFixed(4);
+    if (actualDetailEl) actualDetailEl.textContent = totalSelected.toLocaleString() + " tok consumed";
+    if (baselineCostEl) baselineCostEl.textContent = "$" + totalBaselineCost.toFixed(4);
+    if (baselineDetailEl) baselineDetailEl.textContent = totalBudget.toLocaleString() + " tok baseline";
+    if (costSavedEl) costSavedEl.textContent = "$" + netCostSaved.toFixed(4);
+    if (costDetailEl) costDetailEl.textContent = costSavingsPct + "% budget cut";
 
     if (savedEl) savedEl.textContent = netSaved.toLocaleString();
     if (savedPctEl) savedPctEl.textContent = savingsPct + "% pruned";
     if (rawReducEl) rawReducEl.textContent = rawReduc + "%";
     if (rawDetailEl) rawDetailEl.textContent = "vs " + rawDump.toLocaleString() + " tok dump";
     if (cacheHitsEl) cacheHitsEl.textContent = cacheRate + "%";
-    if (cacheDetailEl) cacheDetailEl.textContent = cacheHits + " of " + relevantTraces.length + " hits";
-    if (costSavedEl) costSavedEl.textContent = "$" + costSaved;
+    if (cacheDetailEl) cacheDetailEl.textContent = cacheHits + " of " + relevantTraces.length + " hits (discounted)";
+
+    // Update Host Agent Telemetry banner
+    if (telemetry) {
+      const invocationsEl = document.getElementById("telemetry-invocations");
+      const eventsEl = document.getElementById("telemetry-events-count");
+      const badgesEl = document.getElementById("telemetry-models-badges");
+      if (invocationsEl) invocationsEl.textContent = (telemetry.llm_invocations || 0).toLocaleString() + " LLM Invocations";
+      if (eventsEl) eventsEl.textContent = (telemetry.total_events || 0).toLocaleString() + " events";
+      if (badgesEl && telemetry.models) {
+        badgesEl.innerHTML = Object.entries(telemetry.models).map(([m, cnt]) => `
+          <span class="badge badge-info" style="font-size: 9px; padding: 1px 6px;">${escapeHtml(m)} (${cnt})</span>
+        `).join("");
+      }
+    }
 
     if (relevantTraces.length > 0 && tracesSecEl && tracesListEl) {
       tracesSecEl.style.display = "block";
       if (traceCountEl) traceCountEl.textContent = relevantTraces.length + " traces";
-      tracesListEl.innerHTML = relevantTraces.slice(0, 6).map(t => {
+      tracesListEl.innerHTML = relevantTraces.slice(0, 8).map(t => {
         const tSaved = Math.max(0, t.budget - t.selected_tokens);
         const tPct = t.budget > 0 ? ((tSaved / t.budget) * 100).toFixed(0) : "0";
+        const rates = resolveModelRates(t.model, modelProfiles);
+        const rate = t.cache_hit ? rates.cached : rates.input;
+        const traceCost = (t.selected_tokens / 1e6) * rate;
+        const traceSaved = (tSaved / 1e6) * rates.input;
+
         return `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
-            <span class="text-truncate font-mono text-secondary" style="max-width: 55%; font-size: 11px;">${escapeHtml(t.task)}</span>
+            <div style="max-width: 45%;">
+              <div class="text-truncate font-mono text-secondary" style="font-size: 11px;">${escapeHtml(t.task)}</div>
+              <span class="text-muted" style="font-size: 9px;">model: ${escapeHtml(t.model || "local")}</span>
+            </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span class="badge ${t.cache_hit ? "badge-success" : "badge-muted"}" style="font-size: 9px; padding: 1px 5px;">${t.cache_hit ? "KV Hit" : "Miss"}</span>
-              <span class="font-mono text-muted" style="font-size: 10px;">${t.selected_tokens} / ${t.budget} tok</span>
-              <span class="font-mono" style="font-size: 10px; color: var(--accent-emerald-light);">(-${tPct}%)</span>
+              <span class="font-mono text-muted" style="font-size: 10px;">${t.selected_tokens}/${t.budget} tok</span>
+              <span class="font-mono" style="font-size: 10px; color: #60a5fa;">$${traceCost.toFixed(4)}</span>
+              <span class="font-mono" style="font-size: 10px; color: var(--accent-emerald-light);">(+$${traceSaved.toFixed(4)})</span>
             </div>
           </div>
         `;

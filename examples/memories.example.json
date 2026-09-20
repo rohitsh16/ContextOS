@@ -1,0 +1,114 @@
+[
+  {
+    "kind": "constraint",
+    "content": "Database schema changes must be strictly backwards-compatible: column drops require a 2-phase deployment cycle with deprecation flags.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "backend/db/migrations.go"
+  },
+  {
+    "kind": "fact",
+    "content": "Production Redis cluster operates on port 6379 with a 2,500ms read timeout and a maximum of 20 idle pool connections.",
+    "scope": "repo",
+    "authority": "doc",
+    "confidence": 0.95,
+    "location": "config/redis.yaml"
+  },
+  {
+    "kind": "decision",
+    "content": "Selected SQLite WAL mode over local MySQL container to provide instant, zero-dependency embedded database initialization.",
+    "scope": "repo",
+    "authority": "commit",
+    "confidence": 0.9,
+    "location": "internal/db/sqlite.go"
+  },
+  {
+    "kind": "failure",
+    "content": "Calling go build on Darwin arm64 without codesign results in immediate AMFI SIGKILL termination.",
+    "scope": "repo",
+    "authority": "test",
+    "confidence": 1.0,
+    "location": "Makefile"
+  },
+  {
+    "kind": "constraint",
+    "content": "All dense embedding vectors must be normalized with L2 Euclidean unit norm prior to cosine dot product calculation.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "models/embeddings.py"
+  },
+  {
+    "kind": "fact",
+    "content": "FlashAttention-2 requires CUDA compute capability >= sm_80 (Ampere/Hopper) and torch.bfloat16 tensor precision.",
+    "scope": "repo",
+    "authority": "doc",
+    "confidence": 0.95,
+    "location": "requirements.txt"
+  },
+  {
+    "kind": "constraint",
+    "content": "All genomic variant positions must strictly adhere to 1-based closed coordinates on GRCh38/hg38 reference assembly.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "pipelines/variants.py"
+  },
+  {
+    "kind": "fact",
+    "content": "BRCA1 is located on chromosome 17 (NC_000017.11: 43044295-43125483, reverse strand) and encodes an 1,863 amino acid protein.",
+    "scope": "repo",
+    "authority": "doc",
+    "confidence": 1.0,
+    "location": "annotations/gencode.gtf"
+  },
+  {
+    "kind": "constraint",
+    "content": "Main rendering thread budget is 16.6ms (60 FPS); draw calls must not exceed 120 per frame on target mobile profiles.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "Assets/Settings/URP_Settings.asset"
+  },
+  {
+    "kind": "fact",
+    "content": "Combat balance baseline specifies 450ms Time-To-Kill (TTK) for close-range assault rifles at effective engagement range < 15m.",
+    "scope": "repo",
+    "authority": "test",
+    "confidence": 0.9,
+    "location": "Assets/Scripts/Combat/BalanceConfig.asset"
+  },
+  {
+    "kind": "constraint",
+    "content": "All interactive buttons and navigation links must meet minimum touch target sizing of 44x44 CSS pixels per WCAG 2.1 AAA.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "frontend/styles/buttons.css"
+  },
+  {
+    "kind": "fact",
+    "content": "Primary accent color is --accent-indigo: hsl(238, 82%, 67%); emerald success token is --accent-emerald: hsl(158, 64%, 52%).",
+    "scope": "repo",
+    "authority": "doc",
+    "confidence": 0.95,
+    "location": "frontend/styles/tokens.css"
+  },
+  {
+    "kind": "constraint",
+    "content": "All statistical hypothesis tests must report sample size N, 95% confidence intervals, and effect size Cohen's d alongside p-values.",
+    "scope": "repo",
+    "authority": "user",
+    "confidence": 1.0,
+    "location": "analysis/stats_reporter.py"
+  },
+  {
+    "kind": "fact",
+    "content": "The benchmark evaluation dataset comprises 14,250 verified clinical trial publications from ClinicalTrials.gov API v2 (2020-2025).",
+    "scope": "repo",
+    "authority": "doc",
+    "confidence": 0.95,
+    "location": "data/corpus_metadata.json"
+  }
+]

@@ -3,6 +3,7 @@ package store
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strconv"
@@ -325,6 +326,41 @@ func (s *SQLiteStore) ListEvents(sessionID string, limit int) ([]EventRecord, er
 		out = append(out, EventRecord{ID: id, SessionID: r[1], RepoID: r[2], EventType: r[3], Payload: r[4], CreatedAt: r[5]})
 	}
 	return out, nil
+}
+
+func (s *SQLiteStore) SessionEventStats(sessionID string) (totalEvents int, invocations int, models map[string]int, err error) {
+	models = make(map[string]int)
+	var queryTotal, queryInvoc, queryPayloads string
+	var args []any
+
+	if sessionID == "" {
+		queryTotal = `SELECT COUNT(*) FROM events`
+		queryInvoc = `SELECT COUNT(*) FROM events WHERE event_type='PreInvocation'`
+		queryPayloads = `SELECT payload FROM events WHERE payload LIKE '%modelName%' ORDER BY id DESC LIMIT 500`
+	} else {
+		queryTotal = `SELECT COUNT(*) FROM events WHERE session_id=?`
+		queryInvoc = `SELECT COUNT(*) FROM events WHERE session_id=? AND event_type='PreInvocation'`
+		queryPayloads = `SELECT payload FROM events WHERE session_id=? AND payload LIKE '%modelName%' ORDER BY id DESC LIMIT 500`
+		args = []any{sessionID}
+	}
+
+	if rows, err := s.DB.Query(queryTotal, args...); err == nil && len(rows) > 0 {
+		totalEvents, _ = strconv.Atoi(rows[0][0])
+	}
+	if rows, err := s.DB.Query(queryInvoc, args...); err == nil && len(rows) > 0 {
+		invocations, _ = strconv.Atoi(rows[0][0])
+	}
+	if rows, err := s.DB.Query(queryPayloads, args...); err == nil {
+		for _, r := range rows {
+			var m map[string]any
+			if json.Unmarshal([]byte(r[0]), &m) == nil {
+				if mn, ok := m["modelName"].(string); ok && mn != "" {
+					models[mn]++
+				}
+			}
+		}
+	}
+	return totalEvents, invocations, models, nil
 }
 
 func (s *SQLiteStore) AddTrace(trace ContextTraceRecord) error {

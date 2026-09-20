@@ -27,5 +27,9 @@ install-user: all
 	install -m 0755 $(BINDIR)/ctx-hook $(PREFIX)/bin/ctx-hook
 	install -m 0755 $(BINDIR)/ctxbench $(PREFIX)/bin/ctxbench
 
+build-static:
+	chmod +x scripts/export_static_dashboard.sh
+	./scripts/export_static_dashboard.sh ./dist
+
 clean:
 	rm -rf $(BINDIR)

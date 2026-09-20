@@ -618,6 +618,36 @@ func (fs *FileStore) ListEvents(sessionID string, limit int) ([]EventRecord, err
 	return matched, nil
 }
 
+func (fs *FileStore) SessionEventStats(sessionID string) (totalEvents int, invocations int, models map[string]int, err error) {
+	models = make(map[string]int)
+	f, err := os.Open(filepath.Join(fs.baseDir, "events.jsonl"))
+	if err != nil {
+		return 0, 0, models, nil
+	}
+	defer f.Close()
+
+	scanner := newJSONLScanner(f)
+	for scanner.Scan() {
+		var rec EventRecord
+		if err := json.Unmarshal(scanner.Bytes(), &rec); err != nil {
+			continue
+		}
+		if sessionID == "" || rec.SessionID == sessionID {
+			totalEvents++
+			if rec.EventType == "PreInvocation" {
+				invocations++
+			}
+			var m map[string]any
+			if json.Unmarshal([]byte(rec.Payload), &m) == nil {
+				if mn, ok := m["modelName"].(string); ok && mn != "" {
+					models[mn]++
+				}
+			}
+		}
+	}
+	return totalEvents, invocations, models, nil
+}
+
 func (fs *FileStore) AddTrace(trace ContextTraceRecord) error {
 	trace.CreatedAt = now()
 	b, err := json.Marshal(trace)
