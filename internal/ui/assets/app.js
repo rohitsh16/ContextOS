@@ -549,18 +549,28 @@
   let currentSessionFilter = null;
   let showAllRepos = false;
 
-  function resolveModelRates(modelName, modelProfiles) {
-    const m = (modelName || '').toLowerCase();
-    for (const p of (modelProfiles || [])) {
-      if (p.name && m.includes(p.name.toLowerCase())) {
-        return { input: p.input_per_m || 0, cached: p.cached_input_per_m || 0 };
+  function resolveModelRates(modelName, modelProfiles, fallbackTelemetry) {
+    let m = (modelName || '').toLowerCase();
+    // When trace is recorded as "local" (the default for local host git hooks/allocators),
+    // detect what active commercial LLM the agent is running from session telemetry
+    if (m === 'local' || m === '') {
+      if (fallbackTelemetry && fallbackTelemetry.models) {
+        const detected = Object.keys(fallbackTelemetry.models);
+        if (detected.length > 0) {
+          m = detected[0].toLowerCase();
+        }
       }
     }
-    if (m.includes('local')) return { input: 0, cached: 0 };
+    for (const p of (modelProfiles || [])) {
+      if (p.name && m.includes(p.name.toLowerCase())) {
+        return { input: p.input_per_m || 1.75, cached: p.cached_input_per_m || 0.175 };
+      }
+    }
     if (m.includes('claude')) return { input: 3.0, cached: 0.30 };
     if (m.includes('gemini')) return { input: 2.0, cached: 0.20 };
     if (m.includes('codex') || m.includes('gpt')) return { input: 1.75, cached: 0.175 };
-    return { input: 1.5, cached: 0.15 };
+    // Standard baseline reference pricing for commercial coding LLMs ($1.75/M input, $0.175/M cached)
+    return { input: 1.75, cached: 0.175 };
   }
 
   async function loadSessions(filterSessionId = undefined) {
@@ -600,22 +610,24 @@
             sTraces = (data.traces || []).filter(t => String(t.repo_id) === String(targetRepoId));
           }
 
-          let sBudget = 0, sSelected = 0, sCacheHits = 0, sActual = 0, sBaseline = 0;
+          let sBudget = 0, sSelected = 0, sCacheHits = 0, sActual = 0, sDirect = 0, sBaseline = 0;
           sTraces.forEach(t => {
             const b = t.budget || 0;
             const sel = t.selected_tokens || 0;
             sBudget += b;
             sSelected += sel;
             if (t.cache_hit) sCacheHits++;
-            const rates = resolveModelRates(t.model, modelProfiles);
+            const rates = resolveModelRates(t.model, modelProfiles, telemetry);
             const rate = t.cache_hit ? rates.cached : rates.input;
             sActual += (sel / 1e6) * rate;
+            sDirect += (sel / 1e6) * rates.input;
             sBaseline += (b / 1e6) * rates.input;
           });
           const sSavedTok = Math.max(0, sBudget - sSelected);
           const sPct = sBudget > 0 ? ((sSavedTok / sBudget) * 100).toFixed(0) : "0";
           const sCacheRate = sTraces.length > 0 ? ((sCacheHits / sTraces.length) * 100).toFixed(0) : "0";
-          const sCostSaved = Math.max(0, sBaseline - sActual);
+          const sDirectSaved = Math.max(0, sBaseline - sDirect);
+          const sCompoundSaved = Math.max(0, sBaseline - sActual);
 
           return `
           <div class="session-item ${isSelected ? "active" : ""}" data-id="${s.id}">
@@ -633,10 +645,10 @@
                   🌱 ${sSavedTok.toLocaleString()} tok (${sPct}%)
                 </span>
                 <span style="color: #60a5fa; font-weight: 500;">
-                  ⚡ ${sCacheRate}% KV Hit
+                  ⚡ ${sCacheRate}% KV
                 </span>
                 <span style="color: var(--accent-amber); font-weight: 500;">
-                  $${sActual.toFixed(4)} · +$${sCostSaved.toFixed(4)}
+                  +$${sDirectSaved.toFixed(4)} <span style="color: #818cf8; font-size: 10px;">(+$${sCompoundSaved.toFixed(4)} cached)</span>
                 </span>
               </div>
             ` : ""}
@@ -838,12 +850,12 @@
     const actualDetailEl = document.getElementById("metric-actual-detail");
     const baselineCostEl = document.getElementById("metric-baseline-cost");
     const baselineDetailEl = document.getElementById("metric-baseline-detail");
+    const pruningSavedEl = document.getElementById("metric-pruning-saved");
+    const pruningDetailEl = document.getElementById("metric-pruning-detail");
     const costSavedEl = document.getElementById("metric-cost-saved");
     const costDetailEl = document.getElementById("metric-cost-detail");
     const savedEl = document.getElementById("metric-tokens-saved");
     const savedPctEl = document.getElementById("metric-tokens-pct");
-    const rawReducEl = document.getElementById("metric-raw-reduction");
-    const rawDetailEl = document.getElementById("metric-raw-detail");
     const cacheHitsEl = document.getElementById("metric-cache-hits");
     const cacheDetailEl = document.getElementById("metric-cache-detail");
     const tracesSecEl = document.getElementById("analytics-traces-section");
@@ -871,7 +883,7 @@
     } else {
       sessIdEl.textContent = "All Sessions";
       titleEl.textContent = "Aggregated Efficiency Gains";
-      subtitleEl.textContent = "Context reduction, KV-cache reuse, and model-specific cost savings";
+      subtitleEl.textContent = "Level 1 Direct Pruning (measured) vs Level 2 Provider Cache (estimated)";
       relevantTraces = traces;
     }
 
@@ -879,6 +891,7 @@
     let totalSelected = 0;
     let cacheHits = 0;
     let totalActualCost = 0;
+    let totalDirectCost = 0;
     let totalBaselineCost = 0;
 
     relevantTraces.forEach(t => {
@@ -888,35 +901,39 @@
       totalSelected += s;
       if (t.cache_hit) cacheHits++;
 
-      const rates = resolveModelRates(t.model, modelProfiles);
+      const rates = resolveModelRates(t.model, modelProfiles, telemetry);
       const activeRate = t.cache_hit ? rates.cached : rates.input;
-      const traceActual = (s / 1e6) * activeRate;
-      const traceBaseline = (b / 1e6) * rates.input;
-      totalActualCost += traceActual;
-      totalBaselineCost += traceBaseline;
+      totalActualCost += (s / 1e6) * activeRate;
+      totalDirectCost += (s / 1e6) * rates.input;
+      totalBaselineCost += (b / 1e6) * rates.input;
     });
 
+    // Level 1: Direct Context Pruning (Guaranteed / Empirical)
     const netSaved = Math.max(0, totalBudget - totalSelected);
     const savingsPct = totalBudget > 0 ? ((netSaved / totalBudget) * 100).toFixed(1) : "0.0";
-    const rawDump = relevantTraces.length * 32000;
-    const rawReduc = rawDump > 0 ? ((1.0 - (totalSelected / rawDump)) * 100).toFixed(1) : "0.0";
-    const cacheRate = relevantTraces.length > 0 ? ((cacheHits / relevantTraces.length) * 100).toFixed(1) : "0.0";
-    const netCostSaved = Math.max(0, totalBaselineCost - totalActualCost);
-    const costSavingsPct = totalBaselineCost > 0 ? ((netCostSaved / totalBaselineCost) * 100).toFixed(1) : "0.0";
+    const directCostSaved = Math.max(0, totalBaselineCost - totalDirectCost);
+    const directSavingsPct = totalBaselineCost > 0 ? ((directCostSaved / totalBaselineCost) * 100).toFixed(1) : "0.0";
 
+    // Level 2: Provider Prompt Caching (KV-Cache Upside)
+    const cacheRate = relevantTraces.length > 0 ? ((cacheHits / relevantTraces.length) * 100).toFixed(1) : "0.0";
+    const compoundCostSaved = Math.max(0, totalBaselineCost - totalActualCost);
+    const compoundSavingsPct = totalBaselineCost > 0 ? ((compoundCostSaved / totalBaselineCost) * 100).toFixed(1) : "0.0";
+
+    // Populate Row 1 (Direct Pruning)
+    if (savedEl) savedEl.textContent = netSaved.toLocaleString();
+    if (savedPctEl) savedPctEl.textContent = savingsPct + "% pruned vs budget";
+    if (pruningSavedEl) pruningSavedEl.textContent = "$" + directCostSaved.toFixed(4);
+    if (pruningDetailEl) pruningDetailEl.textContent = directSavingsPct + "% direct cut";
+    if (baselineCostEl) baselineCostEl.textContent = "$" + totalBaselineCost.toFixed(4);
+    if (baselineDetailEl) baselineDetailEl.textContent = totalBudget.toLocaleString() + " tok requested";
+
+    // Populate Row 2 (Provider Prompt Caching)
+    if (cacheHitsEl) cacheHitsEl.textContent = cacheRate + "%";
+    if (cacheDetailEl) cacheDetailEl.textContent = cacheHits + " of " + relevantTraces.length + " hits (local plan)";
     if (actualCostEl) actualCostEl.textContent = "$" + totalActualCost.toFixed(4);
     if (actualDetailEl) actualDetailEl.textContent = totalSelected.toLocaleString() + " tok consumed";
-    if (baselineCostEl) baselineCostEl.textContent = "$" + totalBaselineCost.toFixed(4);
-    if (baselineDetailEl) baselineDetailEl.textContent = totalBudget.toLocaleString() + " tok baseline";
-    if (costSavedEl) costSavedEl.textContent = "$" + netCostSaved.toFixed(4);
-    if (costDetailEl) costDetailEl.textContent = costSavingsPct + "% budget cut";
-
-    if (savedEl) savedEl.textContent = netSaved.toLocaleString();
-    if (savedPctEl) savedPctEl.textContent = savingsPct + "% pruned";
-    if (rawReducEl) rawReducEl.textContent = rawReduc + "%";
-    if (rawDetailEl) rawDetailEl.textContent = "vs " + rawDump.toLocaleString() + " tok dump";
-    if (cacheHitsEl) cacheHitsEl.textContent = cacheRate + "%";
-    if (cacheDetailEl) cacheDetailEl.textContent = cacheHits + " of " + relevantTraces.length + " hits (discounted)";
+    if (costSavedEl) costSavedEl.textContent = "$" + compoundCostSaved.toFixed(4);
+    if (costDetailEl) costDetailEl.textContent = compoundSavingsPct + "% compound cut";
 
     // Update Host Agent Telemetry banner
     if (telemetry) {
@@ -938,7 +955,7 @@
       tracesListEl.innerHTML = relevantTraces.slice(0, 8).map(t => {
         const tSaved = Math.max(0, t.budget - t.selected_tokens);
         const tPct = t.budget > 0 ? ((tSaved / t.budget) * 100).toFixed(0) : "0";
-        const rates = resolveModelRates(t.model, modelProfiles);
+        const rates = resolveModelRates(t.model, modelProfiles, telemetry);
         const rate = t.cache_hit ? rates.cached : rates.input;
         const traceCost = (t.selected_tokens / 1e6) * rate;
         const traceSaved = (tSaved / 1e6) * rates.input;

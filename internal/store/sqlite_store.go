@@ -379,11 +379,11 @@ func (s *SQLiteStore) SessionEventStats(sessionID string) (totalEvents int, invo
 	if sessionID == "" {
 		queryTotal = `SELECT COUNT(*) FROM events`
 		queryInvoc = `SELECT COUNT(*) FROM events WHERE event_type='PreInvocation'`
-		queryPayloads = `SELECT payload FROM events WHERE payload LIKE '%modelName%' ORDER BY id DESC LIMIT 500`
+		queryPayloads = `SELECT payload FROM events WHERE payload LIKE '%modelName%' ORDER BY id DESC LIMIT 50`
 	} else {
 		queryTotal = `SELECT COUNT(*) FROM events WHERE session_id=?`
 		queryInvoc = `SELECT COUNT(*) FROM events WHERE session_id=? AND event_type='PreInvocation'`
-		queryPayloads = `SELECT payload FROM events WHERE session_id=? AND payload LIKE '%modelName%' ORDER BY id DESC LIMIT 500`
+		queryPayloads = `SELECT payload FROM events WHERE session_id=? AND payload LIKE '%modelName%' ORDER BY id DESC LIMIT 50`
 		args = []any{sessionID}
 	}
 
@@ -497,9 +497,9 @@ func (s *SQLiteStore) ListTraces(repoID string, limit int) ([]ContextTraceRecord
 	var rows []db.Row
 	var err error
 	if repoID == "" || repoID == "all" {
-		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,decision_json,created_at FROM context_traces ORDER BY id DESC LIMIT ?`, limit)
+		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,'',created_at FROM context_traces ORDER BY id DESC LIMIT ?`, limit)
 	} else {
-		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,decision_json,created_at FROM context_traces WHERE repo_id=? ORDER BY id DESC LIMIT ?`, repoID, limit)
+		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,'',created_at FROM context_traces WHERE repo_id=? ORDER BY id DESC LIMIT ?`, repoID, limit)
 	}
 	if err != nil {
 		return nil, err

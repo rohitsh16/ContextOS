@@ -330,40 +330,69 @@
                   <div class="text-muted font-mono" id="analytics-session-id" style="font-size: 11px;"></div>
                 </div>
 
-                <!-- Actual Cost vs Cost Saved & Token Reduction Grid -->
+                <!-- Two-Tier Efficiency Breakdown: Direct Pruning vs Provider Prompt Caching -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 11px; font-weight: 600;">
+                  <span style="color: var(--accent-emerald-light); display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Level 1: Direct Token Pruning (Empirical)
+                  </span>
+                  <span style="color: var(--border-subtle);">|</span>
+                  <span style="color: #60a5fa; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Level 2: Provider Prompt-Cache Upside (Estimated)
+                  </span>
+                </div>
+
+                <!-- Row 1: Direct Token Pruning (Empirical) -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
-                  <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Actual Context Cost</span>
-                    <div class="font-mono" id="metric-actual-cost" style="font-size: 16px; font-weight: 700; color: #60a5fa;">$0.0000</div>
-                    <div class="text-muted font-mono" id="metric-actual-detail" style="font-size: 10px;">0 selected tokens</div>
+                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 8px 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Direct Tokens Pruned</span>
+                      <span class="badge badge-success" style="font-size: 9px; padding: 0 4px;">Measured</span>
+                    </div>
+                    <div class="font-mono" id="metric-tokens-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">0</div>
+                    <div class="text-muted font-mono" id="metric-tokens-pct" style="font-size: 10px;">0% pruned vs budget</div>
                   </div>
-                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Cost Saved</span>
-                    <div class="font-mono" id="metric-cost-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">$0.0000</div>
-                    <div class="text-muted font-mono" id="metric-cost-detail" style="font-size: 10px;">0% budget cut</div>
+                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 8px 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Direct Cost Saved</span>
+                      <span class="badge badge-success" style="font-size: 9px; padding: 0 4px;">Uncached Rate</span>
+                    </div>
+                    <div class="font-mono" id="metric-pruning-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-pruning-detail" style="font-size: 10px;">0% budget cut</div>
                   </div>
                   <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Baseline Cost</span>
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Uncompressed Baseline</span>
                     <div class="font-mono" id="metric-baseline-cost" style="font-size: 16px; font-weight: 700; color: var(--accent-amber);">$0.0000</div>
-                    <div class="text-muted font-mono" id="metric-baseline-detail" style="font-size: 10px;">unoptimized budget</div>
+                    <div class="text-muted font-mono" id="metric-baseline-detail" style="font-size: 10px;">0 requested budget</div>
                   </div>
                 </div>
 
+                <!-- Row 2: Compound Provider Prompt Caching (KV-Cache Upside) -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;">
-                  <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Tokens Pruned</span>
-                    <div class="font-mono" id="metric-tokens-saved" style="font-size: 15px; font-weight: 700; color: var(--accent-emerald-light);">0</div>
-                    <div class="text-muted font-mono" id="metric-tokens-pct" style="font-size: 10px;">0% pruned</div>
-                  </div>
-                  <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Raw Dump Cut</span>
-                    <div class="font-mono" id="metric-raw-reduction" style="font-size: 15px; font-weight: 700; color: var(--accent-indigo-light);">0%</div>
-                    <div class="text-muted font-mono" id="metric-raw-detail" style="font-size: 10px;">vs 32k dump</div>
-                  </div>
-                  <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.15); padding: 8px 10px; border-radius: 6px;">
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">KV Cache Hit</span>
+                  <div style="background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Stable Prefix Hits</span>
+                      <span class="badge badge-info" style="font-size: 9px; padding: 0 4px;">Plan Cache</span>
+                    </div>
                     <div class="font-mono" id="metric-cache-hits" style="font-size: 15px; font-weight: 700; color: #60a5fa;">0%</div>
-                    <div class="text-muted font-mono" id="metric-cache-detail" style="font-size: 10px;">0 hits (discounted)</div>
+                    <div class="text-muted font-mono" id="metric-cache-detail" style="font-size: 10px;">0 hits (local plan)</div>
+                  </div>
+                  <div style="background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Cost w/ Cloud Cache</span>
+                      <span class="badge badge-info" style="font-size: 9px; padding: 0 4px;">90% Off Hits</span>
+                    </div>
+                    <div class="font-mono" id="metric-actual-cost" style="font-size: 15px; font-weight: 700; color: #60a5fa;">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-actual-detail" style="font-size: 10px;">0 selected tokens</div>
+                  </div>
+                  <div style="background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); padding: 8px 10px; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Compound Savings</span>
+                      <span class="badge badge-muted" style="font-size: 9px; padding: 0 4px;">Pruning + Cache</span>
+                    </div>
+                    <div class="font-mono" id="metric-cost-saved" style="font-size: 15px; font-weight: 700; color: var(--accent-indigo-light);">$0.0000</div>
+                    <div class="text-muted font-mono" id="metric-cost-detail" style="font-size: 10px;">0% combined cut</div>
                   </div>
                 </div>
 
@@ -609,6 +638,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=10"></script>
+  <script src="./app.js?v=11"></script>
 </body>
 </html>

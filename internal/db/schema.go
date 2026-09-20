@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS events(
  FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE SET NULL,
  FOREIGN KEY(repo_id) REFERENCES repositories(id) ON DELETE SET NULL
 );
+CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
+CREATE INDEX IF NOT EXISTS idx_events_repo ON events(repo_id);
 CREATE TABLE IF NOT EXISTS context_traces(
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  repo_id INTEGER,

@@ -96,6 +96,7 @@ func (srv *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
+	_ = srv.svc.RefreshRepo()
 	stats, err := srv.svc.Stats()
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
