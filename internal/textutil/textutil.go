@@ -2,6 +2,7 @@ package textutil
 
 import (
 	"hash/fnv"
+	"math"
 	"regexp"
 	"strings"
 )
@@ -27,6 +28,23 @@ func Tokens(s string) []string {
 	return out
 }
 
+// TokenCounts returns the term frequencies and total token count for a document.
+func TokenCounts(s string) (map[string]int, int) {
+	s = strings.ToLower(s)
+	s = nonWord.ReplaceAllString(s, " ")
+	raw := strings.Fields(s)
+	counts := make(map[string]int, len(raw))
+	total := 0
+	for _, t := range raw {
+		if len(t) < 2 {
+			continue
+		}
+		counts[t]++
+		total++
+	}
+	return counts, total
+}
+
 func Overlap(a, b string) float64 {
 	at, bt := Tokens(a), Tokens(b)
 	if len(at) == 0 || len(bt) == 0 {
@@ -45,10 +63,9 @@ func Overlap(a, b string) float64 {
 	return float64(hit) / float64(len(at))
 }
 
-// HashSemantic provides a dependency-free semantic-ish similarity signal.
-// It is deliberately not called an embedding: it hashes token and character
-// features into a fixed-dimensional bag and measures cosine similarity.
-func HashSemantic(a, b string) float64 {
+// FeatureHashSimilarity provides a zero-dependency lexical/subword hash feature similarity signal (PR-06).
+// It hashes token and character n-gram features into a fixed-dimensional bag and measures cosine similarity.
+func FeatureHashSimilarity(a, b string) float64 {
 	const dims = 128
 	va := make([]float64, dims)
 	vb := make([]float64, dims)
@@ -81,6 +98,11 @@ func HashSemantic(a, b string) float64 {
 		return 0
 	}
 	return dot / (sqrt(na) * sqrt(nb))
+}
+
+// HashSemantic is retained as a backward-compatible alias to FeatureHashSimilarity.
+func HashSemantic(a, b string) float64 {
+	return FeatureHashSimilarity(a, b)
 }
 
 func sqrt(v float64) float64 {
@@ -151,4 +173,203 @@ func BM25Score(query, doc string, avgDocLen float64) float64 {
 		return 1
 	}
 	return v
+}
+
+// CorpusStats maintains collection-level statistics for corpus-aware BM25 scoring.
+type CorpusStats struct {
+	DocCount   int            `json:"doc_count"`
+	DocLengths int            `json:"doc_lengths"`
+	AvgDocLen  float64        `json:"avg_doc_len"`
+	DocFreqs   map[string]int `json:"doc_freqs"`
+}
+
+// NewCorpusStats builds CorpusStats from a slice of document contents.
+func NewCorpusStats(docs []string) *CorpusStats {
+	cs := &CorpusStats{
+		DocCount: len(docs),
+		DocFreqs: make(map[string]int),
+	}
+	totalLen := 0
+	for _, doc := range docs {
+		counts, docLen := TokenCounts(doc)
+		totalLen += docLen
+		for term := range counts {
+			cs.DocFreqs[term]++
+		}
+	}
+	cs.DocLengths = totalLen
+	if cs.DocCount > 0 {
+		cs.AvgDocLen = float64(totalLen) / float64(cs.DocCount)
+	}
+	return cs
+}
+
+// AddDocument dynamically updates the corpus statistics with an additional document.
+func (cs *CorpusStats) AddDocument(doc string) {
+	if cs.DocFreqs == nil {
+		cs.DocFreqs = make(map[string]int)
+	}
+	counts, docLen := TokenCounts(doc)
+	cs.DocCount++
+	cs.DocLengths += docLen
+	cs.AvgDocLen = float64(cs.DocLengths) / float64(cs.DocCount)
+	for term := range counts {
+		cs.DocFreqs[term]++
+	}
+}
+
+// IDF computes the Robertson-Spärck Jones probabilistic inverse document frequency with +1 smoothing:
+// IDF(t) = ln(1 + (N - df(t) + 0.5) / (df(t) + 0.5))
+// This formulation ensures non-negative scores for any document frequency df(t) <= N.
+func (cs *CorpusStats) IDF(term string) float64 {
+	if cs == nil || cs.DocCount == 0 {
+		return 0.0
+	}
+	term = strings.ToLower(term)
+	df := 0
+	if cs.DocFreqs != nil {
+		df = cs.DocFreqs[term]
+	}
+	numerator := float64(cs.DocCount-df) + 0.5
+	denominator := float64(df) + 0.5
+	return math.Log(1.0 + numerator/denominator)
+}
+
+// ScoreBM25 computes corpus-aware BM25(D, Q) for query against doc.
+// k1 defaults to 1.5 if <= 0; b defaults to 0.75 if <= 0.
+func (cs *CorpusStats) ScoreBM25(query, doc string, k1, b float64) float64 {
+	if k1 <= 0 {
+		k1 = 1.5
+	}
+	if b <= 0 {
+		b = 0.75
+	}
+	qt := Tokens(query)
+	if len(qt) == 0 {
+		return 0.0
+	}
+	counts, dlen := TokenCounts(doc)
+	if dlen == 0 {
+		return 0.0
+	}
+	avgdl := float64(dlen)
+	if cs != nil && cs.AvgDocLen > 0 {
+		avgdl = cs.AvgDocLen
+	}
+	score := 0.0
+	K := k1 * (1.0 - b + b*(float64(dlen)/avgdl))
+	for _, t := range qt {
+		tf := float64(counts[t])
+		if tf <= 0 {
+			continue
+		}
+		idf := 1.0
+		if cs != nil {
+			idf = cs.IDF(t)
+		}
+		score += idf * (tf * (k1 + 1.0)) / (tf + K)
+	}
+	return score
+}
+
+// ScoreBM25Plus computes the BM25+ extension (Lv & Zhai, 2011), adding a lower-bound delta to prevent
+// over-penalization of long documents with low term frequencies.
+// delta defaults to 1.0 if <= 0.
+func (cs *CorpusStats) ScoreBM25Plus(query, doc string, k1, b, delta float64) float64 {
+	if k1 <= 0 {
+		k1 = 1.5
+	}
+	if b <= 0 {
+		b = 0.75
+	}
+	if delta <= 0 {
+		delta = 1.0
+	}
+	qt := Tokens(query)
+	if len(qt) == 0 {
+		return 0.0
+	}
+	counts, dlen := TokenCounts(doc)
+	if dlen == 0 {
+		return 0.0
+	}
+	avgdl := float64(dlen)
+	if cs != nil && cs.AvgDocLen > 0 {
+		avgdl = cs.AvgDocLen
+	}
+	score := 0.0
+	K := k1 * (1.0 - b + b*(float64(dlen)/avgdl))
+	for _, t := range qt {
+		tf := float64(counts[t])
+		if tf <= 0 {
+			continue
+		}
+		idf := 1.0
+		if cs != nil {
+			idf = cs.IDF(t)
+		}
+		score += idf * ((tf*(k1+1.0))/(tf+K) + delta)
+	}
+	return score
+}
+
+// ScoreBM25L computes the BM25L extension (Lv & Zhai, 2011), adjusting term frequency for long documents.
+// delta defaults to 0.5 if <= 0.
+func (cs *CorpusStats) ScoreBM25L(query, doc string, k1, b, delta float64) float64 {
+	if k1 <= 0 {
+		k1 = 1.5
+	}
+	if b <= 0 {
+		b = 0.75
+	}
+	if delta <= 0 {
+		delta = 0.5
+	}
+	qt := Tokens(query)
+	if len(qt) == 0 {
+		return 0.0
+	}
+	counts, dlen := TokenCounts(doc)
+	if dlen == 0 {
+		return 0.0
+	}
+	avgdl := float64(dlen)
+	if cs != nil && cs.AvgDocLen > 0 {
+		avgdl = cs.AvgDocLen
+	}
+	norm := 1.0 - b + b*(float64(dlen)/avgdl)
+	score := 0.0
+	for _, t := range qt {
+		tf := float64(counts[t])
+		if tf <= 0 {
+			continue
+		}
+		idf := 1.0
+		if cs != nil {
+			idf = cs.IDF(t)
+		}
+		cPrime := tf / norm
+		if float64(dlen) > avgdl {
+			cPrime += delta
+		}
+		score += idf * (cPrime * (k1 + 1.0)) / (cPrime + k1)
+	}
+	return score
+}
+
+// MaxQueryScore computes the theoretical maximum score attainable by this query under TF saturation.
+func (cs *CorpusStats) MaxQueryScore(query string, k1 float64) float64 {
+	if k1 <= 0 {
+		k1 = 1.5
+	}
+	qt := Tokens(query)
+	maxScore := 0.0
+	for _, t := range qt {
+		idf := 1.0
+		if cs != nil {
+			idf = cs.IDF(t)
+		}
+		maxScore += idf * (k1 + 1.0)
+	}
+	return maxScore
 }

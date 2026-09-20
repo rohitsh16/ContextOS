@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"contextos/internal/model"
+	"contextos/internal/semantic"
 )
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -644,5 +645,28 @@ func TestPlanTableDriven(t *testing.T) {
 				t.Errorf("SelectedTokens=%d ≠ sum(selected.Tokens)=%d", p.SelectedTokens, sum)
 			}
 		})
+	}
+}
+
+func TestPlanWithEmbeddingProvider(t *testing.T) {
+	provider := semantic.NewLocalEmbeddingProvider(128)
+	req := Request{
+		Task:              "kafka transaction outbox pattern",
+		Budget:            200,
+		EmbeddingProvider: provider,
+	}
+	ms := []model.Memory{
+		{ID: "m1", Kind: "decision", Content: "kafka transaction outbox pattern implementation", Authority: "user", TokenCost: 10},
+		{ID: "m2", Kind: "fact", Content: "unrelated database migration schema", Authority: "user", TokenCost: 10},
+	}
+	p := Plan(req, ms)
+	if len(p.Selected) == 0 {
+		t.Fatalf("expected at least 1 selected memory, got 0")
+	}
+	if p.Selected[0].ID != "m1" {
+		t.Errorf("expected m1 (high semantic similarity) to rank first, got %s", p.Selected[0].ID)
+	}
+	if p.Selected[0].Semantic <= 0 {
+		t.Errorf("expected candidate Semantic score to be positive for m1, got %.4f", p.Selected[0].Semantic)
 	}
 }
