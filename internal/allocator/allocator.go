@@ -232,9 +232,11 @@ func rankBy(n int, less func(i, j int) bool) []int {
 //     than the greedy selection, it replaces the selection as a knapsack safeguard.
 //
 //  4. Fill Pass — fills remaining budget with highest-density eligible items not yet selected.
-func Plan(req Request, ms []model.Memory) model.ContextPlan {
-	if req.Budget <= 0 {
-		req.Budget = 4000
+// RankCandidates scores all candidate memories using hybrid BM25, semantic similarity,
+// and task affinity, fuses them with Reciprocal Rank Fusion, and returns them sorted by density.
+func RankCandidates(req Request, ms []model.Memory) []model.Candidate {
+	if len(ms) == 0 {
+		return nil
 	}
 
 	// Auto-compute average document length for BM25 normalization across this candidate set.
@@ -280,7 +282,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		cands = append(cands, Score(req, m))
 	}
 	if len(cands) == 0 {
-		return model.ContextPlan{Task: req.Task, Budget: req.Budget}
+		return nil
 	}
 
 	// Pass 2: rank candidates by each signal independently, then compute RRF-fused scores.
@@ -312,8 +314,20 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		}
 	}
 
-	// Pass 3: sort by marginal-utility density, then greedy-pack up to budget.
+	// Sort by marginal-utility density
 	sort.SliceStable(cands, func(i, j int) bool { return cands[i].Density > cands[j].Density })
+	return cands
+}
+
+func Plan(req Request, ms []model.Memory) model.ContextPlan {
+	if req.Budget <= 0 {
+		req.Budget = 4000
+	}
+
+	cands := RankCandidates(req, ms)
+	if len(cands) == 0 {
+		return model.ContextPlan{Task: req.Task, Budget: req.Budget}
+	}
 	used := 0
 	selected := make([]model.Candidate, 0)
 	for i := range cands {
