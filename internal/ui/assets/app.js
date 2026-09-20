@@ -453,21 +453,23 @@
       const authority = m.authority || 'user';
       const confidence = Math.round((m.confidence || 1.0) * 100);
       const reuse = m.reuse_count || 0;
-      const isStale = m.stale;
+      const isStale = Boolean(m.invalidated_at_revision || m.stale);
 
       html += `
-        <div class="memory-card">
+        <div class="memory-card" style="${isStale ? 'opacity: 0.65; border-color: rgba(244, 63, 94, 0.3); background: rgba(244, 63, 94, 0.03);' : ''}">
           <div class="memory-card-header">
             <span class="badge ${kindClass}">${m.kind}</span>
             <div style="display: flex; gap: 6px; align-items: center;">
               <span class="badge badge-muted">${authority}</span>
-              ${isStale ? '<span class="badge badge-danger">STALE</span>' : ''}
+              ${isStale ? '<span class="badge badge-danger">INVALIDATED</span>' : ''}
             </div>
           </div>
           <div class="memory-content">${content}</div>
           <div class="memory-card-footer">
             <span>Confidence: ${confidence}% · Reused: ${reuse}x</span>
-            <button class="btn btn-secondary btn-xs btn-invalidate" data-id="${m.id}" title="Invalidate memory">Invalidate</button>
+            ${isStale 
+              ? `<button class="btn btn-primary btn-xs btn-validate" data-id="${m.id}" title="Restore and revalidate memory">Validate</button>`
+              : `<button class="btn btn-secondary btn-xs btn-invalidate" data-id="${m.id}" title="Invalidate memory">Invalidate</button>`}
           </div>
         </div>
       `;
@@ -491,6 +493,26 @@
           loadStatus();
         } catch (e) {
           alert('Failed to invalidate: ' + e.message);
+        }
+      });
+    });
+
+    // Attach Validate (Restore) handlers
+    document.querySelectorAll('.btn-validate').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm(`Restore and revalidate memory ${id}?`)) return;
+        try {
+          const res = await fetch('/api/memories/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          if (!res.ok) throw new Error(await res.text());
+          loadMemories();
+          loadStatus();
+        } catch (e) {
+          alert('Failed to validate: ' + e.message);
         }
       });
     });

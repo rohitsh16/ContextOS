@@ -202,16 +202,18 @@ print(f"     Seeded {len(memories)} sample memories into demo static dataset.")
 PYEOF
 fi
 
-# 4. Inject static mode flag into index.html cross-platform via python
+# 4. Ensure relative asset paths and inject static mode flag
 python3 -c "
 import sys
 index_path = '${OUT_DIR}/index.html'
 with open(index_path, 'r') as f:
     content = f.read()
+content = content.replace('href=\"/style.css', 'href=\"./style.css')
+content = content.replace('src=\"/app.js', 'src=\"./app.js')
 if 'window.__STATIC_MODE__' not in content:
     content = content.replace('<head>', '<head>\n  <script>window.__STATIC_MODE__ = true;</script>')
-    with open(index_path, 'w') as f:
-        f.write(content)
+with open(index_path, 'w') as f:
+    f.write(content)
 "
 
 echo ""

@@ -512,6 +512,10 @@ func (s *Service) Invalidate(id string) error {
 	return s.Store.Invalidate(s.RepoID, id, s.Repo.Revision)
 }
 
+func (s *Service) Validate(id string) error {
+	return s.Store.Validate(s.RepoID, id)
+}
+
 func (s *Service) InvalidateByGitChange() error {
 	return s.Store.InvalidateByGitChange(s.RepoID)
 }

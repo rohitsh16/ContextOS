@@ -342,6 +342,24 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 			variable = append(variable, c)
 		}
 	}
+	// Sanitize any -Inf/NaN values so JSON serialization is 100% compliant with RFC 8259
+	for i := range cands {
+		if math.IsInf(cands[i].Density, 0) || math.IsNaN(cands[i].Density) {
+			cands[i].Density = -1.0
+		}
+		if math.IsInf(cands[i].Score, 0) || math.IsNaN(cands[i].Score) {
+			cands[i].Score = 0.0
+		}
+	}
+	for i := range selected {
+		if math.IsInf(selected[i].Density, 0) || math.IsNaN(selected[i].Density) {
+			selected[i].Density = -1.0
+		}
+		if math.IsInf(selected[i].Score, 0) || math.IsNaN(selected[i].Score) {
+			selected[i].Score = 0.0
+		}
+	}
+
 	return model.ContextPlan{
 		Task: req.Task, Budget: req.Budget, SelectedTokens: used,
 		StablePrefix: prefix, VariableContext: variable,

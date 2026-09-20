@@ -308,7 +308,15 @@ func main() {
 		if e := s.Invalidate(*id); e != nil {
 			die(e)
 		}
-		printJSON(map[string]any{"ok": true, "id": *id})
+		printJSON(map[string]any{"ok": true, "id": *id, "status": "invalidated"})
+	case "validate", "revalidate":
+		if *id == "" {
+			die(fmt.Errorf("-id is required"))
+		}
+		if e := s.Validate(*id); e != nil {
+			die(e)
+		}
+		printJSON(map[string]any{"ok": true, "id": *id, "status": "validated"})
 	case "stats":
 		x, e := s.Stats()
 		if e != nil {

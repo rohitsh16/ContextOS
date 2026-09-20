@@ -393,6 +393,22 @@ func (fs *FileStore) Invalidate(repoID, id, currentRevision string) error {
 	return nil
 }
 
+func (fs *FileStore) Validate(repoID, id string) error {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+	list := fs.memories[repoID]
+	for i := range list {
+		if list[i].ID == id {
+			list[i].InvalidatedAtRevision = ""
+			list[i].UpdatedAt = now()
+			break
+		}
+	}
+	fs.memories[repoID] = list
+	_ = fs.save()
+	return nil
+}
+
 func (fs *FileStore) InvalidateByGitChange(repoID string) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()

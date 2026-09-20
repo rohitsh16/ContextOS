@@ -56,6 +56,7 @@ func (srv *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/status", srv.handleStatus)
 	mux.HandleFunc("/api/memories", srv.handleMemories)
 	mux.HandleFunc("/api/memories/invalidate", srv.handleInvalidateMemory)
+	mux.HandleFunc("/api/memories/validate", srv.handleValidateMemory)
 	mux.HandleFunc("/api/plan", srv.handlePlan)
 	mux.HandleFunc("/api/work-item", srv.handleWorkItem)
 	mux.HandleFunc("/api/sessions", srv.handleSessions)
@@ -74,9 +75,16 @@ func StartServer(svc *server.Service, repoPath string, port int) error {
 }
 
 func jsonResponse(w http.ResponseWriter, status int, v any) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+	_, _ = w.Write(b)
 }
 
 func jsonError(w http.ResponseWriter, status int, msg string) {
@@ -104,8 +112,12 @@ func (srv *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mems, _ := srv.svc.Store.ListMemories(srv.svc.RepoID, 10000)
-	var decisions, failures, constraints, facts, codes int
+	var decisions, failures, constraints, facts, codes, activeCount int
 	for _, m := range mems {
+		if m.InvalidatedAtRevision != "" {
+			continue
+		}
+		activeCount++
 		switch m.Kind {
 		case "decision":
 			decisions++
@@ -124,7 +136,7 @@ func (srv *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	stats["constraints"] = constraints
 	stats["facts"] = facts
 	stats["codes"] = codes
-	stats["memories"] = len(mems)
+	stats["memories"] = activeCount
 
 	jsonResponse(w, http.StatusOK, map[string]any{
 		"repo": map[string]any{
@@ -214,6 +226,25 @@ func (srv *Server) handleInvalidateMemory(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := srv.svc.Invalidate(req.ID); err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (srv *Server) handleValidateMemory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		jsonError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	var req struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == "" {
+		jsonError(w, http.StatusBadRequest, "id is required")
+		return
+	}
+	if err := srv.svc.Validate(req.ID); err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

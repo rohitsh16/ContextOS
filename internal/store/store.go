@@ -107,6 +107,7 @@ type Store interface {
 	ListMemories(repoID string, limit int) ([]model.Memory, error)
 	SearchMemories(repoID string, task string, limit int) ([]model.Memory, error)
 	Invalidate(repoID, id, currentRevision string) error
+	Validate(repoID, id string) error
 	InvalidateByGitChange(repoID string) error
 	IncrementMemoryReuse(repoID, id string) error
 

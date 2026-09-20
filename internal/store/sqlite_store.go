@@ -245,6 +245,11 @@ func (s *SQLiteStore) Invalidate(repoID, id, currentRevision string) error {
 	return err
 }
 
+func (s *SQLiteStore) Validate(repoID, id string) error {
+	_, err := s.DB.Exec(`UPDATE memories SET invalidated_at_revision=NULL,updated_at=? WHERE id=? AND repo_id=?`, now(), id, repoID)
+	return err
+}
+
 func (s *SQLiteStore) InvalidateByGitChange(repoID string) error {
 	_, err := s.DB.Exec(`UPDATE memories SET updated_at=? WHERE repo_id=? AND invalidated_at_revision IS NULL AND authority IN ('source','commit')`, now(), repoID)
 	return err
