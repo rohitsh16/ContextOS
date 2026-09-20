@@ -1,0 +1,754 @@
+{
+  "timestamp": "2026-09-20T19:55:11Z",
+  "config": {
+    "seed": 42,
+    "num_tasks": 50,
+    "budget": 2048,
+    "baselines": [
+      "B0 Full history",
+      "B1 Recency",
+      "B2 Top-K lexical",
+      "B3 Current ContextOS",
+      "B4 BM25",
+      "B5 BM25 + dense",
+      "B6 BM25 + graph",
+      "B7 Hybrid retrieval",
+      "B8 Hybrid + submodular selection",
+      "B9 Full ContextOS research system"
+    ],
+    "ablations": {
+      "persistent_memory": true,
+      "graph": true,
+      "cache_aware": true,
+      "temporal_validity": true
+    },
+    "pricing": {
+      "UncachedInputPerM": 3,
+      "CachedInputPerM": 0.3,
+      "OutputPerM": 15
+    },
+    "alpha": 0.05,
+    "confidence": 0.95
+  },
+  "baselines": {
+    "B0 Full history": {
+      "baseline_id": "B0 Full history",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.18666666666666665,
+          "recall_at_3": 0.56,
+          "recall_at_5": 0.8466666666666666,
+          "recall_at_10": 1,
+          "mrr": 0.7483333333333334,
+          "ndcg": 0.8045262965285616,
+          "map": 0.6878888888888888
+        },
+        "layer_b_selection": {
+          "token_usage": 1700,
+          "coverage": 1,
+          "redundancy": 0.05541311994782627,
+          "utility": 6,
+          "budget_utilization": 0.830078125
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 0,
+          "test_pass": 0.5,
+          "regression_rate": 1,
+          "handoff_success": 0,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 1700,
+          "cached_tokens": 115.6,
+          "uncached_tokens": 1584.4,
+          "output_tokens": 150,
+          "latency_ms": 11.33333333333333,
+          "estimated_cost_usd": 0.007037879999999999
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0,
+        "upper": 0.07134732973661902,
+        "confidence": 0.95
+      }
+    },
+    "B1 Recency": {
+      "baseline_id": "B1 Recency",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.15333333333333327,
+          "recall_at_3": 0.43999999999999995,
+          "recall_at_5": 0.8133333333333335,
+          "recall_at_10": 1,
+          "mrr": 0.685,
+          "ndcg": 0.7510946867849073,
+          "map": 0.6089999999999999
+        },
+        "layer_b_selection": {
+          "token_usage": 1700,
+          "coverage": 1,
+          "redundancy": 0.05541311994782627,
+          "utility": 6,
+          "budget_utilization": 0.830078125
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 0,
+          "test_pass": 0.5,
+          "regression_rate": 1,
+          "handoff_success": 0,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 1700,
+          "cached_tokens": 92.8,
+          "uncached_tokens": 1607.2,
+          "output_tokens": 150,
+          "latency_ms": 11.33333333333333,
+          "estimated_cost_usd": 0.007099439999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0,
+        "upper": 0.07134732973661902,
+        "confidence": 0.95
+      }
+    },
+    "B2 Top-K lexical": {
+      "baseline_id": "B2 Top-K lexical",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.15333333333333327,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 0.9866666666666667,
+          "recall_at_10": 1,
+          "mrr": 0.73,
+          "ndcg": 0.8168342234587714,
+          "map": 0.7223333333333336
+        },
+        "layer_b_selection": {
+          "token_usage": 1700,
+          "coverage": 1,
+          "redundancy": 0.05541311994782627,
+          "utility": 10.22,
+          "budget_utilization": 0.830078125
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 0,
+          "test_pass": 0.5,
+          "regression_rate": 1,
+          "handoff_success": 0,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 1700,
+          "cached_tokens": 55.2,
+          "uncached_tokens": 1644.8,
+          "output_tokens": 150,
+          "latency_ms": 11.33333333333333,
+          "estimated_cost_usd": 0.007200960000000001
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0,
+        "upper": 0.07134732973661902,
+        "confidence": 0.95
+      }
+    },
+    "B3 Current ContextOS": {
+      "baseline_id": "B3 Current ContextOS",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 1,
+          "recall_at_10": 1,
+          "mrr": 1,
+          "ndcg": 0.9674679834891697,
+          "map": 0.9166666666666663
+        },
+        "layer_b_selection": {
+          "token_usage": 920,
+          "coverage": 1,
+          "redundancy": 0.060976035575577875,
+          "utility": 0.16120623312679885,
+          "budget_utilization": 0.44921875
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 1,
+          "test_pass": 1,
+          "regression_rate": 0,
+          "handoff_success": 1,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 920,
+          "cached_tokens": 140,
+          "uncached_tokens": 780,
+          "output_tokens": 150,
+          "latency_ms": 6.13333333333333,
+          "estimated_cost_usd": 0.004631999999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0.9286526702633809,
+        "upper": 0.9999999999999999,
+        "confidence": 0.95
+      }
+    },
+    "B4 BM25": {
+      "baseline_id": "B4 BM25",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.039999999999999994,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 0.9666666666666666,
+          "recall_at_10": 1,
+          "mrr": 0.56,
+          "ndcg": 0.7574906548857214,
+          "map": 0.6638888888888892
+        },
+        "layer_b_selection": {
+          "token_usage": 1700,
+          "coverage": 1,
+          "redundancy": 0.05541311994782627,
+          "utility": 7.648225785761981,
+          "budget_utilization": 0.830078125
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 0,
+          "test_pass": 0.5,
+          "regression_rate": 1,
+          "handoff_success": 0,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 1700,
+          "cached_tokens": 89.2,
+          "uncached_tokens": 1610.8,
+          "output_tokens": 150,
+          "latency_ms": 11.33333333333333,
+          "estimated_cost_usd": 0.007109160000000001
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0,
+        "upper": 0.07134732973661902,
+        "confidence": 0.95
+      }
+    },
+    "B5 BM25 + dense": {
+      "baseline_id": "B5 BM25 + dense",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 1,
+          "recall_at_10": 1,
+          "mrr": 1,
+          "ndcg": 0.9674679834891697,
+          "map": 0.9166666666666663
+        },
+        "layer_b_selection": {
+          "token_usage": 920,
+          "coverage": 1,
+          "redundancy": 0.060976035575577875,
+          "utility": 0.16120623312679885,
+          "budget_utilization": 0.44921875
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 1,
+          "test_pass": 1,
+          "regression_rate": 0,
+          "handoff_success": 1,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 920,
+          "cached_tokens": 140,
+          "uncached_tokens": 780,
+          "output_tokens": 150,
+          "latency_ms": 6.13333333333333,
+          "estimated_cost_usd": 0.004631999999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0.9286526702633809,
+        "upper": 0.9999999999999999,
+        "confidence": 0.95
+      }
+    },
+    "B6 BM25 + graph": {
+      "baseline_id": "B6 BM25 + graph",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 1,
+          "recall_at_10": 1,
+          "mrr": 1,
+          "ndcg": 0.9674679834891697,
+          "map": 0.9166666666666663
+        },
+        "layer_b_selection": {
+          "token_usage": 920,
+          "coverage": 1,
+          "redundancy": 0.060976035575577875,
+          "utility": 0.16120623312679885,
+          "budget_utilization": 0.44921875
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 1,
+          "test_pass": 1,
+          "regression_rate": 0,
+          "handoff_success": 1,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 920,
+          "cached_tokens": 140,
+          "uncached_tokens": 780,
+          "output_tokens": 150,
+          "latency_ms": 6.13333333333333,
+          "estimated_cost_usd": 0.004631999999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0.9286526702633809,
+        "upper": 0.9999999999999999,
+        "confidence": 0.95
+      }
+    },
+    "B7 Hybrid retrieval": {
+      "baseline_id": "B7 Hybrid retrieval",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 1,
+          "recall_at_10": 1,
+          "mrr": 1,
+          "ndcg": 0.9674679834891697,
+          "map": 0.9166666666666663
+        },
+        "layer_b_selection": {
+          "token_usage": 920,
+          "coverage": 1,
+          "redundancy": 0.060976035575577875,
+          "utility": 0.16120623312679885,
+          "budget_utilization": 0.44921875
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 1,
+          "test_pass": 1,
+          "regression_rate": 0,
+          "handoff_success": 1,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 920,
+          "cached_tokens": 140,
+          "uncached_tokens": 780,
+          "output_tokens": 150,
+          "latency_ms": 6.13333333333333,
+          "estimated_cost_usd": 0.004631999999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0.9286526702633809,
+        "upper": 0.9999999999999999,
+        "confidence": 0.95
+      }
+    },
+    "B8 Hybrid + submodular selection": {
+      "baseline_id": "B8 Hybrid + submodular selection",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.52,
+          "recall_at_5": 0.52,
+          "recall_at_10": 0.52,
+          "mrr": 1,
+          "ndcg": 0.7008487574739983,
+          "map": 0.4600000000000002
+        },
+        "layer_b_selection": {
+          "token_usage": 659.6,
+          "coverage": 0.52,
+          "redundancy": 0.01538461538461539,
+          "utility": 0.09216304561587826,
+          "budget_utilization": 0.3220703125
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 0.36399999999999993,
+          "test_pass": 0.52,
+          "regression_rate": 0,
+          "handoff_success": 0.38219999999999993,
+          "rediscovery_rate": 0.48
+        },
+        "layer_d_economics": {
+          "input_tokens": 659.6,
+          "cached_tokens": 3.2,
+          "uncached_tokens": 656.4,
+          "output_tokens": 150,
+          "latency_ms": 4.397333333333331,
+          "estimated_cost_usd": 0.004220160000000003
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0,
+        "upper": 0.07134732973661902,
+        "confidence": 0.95
+      }
+    },
+    "B9 Full ContextOS research system": {
+      "baseline_id": "B9 Full ContextOS research system",
+      "metrics": {
+        "layer_a_retrieval": {
+          "recall_at_1": 0.3333333333333335,
+          "recall_at_3": 0.666666666666667,
+          "recall_at_5": 1,
+          "recall_at_10": 1,
+          "mrr": 1,
+          "ndcg": 0.9674679834891697,
+          "map": 0.9166666666666663
+        },
+        "layer_b_selection": {
+          "token_usage": 920,
+          "coverage": 1,
+          "redundancy": 0.060976035575577875,
+          "utility": 0.16120623312679885,
+          "budget_utilization": 0.44921875
+        },
+        "layer_c_agent_outcome": {
+          "task_success": 1,
+          "test_pass": 1,
+          "regression_rate": 0,
+          "handoff_success": 1,
+          "rediscovery_rate": 0
+        },
+        "layer_d_economics": {
+          "input_tokens": 920,
+          "cached_tokens": 140,
+          "uncached_tokens": 780,
+          "output_tokens": 150,
+          "latency_ms": 6.13333333333333,
+          "estimated_cost_usd": 0.004631999999999998
+        }
+      },
+      "wilson_success_ci": {
+        "lower": 0.9286526702633809,
+        "upper": 0.9999999999999999,
+        "confidence": 0.95
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B0 Full history",
+      "metric": "task_success",
+      "mean_delta": 1,
+      "median_delta": 1,
+      "bootstrap_ci_95": {
+        "lower": 1,
+        "upper": 1,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 0,
+      "cliffs_delta": 1,
+      "effect_size": "large",
+      "statistically_valid": true
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B1 Recency",
+      "metric": "task_success",
+      "mean_delta": 1,
+      "median_delta": 1,
+      "bootstrap_ci_95": {
+        "lower": 1,
+        "upper": 1,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 0,
+      "cliffs_delta": 1,
+      "effect_size": "large",
+      "statistically_valid": true
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B2 Top-K lexical",
+      "metric": "task_success",
+      "mean_delta": 1,
+      "median_delta": 1,
+      "bootstrap_ci_95": {
+        "lower": 1,
+        "upper": 1,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 0,
+      "cliffs_delta": 1,
+      "effect_size": "large",
+      "statistically_valid": true
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B3 Current ContextOS",
+      "metric": "task_success",
+      "mean_delta": 0,
+      "median_delta": 0,
+      "bootstrap_ci_95": {
+        "lower": 0,
+        "upper": 0,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 1,
+      "cliffs_delta": 0,
+      "effect_size": "negligible",
+      "statistically_valid": false
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B4 BM25",
+      "metric": "task_success",
+      "mean_delta": 1,
+      "median_delta": 1,
+      "bootstrap_ci_95": {
+        "lower": 1,
+        "upper": 1,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 0,
+      "cliffs_delta": 1,
+      "effect_size": "large",
+      "statistically_valid": true
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B5 BM25 + dense",
+      "metric": "task_success",
+      "mean_delta": 0,
+      "median_delta": 0,
+      "bootstrap_ci_95": {
+        "lower": 0,
+        "upper": 0,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 1,
+      "cliffs_delta": 0,
+      "effect_size": "negligible",
+      "statistically_valid": false
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B6 BM25 + graph",
+      "metric": "task_success",
+      "mean_delta": 0,
+      "median_delta": 0,
+      "bootstrap_ci_95": {
+        "lower": 0,
+        "upper": 0,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 1,
+      "cliffs_delta": 0,
+      "effect_size": "negligible",
+      "statistically_valid": false
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B7 Hybrid retrieval",
+      "metric": "task_success",
+      "mean_delta": 0,
+      "median_delta": 0,
+      "bootstrap_ci_95": {
+        "lower": 0,
+        "upper": 0,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 1,
+      "cliffs_delta": 0,
+      "effect_size": "negligible",
+      "statistically_valid": false
+    },
+    {
+      "candidate_id": "B9 Full ContextOS research system",
+      "baseline_id": "B8 Hybrid + submodular selection",
+      "metric": "task_success",
+      "mean_delta": 0.6359999999999996,
+      "median_delta": 0.5333333333333334,
+      "bootstrap_ci_95": {
+        "lower": 0.6033333333333338,
+        "upper": 0.6686666666666669,
+        "confidence": 0.95
+      },
+      "permutation_p_value": 0,
+      "cliffs_delta": 1,
+      "effect_size": "large",
+      "statistically_valid": true
+    }
+  ],
+  "hypotheses": [
+    {
+      "name": "B9 Full ContextOS research system vs B2 Top-K lexical [task_success]",
+      "raw_p_value": 0,
+      "rank": 1,
+      "adjusted_alpha": 0.005555555555555556,
+      "significant_diff": true
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B4 BM25 [task_success]",
+      "raw_p_value": 0,
+      "rank": 2,
+      "adjusted_alpha": 0.00625,
+      "significant_diff": true
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B1 Recency [task_success]",
+      "raw_p_value": 0,
+      "rank": 3,
+      "adjusted_alpha": 0.0071428571428571435,
+      "significant_diff": true
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B8 Hybrid + submodular selection [task_success]",
+      "raw_p_value": 0,
+      "rank": 4,
+      "adjusted_alpha": 0.008333333333333333,
+      "significant_diff": true
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B0 Full history [task_success]",
+      "raw_p_value": 0,
+      "rank": 5,
+      "adjusted_alpha": 0.01,
+      "significant_diff": true
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B3 Current ContextOS [task_success]",
+      "raw_p_value": 1,
+      "rank": 6,
+      "adjusted_alpha": 0.0125,
+      "significant_diff": false
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B6 BM25 + graph [task_success]",
+      "raw_p_value": 1,
+      "rank": 7,
+      "adjusted_alpha": 0.016666666666666666,
+      "significant_diff": false
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B7 Hybrid retrieval [task_success]",
+      "raw_p_value": 1,
+      "rank": 8,
+      "adjusted_alpha": 0.025,
+      "significant_diff": false
+    },
+    {
+      "name": "B9 Full ContextOS research system vs B5 BM25 + dense [task_success]",
+      "raw_p_value": 1,
+      "rank": 9,
+      "adjusted_alpha": 0.05,
+      "significant_diff": false
+    }
+  ],
+  "pareto_frontier": [
+    {
+      "name": "B0 Full history",
+      "budget": 2048,
+      "success": 0,
+      "cost": 0.007037879999999999,
+      "tokens": 1700,
+      "latency_ms": 11.33333333333333,
+      "dominated": true
+    },
+    {
+      "name": "B5 BM25 + dense",
+      "budget": 2048,
+      "success": 1,
+      "cost": 0.004631999999999998,
+      "tokens": 920,
+      "latency_ms": 6.13333333333333,
+      "dominated": false
+    },
+    {
+      "name": "B7 Hybrid retrieval",
+      "budget": 2048,
+      "success": 1,
+      "cost": 0.004631999999999998,
+      "tokens": 920,
+      "latency_ms": 6.13333333333333,
+      "dominated": false
+    },
+    {
+      "name": "B1 Recency",
+      "budget": 2048,
+      "success": 0,
+      "cost": 0.007099439999999998,
+      "tokens": 1700,
+      "latency_ms": 11.33333333333333,
+      "dominated": true
+    },
+    {
+      "name": "B2 Top-K lexical",
+      "budget": 2048,
+      "success": 0,
+      "cost": 0.007200960000000001,
+      "tokens": 1700,
+      "latency_ms": 11.33333333333333,
+      "dominated": true
+    },
+    {
+      "name": "B3 Current ContextOS",
+      "budget": 2048,
+      "success": 1,
+      "cost": 0.004631999999999998,
+      "tokens": 920,
+      "latency_ms": 6.13333333333333,
+      "dominated": false
+    },
+    {
+      "name": "B4 BM25",
+      "budget": 2048,
+      "success": 0,
+      "cost": 0.007109160000000001,
+      "tokens": 1700,
+      "latency_ms": 11.33333333333333,
+      "dominated": true
+    },
+    {
+      "name": "B6 BM25 + graph",
+      "budget": 2048,
+      "success": 1,
+      "cost": 0.004631999999999998,
+      "tokens": 920,
+      "latency_ms": 6.13333333333333,
+      "dominated": false
+    },
+    {
+      "name": "B8 Hybrid + submodular selection",
+      "budget": 2048,
+      "success": 0.36399999999999993,
+      "cost": 0.004220160000000003,
+      "tokens": 659.6,
+      "latency_ms": 4.397333333333331,
+      "dominated": false
+    },
+    {
+      "name": "B9 Full ContextOS research system",
+      "budget": 2048,
+      "success": 1,
+      "cost": 0.004631999999999998,
+      "tokens": 920,
+      "latency_ms": 6.13333333333333,
+      "dominated": false
+    }
+  ],
+  "power_analysis_sample_sizes": {
+    "detect_delta_0.05_power_0.80": 392,
+    "detect_delta_0.05_power_0.90": 526,
+    "detect_delta_0.10_power_0.80": 98,
+    "detect_delta_0.10_power_0.90": 132
+  }
+}

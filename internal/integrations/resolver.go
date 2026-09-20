@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"contextos/internal/version"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 
 	// ConfigVersion tracks the generation schema so the installer can
 	// detect and upgrade stale managed configurations.
-	ConfigVersion = "0.7.0"
+	ConfigVersion = version.ApplicationVersion
 )
 
 // ResolveBinary locates a ContextOS binary using a portable resolution

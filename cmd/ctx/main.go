@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	agentpkg "contextos/internal/agent"
+	"contextos/internal/doctor"
 	"contextos/internal/gitidx"
 	"contextos/internal/hook"
 	"contextos/internal/integrations"
@@ -97,6 +99,22 @@ func main() {
 		}
 		return
 	}
+	if sub == "doctor" {
+		rp, _ := filepath.Abs(*repo)
+		if dp == "" {
+			dp = server.DefaultDBPath()
+		}
+		rep := doctor.RunDiagnostics(rp, dp)
+		if strings.EqualFold(*format, "json") {
+			fmt.Println(doctor.JSON(rep))
+		} else {
+			fmt.Print(doctor.Format(rep))
+		}
+		if !rep.Healthy {
+			os.Exit(1)
+		}
+		return
+	}
 	if sub == "setup" {
 		rp, _ := filepath.Abs(*repo)
 		if dp == "" {
@@ -117,15 +135,61 @@ func main() {
 		bin, _ := os.Executable()
 		hookBin := filepath.Join(filepath.Dir(bin), "ctx-hook")
 		mcpBin := filepath.Join(filepath.Dir(bin), "contextd")
-		var results []any
-		for _, a := range []string{"claude", "cursor", "codex", "gemini", "antigravity"} {
-			res, e := integrations.Install(a, rp, hookBin, mcpBin)
-			if e != nil {
-				die(e)
-			}
-			results = append(results, res)
+
+		installer := agentpkg.NewTransactionalInstaller()
+		setupResult := installer.Execute(agentpkg.SetupOptions{
+			RepoRoot:   rp,
+			RepoName:   filepath.Base(rp),
+			HookBinary: hookBin,
+			MCPBinary:  mcpBin,
+			DryRun:     *dryRun,
+			AgentID:    *agent,
+		})
+		if !setupResult.Success {
+			die(fmt.Errorf("setup failed: %s (rollback: %v)", setupResult.Error, setupResult.RollbackOccurred))
 		}
-		printJSON(map[string]any{"ok": true, "repo": rp, "storage": stg, "integrations": results})
+		printJSON(map[string]any{
+			"ok":         true,
+			"repo":       rp,
+			"storage":    stg,
+			"dry_run":    setupResult.DryRun,
+			"installed":  setupResult.Installed,
+			"plans":      setupResult.Plans,
+			"backup_dir": setupResult.BackupDir,
+			"validation": setupResult.Validation,
+		})
+		return
+	}
+	if sub == "completion" {
+		shell := "bash"
+		if len(os.Args) > 2 {
+			shell = os.Args[2]
+		}
+		printCompletion(shell)
+		return
+	}
+	if sub == "uninstall" {
+		rp, _ := filepath.Abs(*repo)
+		home, _ := os.UserHomeDir()
+		remCtx := agentpkg.RemoveContext{
+			RepoRoot: rp,
+			HomeDir:  home,
+		}
+		targetAgent := *agent
+		removedCount := 0
+		for _, a := range agentpkg.List() {
+			if targetAgent == "" || strings.EqualFold(a.ID(), targetAgent) {
+				if err := a.Remove(remCtx); err != nil {
+					fmt.Printf("Error removing %s: %v\n", a.Name(), err)
+				} else {
+					fmt.Printf("✓ Uninstalled ContextOS integration for %s\n", a.Name())
+					removedCount++
+				}
+			}
+		}
+		if removedCount == 0 && targetAgent != "" {
+			fmt.Printf("No adapter found matching %q\n", targetAgent)
+		}
 		return
 	}
 	if sub == "install" {
@@ -414,6 +478,8 @@ Commands:
   ctx route      -task "..." -budget 4000               Recommend optimal model
   ctx install    -repo PATH -agent NAME                 Install agent hook & MCP
   ctx setup      -repo PATH                             Index + install all integrations
+  ctx uninstall  -repo PATH [-agent NAME]               Uninstall agent integrations
+  ctx completion [bash|zsh]                             Generate shell completion script
   ctx report     -repo PATH [-format md|json] [-output] Generate evaluation/benchmark report
   ctx publish    -repo PATH [-output FILE]              Publish empirical test results to markdown
   ctx ui         -repo PATH [-port 8765]                Launch real-time web UI dashboard
@@ -422,6 +488,57 @@ Storage & Feature Flags:
   -storage sqlite|file   Choose storage engine (default: sqlite, or file for zero-DB)
   -auto-prune            Opt-in automatic pruning during context planning (default: false)
   -db PATH               Custom database or storage data path`)
+}
+
+func printCompletion(shell string) {
+	switch strings.ToLower(shell) {
+	case "zsh":
+		fmt.Println(`#compdef ctx
+
+_ctx() {
+    local -a commands
+    commands=(
+        'init:Index repository symbols'
+        'index:Index repository symbols'
+        'remember:Persist a memory'
+        'plan:Build context plan'
+        'resume:Recover active work state'
+        'handoff:Cross-agent context handoff'
+        'invalidate:Invalidate stale memory'
+        'gc:Garbage collect expired cache and traces'
+        'migrate:Transfer data between storage engines'
+        'work:Start a work item'
+        'session:Start an agent session'
+        'event:Record lifecycle event'
+        'stats:Display runtime statistics'
+        'route:Recommend optimal model'
+        'install:Install agent hook & MCP'
+        'setup:Index + install all integrations'
+        'uninstall:Uninstall agent integrations'
+        'doctor:Run diagnostics'
+        'completion:Generate shell autocompletion script'
+        'report:Generate evaluation/benchmark report'
+        'publish:Publish empirical test results to markdown'
+        'ui:Launch real-time web UI dashboard'
+    )
+    _describe -t commands 'ctx command' commands
+}
+_ctx "$@"`)
+	default: // bash
+		fmt.Println(`_ctx_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="init index remember plan resume handoff invalidate gc migrate work session event stats route install setup uninstall doctor completion report publish ui dashboard"
+
+    if [[ ${COMP_CWORD} -eq 1 ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+complete -F _ctx_completion ctx`)
+	}
 }
 
 func printJSON(v any) {
