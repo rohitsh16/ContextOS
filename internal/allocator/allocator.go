@@ -8,6 +8,7 @@ import (
 
 	"contextos/internal/model"
 	"contextos/internal/semantic"
+	"contextos/internal/temporal"
 	"contextos/internal/textutil"
 )
 
@@ -22,6 +23,7 @@ type Request struct {
 	CorpusStats       *textutil.CorpusStats       // Corpus-level document frequency statistics for BM25 (PR-05).
 	EmbeddingProvider semantic.EmbeddingProvider  // Dense embedding provider for pluggable semantic retrieval (PR-06).
 	DenseScores       map[string]float64          // Dense cosine similarity scores keyed by memory ID or location (PR-06).
+	ChangedFiles      map[string]string           // Changed files and statuses ("M", "A", "D") for scoped staleness (PR-08).
 }
 
 // authorityScore maps the provenance or source authority string of a memory to a numeric weight in [0.45, 1.0].
@@ -45,18 +47,12 @@ func authorityScore(v string) float64 {
 	}
 }
 
-// stale evaluates whether a candidate memory is outdated relative to the active repository revision.
-// Returns freshRisk (0.0–1.0 penalty) and hardStale (true = explicitly invalidated → immediate rejection).
-func stale(m model.Memory, currentRevision string) (float64, bool) {
-	if m.InvalidatedAtRevision != "" {
-		return 1, true
-	}
-	if m.ValidFromRevision != "" && currentRevision != "" && m.ValidFromRevision != currentRevision {
-		// Validity intervals are only fully known when explicit invalidation exists.
-		// Treat a different revision as a freshness penalty, not an automatic rejection.
-		return 0.25, false
-	}
-	return 0, false
+// stale evaluates whether a candidate memory is outdated relative to the active repository revision
+// and changed file set using path-scoped diff intersections (PR-08).
+// Returns freshRisk (0.0–1.0 penalty) and hardStale (true = explicitly invalidated/deleted → immediate rejection).
+func stale(m model.Memory, currentRevision string, changedFiles map[string]string) (float64, bool) {
+	eval := temporal.NewScopedStalenessEvaluator(changedFiles, currentRevision, nil)
+	return eval.EvaluateStaleness(m)
 }
 
 // kindBoost assigns an intrinsic priority multiplier based on the structural category of the memory.
@@ -126,7 +122,7 @@ func Score(req Request, m model.Memory) model.Candidate {
 	if sem == 0.0 {
 		sem = textutil.FeatureHashSimilarity(req.Task, m.Content)
 	}
-	freshRisk, hardStale := stale(m, req.RepoRevision)
+	freshRisk, hardStale := stale(m, req.RepoRevision, req.ChangedFiles)
 	auth := authorityScore(m.Authority)
 	conf := confWeight(m.Confidence)
 	reuse := math.Min(1, float64(m.ReuseCount)/10.0)
@@ -206,25 +202,41 @@ func rankBy(n int, less func(i, j int) bool) []int {
 	return idx
 }
 
-// Plan executes the budget-constrained context optimization algorithm across a collection of memories.
-// It applies four mathematically-grounded passes in sequence:
+// Formal Objective Function (PR-10):
+//
+//   F(C) = sum_i alpha_i Coverage_i(C) + sum_j beta_j Relevance_j(C) - lambda Redundancy(C) + eta Cache(C) - rho Risk(C)
+//
+// Classification of terms:
+//   - Coverage(C): submodular (diminishing returns over code/memory coverage)
+//   - Relevance(C): modular (independent item scores under BM25/PPR/Dense)
+//   - Redundancy(C): supermodular penalty (pairwise term/content overlap)
+//   - Cache(C): modular (prefix stability benefit)
+//   - Risk(C): supermodular penalty (accumulated staleness/invalidation risk)
+//
+// Explicit theoretical assumptions:
+//   - Assumption A1: Monotonicity — F(A) <= F(B) for A subseteq B in unconstrained utility
+//   - Assumption A2: Submodularity — Delta(e | A) >= Delta(e | B) for A subseteq B
+//   - Assumption A3: Non-negative costs — c(e) > 0 for all candidate memories
+//   - Assumption A4: Feasibility — total token cost sum_{e in C} c(e) <= Budget
+//
+// Plan executes the budget-constrained context optimization algorithm across candidate memories.
+// It applies four passes in sequence:
 //
 //  1. BM25 Lexical Scoring  — TF saturation + length normalization (Robertson & Sparck Jones 1994).
-//     Replaces raw Jaccard overlap; penalizes verbose docs, rewards precise term matches.
 //
-//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position,
-//     not raw score, eliminating inter-signal scale bias (Cormack et al., 2009).
-//     Gated multiplicatively by authority × freshness × confidence.
+//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position
+//     (Cormack et al., 2009), gated multiplicatively by authority × freshness × confidence.
 //
-//  3. Singleton Rescue — after greedy packing, if a single item that fits the full budget has a
-//     higher aggregate score than the entire greedy selection, it replaces the selection.
-//     Provides the (1-1/e) ≈ 0.63 approximation guarantee (Sviridenko 2004).
+//  3. Singleton Rescue — density-greedy selection with singleton rescue and fill pass.
+//     After greedy packing, if a single item that fits the budget has a higher aggregate score
+//     than the greedy selection, it replaces the selection as a knapsack safeguard.
 //
-//  4. Fill Pass — after the primary selection (including any rescue), fill remaining budget
-//     with the highest-density eligible items not yet selected.
-func Plan(req Request, ms []model.Memory) model.ContextPlan {
-	if req.Budget <= 0 {
-		req.Budget = 4000
+//  4. Fill Pass — fills remaining budget with highest-density eligible items not yet selected.
+// RankCandidates scores all candidate memories using hybrid BM25, semantic similarity,
+// and task affinity, fuses them with Reciprocal Rank Fusion, and returns them sorted by density.
+func RankCandidates(req Request, ms []model.Memory) []model.Candidate {
+	if len(ms) == 0 {
+		return nil
 	}
 
 	// Auto-compute average document length for BM25 normalization across this candidate set.
@@ -270,7 +282,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		cands = append(cands, Score(req, m))
 	}
 	if len(cands) == 0 {
-		return model.ContextPlan{Task: req.Task, Budget: req.Budget}
+		return nil
 	}
 
 	// Pass 2: rank candidates by each signal independently, then compute RRF-fused scores.
@@ -302,8 +314,20 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		}
 	}
 
-	// Pass 3: sort by marginal-utility density, then greedy-pack up to budget.
+	// Sort by marginal-utility density
 	sort.SliceStable(cands, func(i, j int) bool { return cands[i].Density > cands[j].Density })
+	return cands
+}
+
+func Plan(req Request, ms []model.Memory) model.ContextPlan {
+	if req.Budget <= 0 {
+		req.Budget = 4000
+	}
+
+	cands := RankCandidates(req, ms)
+	if len(cands) == 0 {
+		return model.ContextPlan{Task: req.Task, Budget: req.Budget}
+	}
 	used := 0
 	selected := make([]model.Candidate, 0)
 	for i := range cands {

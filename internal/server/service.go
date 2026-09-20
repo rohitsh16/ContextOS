@@ -13,6 +13,7 @@ import (
 
 	"contextos/internal/allocator"
 	"contextos/internal/db"
+	"contextos/internal/extractor"
 	"contextos/internal/gitidx"
 	"contextos/internal/graph"
 	"contextos/internal/indexer"
@@ -393,23 +394,24 @@ func flattenPayload(m map[string]any) string {
 }
 
 func (s *Service) ConsolidateHeuristics(sessionID string) error {
-	events, err := s.Store.ListEvents(sessionID, 30)
+	events, err := s.Store.ListEvents(sessionID, 50)
 	if err != nil {
 		return err
 	}
-	workID := ""
-	if sess, err := s.LatestSession(); err == nil && sess != nil {
-		workID = sess.WorkItem
-	}
+	pipeline := extractor.NewPipeline(s.Repo.Revision)
+	existing, _ := s.Store.ListMemories(s.RepoID, 500)
+
 	for _, r := range events {
-		p := r.Payload
-		lp := strings.ToLower(p)
-		if strings.Contains(lp, "we decided") || strings.Contains(lp, "decision:") || strings.Contains(lp, "use outbox") || strings.Contains(lp, "use kafka") {
-			txt := p
-			if len(txt) > 700 {
-				txt = txt[:700] + "…"
+		claims := pipeline.ExtractFromText(r.Payload, r.EventType, sessionID, s.Repo.Path)
+		for _, claim := range claims {
+			res := extractor.ResolveConflicts(existing, claim, s.Repo.Revision)
+			for _, upd := range res.UpdatedExisting {
+				_ = s.Store.ImportMemory(s.RepoID, upd, nil)
 			}
-			_, _ = s.Remember("decision", txt, "inference", "repo", workID, 0.72, []string{"session_event|" + r.EventType})
+			if !res.IsDuplicate {
+				_ = s.Store.ImportMemory(s.RepoID, res.NewMemory, nil)
+				existing = append(existing, res.NewMemory)
+			}
 		}
 	}
 	return nil
