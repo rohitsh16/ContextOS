@@ -8,6 +8,7 @@ import (
 
 	"contextos/internal/model"
 	"contextos/internal/semantic"
+	"contextos/internal/temporal"
 	"contextos/internal/textutil"
 )
 
@@ -22,6 +23,7 @@ type Request struct {
 	CorpusStats       *textutil.CorpusStats       // Corpus-level document frequency statistics for BM25 (PR-05).
 	EmbeddingProvider semantic.EmbeddingProvider  // Dense embedding provider for pluggable semantic retrieval (PR-06).
 	DenseScores       map[string]float64          // Dense cosine similarity scores keyed by memory ID or location (PR-06).
+	ChangedFiles      map[string]string           // Changed files and statuses ("M", "A", "D") for scoped staleness (PR-08).
 }
 
 // authorityScore maps the provenance or source authority string of a memory to a numeric weight in [0.45, 1.0].
@@ -45,18 +47,12 @@ func authorityScore(v string) float64 {
 	}
 }
 
-// stale evaluates whether a candidate memory is outdated relative to the active repository revision.
-// Returns freshRisk (0.0–1.0 penalty) and hardStale (true = explicitly invalidated → immediate rejection).
-func stale(m model.Memory, currentRevision string) (float64, bool) {
-	if m.InvalidatedAtRevision != "" {
-		return 1, true
-	}
-	if m.ValidFromRevision != "" && currentRevision != "" && m.ValidFromRevision != currentRevision {
-		// Validity intervals are only fully known when explicit invalidation exists.
-		// Treat a different revision as a freshness penalty, not an automatic rejection.
-		return 0.25, false
-	}
-	return 0, false
+// stale evaluates whether a candidate memory is outdated relative to the active repository revision
+// and changed file set using path-scoped diff intersections (PR-08).
+// Returns freshRisk (0.0–1.0 penalty) and hardStale (true = explicitly invalidated/deleted → immediate rejection).
+func stale(m model.Memory, currentRevision string, changedFiles map[string]string) (float64, bool) {
+	eval := temporal.NewScopedStalenessEvaluator(changedFiles, currentRevision, nil)
+	return eval.EvaluateStaleness(m)
 }
 
 // kindBoost assigns an intrinsic priority multiplier based on the structural category of the memory.
@@ -126,7 +122,7 @@ func Score(req Request, m model.Memory) model.Candidate {
 	if sem == 0.0 {
 		sem = textutil.FeatureHashSimilarity(req.Task, m.Content)
 	}
-	freshRisk, hardStale := stale(m, req.RepoRevision)
+	freshRisk, hardStale := stale(m, req.RepoRevision, req.ChangedFiles)
 	auth := authorityScore(m.Authority)
 	conf := confWeight(m.Confidence)
 	reuse := math.Min(1, float64(m.ReuseCount)/10.0)

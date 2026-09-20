@@ -111,6 +111,16 @@ func (g *Graph) AddEdge(srcID, dstID, kind string) {
 	g.inEdges[dstID] = append(g.inEdges[dstID], e)
 }
 
+// HasEdge reports whether a directed edge exists from srcID to dstID.
+func (g *Graph) HasEdge(srcID, dstID string) bool {
+	for _, e := range g.outEdges[srcID] {
+		if e.DstID == dstID {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Graph) Node(id string) *Node {
 	return g.nodes[id]
 }

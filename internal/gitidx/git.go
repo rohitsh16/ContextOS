@@ -376,3 +376,38 @@ func ParseSymbolsForContent(relPath, content string) ([]Symbol, error) {
 	return out, nil
 }
 
+// ChangedFiles inspects git diff between fromRev and toRev and returns a map of changed files
+// and their status ("M", "A", "D", etc.).
+func ChangedFiles(repoRoot, fromRev, toRev string) (map[string]string, error) {
+	if repoRoot == "" {
+		return nil, nil
+	}
+	args := []string{"diff", "--name-status"}
+	if fromRev != "" && toRev != "" && fromRev != toRev {
+		args = append(args, fromRev, toRev)
+	} else if fromRev != "" {
+		args = append(args, fromRev)
+	} else {
+		args = append(args, "HEAD")
+	}
+	out, err := run(repoRoot, args...)
+	if err != nil {
+		return nil, err
+	}
+	changes := make(map[string]string)
+	lines := strings.Split(out, "\n")
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if len(l) < 2 {
+			continue
+		}
+		fields := strings.Fields(l)
+		if len(fields) >= 2 {
+			status := fields[0]
+			path := fields[1]
+			changes[filepath.ToSlash(path)] = status
+		}
+	}
+	return changes, nil
+}
+
