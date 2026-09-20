@@ -630,7 +630,17 @@ func (s *Service) Stats() (map[string]any, error) {
 		"worktree_hash": s.Repo.WorktreeHash,
 		"branch":        s.Repo.Branch,
 		"auto_prune":    s.AutoPrune,
+		"engine_version": "ASC-1.4",
 	}
+
+	// Storage engine detection
+	switch s.Store.(type) {
+	case *store.FileStore:
+		r["storage_engine"] = "file"
+	default:
+		r["storage_engine"] = "sqlite"
+	}
+
 	mems, err := s.Store.ListMemories(s.RepoID, 10000)
 	if err == nil {
 		r["memories"] = len(mems)
@@ -638,6 +648,22 @@ func (s *Service) Stats() (map[string]any, error) {
 	nodes, err := s.Store.ListNodes(s.RepoID)
 	if err == nil {
 		r["nodes"] = len(nodes)
+		// Count file vs symbol nodes
+		fileNodes := 0
+		symbolNodes := 0
+		for _, n := range nodes {
+			if n.Kind == "file" {
+				fileNodes++
+			} else {
+				symbolNodes++
+			}
+		}
+		r["file_nodes"] = fileNodes
+		r["symbol_nodes"] = symbolNodes
+	}
+	edges, err := s.Store.ListEdges(s.RepoID)
+	if err == nil {
+		r["edges"] = len(edges)
 	}
 	tokens, hits, cnt, err := s.Store.TraceStats(s.RepoID)
 	if err == nil {
@@ -645,6 +671,15 @@ func (s *Service) Stats() (map[string]any, error) {
 		r["cache_hit_traces"] = hits
 		r["trace_count"] = cnt
 	}
+
+	// Active engine features (reflects completed PRs)
+	r["features"] = []string{
+		"portable-integrations",     // PR-01
+		"content-addressed-worktree", // PR-02
+		"graph-intelligence-ppr",    // PR-03
+		"incremental-indexing",      // PR-04
+	}
+
 	return r, nil
 }
 

@@ -8,7 +8,7 @@
         ".",
         "-mcp"
       ],
-      "command": "contextd",
+      "command": "/Users/rohitshukla/Desktop/ContextOS/bin/contextd",
       "type": "stdio"
     }
   }
