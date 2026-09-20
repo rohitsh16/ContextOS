@@ -29,7 +29,7 @@ This package is the current research prototype.
 - The semantic scorer is deterministic and local; it is not a neural embedding model.
 - Memory extraction is intentionally conservative/heuristic in v0.6.
 - Git invalidation uses repository revision/worktree fingerprints for context-cache correctness; semantic claim revalidation remains conservative.
-- Provider model pricing profiles are illustrative reference values, not billing truth. Update `internal/router/router.go` before using `context_route` as an accounting source.
+- Provider model pricing profiles are illustrative reference values, not billing truth. Custom pricing profiles can be configured via `~/.contextos/models.json`, `.contextos/models.json`, or the `$CONTEXTOS_MODELS_CONFIG` environment variable without code changes (falling back to typed package constants in `internal/router/router.go`).
 - Provider hook schemas change over time; the installers target the currently documented formats but should be validated after CLI upgrades.
 
 ## Suggested developer flow

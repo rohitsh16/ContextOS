@@ -45,8 +45,11 @@ func (srv *Server) Handler() http.Handler {
 	}
 	fileServer := http.FileServer(http.FS(sub))
 
-	// Static assets
-	mux.Handle("/", fileServer)
+	// Static assets with no-cache header to prevent stale browser caches
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		fileServer.ServeHTTP(w, r)
+	}))
 
 	// API routes
 	mux.HandleFunc("/api/status", srv.handleStatus)
@@ -283,19 +286,30 @@ func (srv *Server) handleSessions(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	sessions, err := srv.svc.Store.ListSessions(srv.svc.RepoID)
+	var repoFilter string
+	if r.URL.Query().Get("all") == "true" {
+		repoFilter = "all"
+	} else if r.URL.Query().Get("repo_id") != "" {
+		repoFilter = r.URL.Query().Get("repo_id")
+	} else {
+		repoFilter = srv.svc.RepoID
+	}
+	sessions, err := srv.svc.Store.ListSessions(repoFilter)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	events, err := srv.svc.Store.ListEvents("", 50)
+	sessID := r.URL.Query().Get("session_id")
+	events, err := srv.svc.Store.ListEvents(sessID, 100)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	traces, _ := srv.svc.Store.ListTraces(repoFilter, 1000)
 	jsonResponse(w, http.StatusOK, map[string]any{
 		"sessions": sessions,
 		"events":   events,
+		"traces":   traces,
 	})
 }
 

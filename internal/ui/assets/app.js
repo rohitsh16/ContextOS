@@ -450,9 +450,20 @@
   }
 
   // Load Sessions & Events
-  async function loadSessions() {
+  let currentSessionFilter = null;
+  let showAllRepos = false;
+
+  async function loadSessions(filterSessionId = undefined) {
+    if (filterSessionId !== undefined) {
+      currentSessionFilter = filterSessionId;
+    }
     try {
-      const res = await fetch('/api/sessions');
+      let url = '/api/sessions';
+      const params = [];
+      if (showAllRepos) params.push('all=true');
+      if (currentSessionFilter) params.push('session_id=' + encodeURIComponent(currentSessionFilter));
+      if (params.length > 0) url += '?' + params.join('&');
+      const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();
       const sessions = data.sessions || [];
@@ -461,38 +472,193 @@
       document.getElementById('session-count').textContent = `${sessions.length} sessions`;
       document.getElementById('event-count').textContent = `${events.length} events`;
 
+      renderSessionEfficiency(sessions, data.traces || [], currentSessionFilter);
+
       const sessCont = document.getElementById('sessions-container');
       if (sessions.length === 0) {
-        sessCont.innerHTML = '<div class="text-center text-muted">No agent sessions recorded yet</div>';
+        sessCont.innerHTML = '<div class="text-center text-muted" style="padding: 24px 0;">No agent sessions recorded yet</div>';
       } else {
-        sessCont.innerHTML = sessions.map(s => `
-          <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
-            <div>
-              <span class="badge badge-info">${s.agent || 'agent'}</span>
-              <span class="font-mono" style="margin-left: 8px; font-size: 12px;">${s.id}</span>
+        sessCont.innerHTML = sessions.map(s => {
+          const isSelected = s.id === currentSessionFilter;
+          let sTraces = [];
+          if (s.work_item) {
+            sTraces = (data.traces || []).filter(t => t.work_item_id === s.work_item);
+          } else {
+            const targetRepoId = s.repo === "ContextOS" ? "1" : "2";
+            sTraces = (data.traces || []).filter(t => String(t.repo_id) === String(targetRepoId));
+          }
+
+          let sBudget = 0, sSelected = 0, sCacheHits = 0;
+          sTraces.forEach(t => {
+            sBudget += t.budget || 0;
+            sSelected += t.selected_tokens || 0;
+            if (t.cache_hit) sCacheHits++;
+          });
+          const sSaved = Math.max(0, sBudget - sSelected);
+          const sPct = sBudget > 0 ? ((sSaved / sBudget) * 100).toFixed(0) : "0";
+          const sCacheRate = sTraces.length > 0 ? ((sCacheHits / sTraces.length) * 100).toFixed(0) : "0";
+          const sCostSaved = ((sSaved / 1000000.0) * 3.00).toFixed(3);
+
+          return `
+          <div class="session-item ${isSelected ? "active" : ""}" data-id="${s.id}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <div>
+                <span class="badge badge-info">${escapeHtml(s.agent || "agent")}</span>
+                ${s.repo ? `<span class="badge badge-muted" style="margin-left: 4px; font-size: 10px; color: var(--accent-emerald-light);">${escapeHtml(s.repo)}</span>` : ""}
+                <span class="font-mono" style="margin-left: 8px; font-size: 12px; font-weight: 600;">${s.id}</span>
+              </div>
+              <span class="text-muted font-mono" style="font-size: 11px;">${s.started_at ? s.started_at.substring(0, 19).replace("T", " ") : ""}</span>
             </div>
-            <span class="text-muted" style="font-size: 11px;">${s.started_at ? s.started_at.substring(0, 19) : ''}</span>
+            ${sTraces.length > 0 ? `
+              <div style="margin: 6px 0; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                <span style="color: var(--accent-emerald-light); font-weight: 600;">
+                  🌱 ${sSaved.toLocaleString()} tok saved (${sPct}%)
+                </span>
+                <span style="color: #60a5fa; font-weight: 500;">
+                  ⚡ ${sCacheRate}% KV Hit (${sCacheHits}/${sTraces.length})
+                </span>
+                <span style="color: var(--accent-amber); font-weight: 500;">
+                  +$${sCostSaved}
+                </span>
+              </div>
+            ` : ""}
+            <div style="font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+              <span>${isSelected ? '▶ <strong style="color: var(--accent-indigo-light);">Inspecting efficiency details</strong> (click to reset)' : 'Click to inspect efficiency'}</span>
+              ${s.work_item ? `<span class="badge badge-muted">Item: ${s.work_item.substring(0, 8)}</span>` : ""}
+            </div>
           </div>
-        `).join('');
+        `;
+        }).join("");
+
+        sessCont.querySelectorAll('.session-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const sid = el.getAttribute('data-id');
+            if (currentSessionFilter === sid) {
+              loadSessions(null);
+            } else {
+              loadSessions(sid);
+            }
+          });
+        });
       }
 
       const evCont = document.getElementById('events-container');
-      if (events.length === 0) {
-        evCont.innerHTML = '<div class="text-center text-muted">No hook events recorded yet</div>';
-      } else {
-        evCont.innerHTML = events.map(e => `
-          <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span class="badge badge-muted">${e.event_type}</span>
-              <span class="text-muted font-mono" style="font-size: 11px;">${e.created_at ? e.created_at.substring(11, 19) : ''}</span>
-            </div>
-            <div class="text-truncate text-secondary" style="font-size: 12px;">${escapeHtml(e.payload)}</div>
+      let filterHeader = '';
+      if (currentSessionFilter) {
+        filterHeader = `
+          <div class="filter-bar">
+            <span>Filter: Session <strong class="font-mono">${escapeHtml(currentSessionFilter)}</strong></span>
+            <button class="btn btn-secondary btn-xs" id="btn-clear-session-filter">Show All Events</button>
           </div>
-        `).join('');
+        `;
+      }
+
+      if (events.length === 0) {
+        evCont.innerHTML = filterHeader + '<div class="text-center text-muted" style="padding: 24px 0;">No hook events recorded yet</div>';
+      } else {
+        const eventsHtml = events.map((e, idx) => {
+          let parsed = null;
+          try {
+            parsed = JSON.parse(e.payload);
+          } catch (_) {}
+
+          let toolInfo = '';
+          let summaryText = '';
+          let badgeClass = 'badge-muted';
+          if (e.event_type === 'PreInvocation') badgeClass = 'badge-info';
+          if (e.event_type === 'PostToolUse') badgeClass = 'badge-success';
+          if (e.event_type === 'SessionStart') badgeClass = 'badge-warning';
+
+          if (parsed) {
+            if (parsed.toolCall && parsed.toolCall.name) {
+              toolInfo = `<span class="badge badge-warning" style="margin-left: 6px;">${escapeHtml(parsed.toolCall.name)}</span>`;
+              if (parsed.toolCall.args) {
+                const args = parsed.toolCall.args;
+                if (args.toolAction) summaryText = args.toolAction;
+                else if (args.toolSummary) summaryText = args.toolSummary;
+                else if (args.CommandLine) summaryText = args.CommandLine;
+                else if (args.TargetFile) summaryText = args.TargetFile;
+                else if (args.AbsolutePath) summaryText = args.AbsolutePath;
+              }
+            } else if (parsed.modelName) {
+              summaryText = `Model: ${parsed.modelName}`;
+              if (parsed.stepIdx !== undefined) summaryText += ` • Step ${parsed.stepIdx}`;
+            }
+          }
+
+          if (!summaryText) {
+            summaryText = e.payload.length > 90 ? e.payload.substring(0, 90) + '...' : e.payload;
+          }
+
+          const formattedJson = parsed ? JSON.stringify(parsed, null, 2) : e.payload;
+
+          return `
+          <div class="event-item" data-idx="${idx}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <div style="display: flex; align-items: center;">
+                <span class="badge ${badgeClass}">${escapeHtml(e.event_type)}</span>
+                ${toolInfo}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="text-muted font-mono" style="font-size: 11px;">${e.created_at ? e.created_at.substring(11, 19) : ''}</span>
+                <span class="text-muted" style="font-size: 10px; cursor: pointer;">🔍 details</span>
+              </div>
+            </div>
+            <div class="text-truncate text-secondary" style="font-size: 12px;">${escapeHtml(summaryText)}</div>
+            <pre class="event-details-pre" id="event-pre-${idx}" style="display: none;">${escapeHtml(formattedJson)}</pre>
+          </div>
+        `;
+        }).join('');
+
+        evCont.innerHTML = filterHeader + eventsHtml;
+
+        evCont.querySelectorAll('.event-item').forEach(el => {
+          el.addEventListener('click', (ev) => {
+            if (ev.target.tagName === 'BUTTON') return;
+            const idx = el.getAttribute('data-idx');
+            const pre = document.getElementById(`event-pre-${idx}`);
+            if (pre) {
+              pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+            }
+          });
+        });
+      }
+
+      const clearBtn = document.getElementById('btn-clear-session-filter');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          loadSessions(null);
+        });
       }
     } catch (e) {
       console.warn('Failed to load sessions:', e);
     }
+  }
+
+  const btnRefreshSessions = document.getElementById('btn-refresh-sessions');
+  if (btnRefreshSessions) {
+    btnRefreshSessions.addEventListener('click', () => {
+      loadSessions();
+    });
+  }
+
+  const btnScopeCurrent = document.getElementById('btn-scope-current');
+  const btnScopeAll = document.getElementById('btn-scope-all');
+  if (btnScopeCurrent && btnScopeAll) {
+    btnScopeCurrent.addEventListener('click', () => {
+      showAllRepos = false;
+      currentSessionFilter = null;
+      btnScopeCurrent.classList.add('active');
+      btnScopeAll.classList.remove('active');
+      loadSessions();
+    });
+    btnScopeAll.addEventListener('click', () => {
+      showAllRepos = true;
+      currentSessionFilter = null;
+      btnScopeAll.classList.add('active');
+      btnScopeCurrent.classList.remove('active');
+      loadSessions();
+    });
   }
 
   // Load Integrations Status
@@ -544,8 +710,98 @@
     });
   });
 
+
+  // Render Session Efficiency & Token Savings
+  function renderSessionEfficiency(sessions, traces, selectedSessionId) {
+    const titleEl = document.getElementById("analytics-title");
+    const subtitleEl = document.getElementById("analytics-subtitle");
+    const sessIdEl = document.getElementById("analytics-session-id");
+    const savedEl = document.getElementById("metric-tokens-saved");
+    const savedPctEl = document.getElementById("metric-tokens-pct");
+    const rawReducEl = document.getElementById("metric-raw-reduction");
+    const rawDetailEl = document.getElementById("metric-raw-detail");
+    const cacheHitsEl = document.getElementById("metric-cache-hits");
+    const cacheDetailEl = document.getElementById("metric-cache-detail");
+    const costSavedEl = document.getElementById("metric-cost-saved");
+    const tracesSecEl = document.getElementById("analytics-traces-section");
+    const tracesListEl = document.getElementById("analytics-traces-list");
+    const traceCountEl = document.getElementById("analytics-trace-count");
+
+    if (!titleEl) return;
+
+    let relevantTraces = [];
+    if (selectedSessionId) {
+      const sess = sessions.find(s => s.id === selectedSessionId);
+      if (sess) {
+        sessIdEl.textContent = selectedSessionId.substring(0, 12) + "...";
+        if (sess.work_item) {
+          relevantTraces = traces.filter(t => t.work_item_id === sess.work_item);
+          titleEl.textContent = "Efficiency: WorkItem " + sess.work_item.substring(0, 8) + "...";
+        } else {
+          const targetRepoId = sess.repo === "ContextOS" ? "1" : "2";
+          relevantTraces = traces.filter(t => String(t.repo_id) === String(targetRepoId));
+          if (relevantTraces.length === 0) relevantTraces = traces;
+          titleEl.textContent = "Session Efficiency (" + (sess.repo || "repo") + ")";
+        }
+        subtitleEl.textContent = "Agent: " + (sess.agent || "antigravity") + " • Started: " + (sess.started_at ? sess.started_at.substring(0, 19).replace("T", " ") : "");
+      }
+    } else {
+      sessIdEl.textContent = "All Sessions";
+      titleEl.textContent = "Aggregated Efficiency Gains";
+      subtitleEl.textContent = "Context reduction, KV-cache reuse, and token savings across sessions";
+      relevantTraces = traces;
+    }
+
+    let totalBudget = 0;
+    let totalSelected = 0;
+    let cacheHits = 0;
+
+    relevantTraces.forEach(t => {
+      totalBudget += t.budget || 0;
+      totalSelected += t.selected_tokens || 0;
+      if (t.cache_hit) cacheHits++;
+    });
+
+    const netSaved = Math.max(0, totalBudget - totalSelected);
+    const savingsPct = totalBudget > 0 ? ((netSaved / totalBudget) * 100).toFixed(1) : "0.0";
+    const rawDump = relevantTraces.length * 32000;
+    const rawReduc = rawDump > 0 ? ((1.0 - (totalSelected / rawDump)) * 100).toFixed(1) : "0.0";
+    const cacheRate = relevantTraces.length > 0 ? ((cacheHits / relevantTraces.length) * 100).toFixed(1) : "0.0";
+    const costSaved = ((netSaved / 1000000.0) * 3.00).toFixed(4);
+
+    if (savedEl) savedEl.textContent = netSaved.toLocaleString();
+    if (savedPctEl) savedPctEl.textContent = savingsPct + "% pruned";
+    if (rawReducEl) rawReducEl.textContent = rawReduc + "%";
+    if (rawDetailEl) rawDetailEl.textContent = "vs " + rawDump.toLocaleString() + " tok dump";
+    if (cacheHitsEl) cacheHitsEl.textContent = cacheRate + "%";
+    if (cacheDetailEl) cacheDetailEl.textContent = cacheHits + " of " + relevantTraces.length + " hits";
+    if (costSavedEl) costSavedEl.textContent = "$" + costSaved;
+
+    if (relevantTraces.length > 0 && tracesSecEl && tracesListEl) {
+      tracesSecEl.style.display = "block";
+      if (traceCountEl) traceCountEl.textContent = relevantTraces.length + " traces";
+      tracesListEl.innerHTML = relevantTraces.slice(0, 6).map(t => {
+        const tSaved = Math.max(0, t.budget - t.selected_tokens);
+        const tPct = t.budget > 0 ? ((tSaved / t.budget) * 100).toFixed(0) : "0";
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <span class="text-truncate font-mono text-secondary" style="max-width: 55%; font-size: 11px;">${escapeHtml(t.task)}</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="badge ${t.cache_hit ? "badge-success" : "badge-muted"}" style="font-size: 9px; padding: 1px 5px;">${t.cache_hit ? "KV Hit" : "Miss"}</span>
+              <span class="font-mono text-muted" style="font-size: 10px;">${t.selected_tokens} / ${t.budget} tok</span>
+              <span class="font-mono" style="font-size: 10px; color: var(--accent-emerald-light);">(-${tPct}%)</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    } else if (tracesSecEl) {
+      tracesSecEl.style.display = "none";
+    }
+  }
+
   // Initial load
   loadStatus();
   loadMemories();
+  loadSessions();
   loadIntegrations();
 })();

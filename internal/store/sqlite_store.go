@@ -308,7 +308,14 @@ func (s *SQLiteStore) ListEvents(sessionID string, limit int) ([]EventRecord, er
 	if limit <= 0 {
 		limit = 30
 	}
-	rows, err := s.DB.Query(`SELECT id,COALESCE(session_id,''),repo_id,event_type,payload,created_at FROM events WHERE session_id=? ORDER BY id DESC LIMIT ?`, sessionID, limit)
+	var rows []db.Row
+	var err error
+	if sessionID == "" {
+		// When no session ID specified, return all recent events
+		rows, err = s.DB.Query(`SELECT id,COALESCE(session_id,''),COALESCE(repo_id,''),event_type,payload,created_at FROM events ORDER BY id DESC LIMIT ?`, limit)
+	} else {
+		rows, err = s.DB.Query(`SELECT id,COALESCE(session_id,''),COALESCE(repo_id,''),event_type,payload,created_at FROM events WHERE session_id=? ORDER BY id DESC LIMIT ?`, sessionID, limit)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -377,13 +384,23 @@ func (s *SQLiteStore) ImportWorkItem(repoID string, item model.WorkItem) error {
 }
 
 func (s *SQLiteStore) ListSessions(repoID string) ([]model.Session, error) {
-	rows, err := s.DB.Query(`SELECT id,agent,COALESCE(work_item_id,''),started_at,COALESCE(ended_at,'') FROM sessions WHERE repo_id=? ORDER BY started_at ASC`, repoID)
+	var rows []db.Row
+	var err error
+	if repoID == "" || repoID == "all" {
+		rows, err = s.DB.Query(`SELECT s.id,s.agent,COALESCE(s.work_item_id,''),s.started_at,COALESCE(s.ended_at,''),COALESCE(r.name,'') FROM sessions s LEFT JOIN repositories r ON s.repo_id=r.id ORDER BY s.started_at DESC`)
+	} else {
+		rows, err = s.DB.Query(`SELECT s.id,s.agent,COALESCE(s.work_item_id,''),s.started_at,COALESCE(s.ended_at,''),COALESCE(r.name,'') FROM sessions s LEFT JOIN repositories r ON s.repo_id=r.id WHERE s.repo_id=? ORDER BY s.started_at DESC`, repoID)
+	}
 	if err != nil {
 		return nil, err
 	}
 	out := make([]model.Session, 0, len(rows))
 	for _, r := range rows {
-		out = append(out, model.Session{ID: r[0], Agent: r[1], WorkItem: r[2], StartedAt: r[3], EndedAt: r[4]})
+		repoName := ""
+		if len(r) > 5 {
+			repoName = r[5]
+		}
+		out = append(out, model.Session{ID: r[0], Agent: r[1], WorkItem: r[2], StartedAt: r[3], EndedAt: r[4], Repo: repoName})
 	}
 	return out, nil
 }
@@ -398,7 +415,13 @@ func (s *SQLiteStore) ListTraces(repoID string, limit int) ([]ContextTraceRecord
 	if limit <= 0 {
 		limit = 1000
 	}
-	rows, err := s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,decision_json,created_at FROM context_traces WHERE repo_id=? ORDER BY id ASC LIMIT ?`, repoID, limit)
+	var rows []db.Row
+	var err error
+	if repoID == "" || repoID == "all" {
+		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,decision_json,created_at FROM context_traces ORDER BY id DESC LIMIT ?`, limit)
+	} else {
+		rows, err = s.DB.Query(`SELECT id,repo_id,COALESCE(work_item_id,''),task,COALESCE(model,''),budget,selected_tokens,estimated_cost,cache_hit,decision_json,created_at FROM context_traces WHERE repo_id=? ORDER BY id DESC LIMIT ?`, repoID, limit)
+	}
 	if err != nil {
 		return nil, err
 	}

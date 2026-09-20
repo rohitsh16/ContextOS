@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?v=7">
 </head>
 <body>
   <div class="app-layout">
@@ -274,22 +274,85 @@
       <section id="view-sessions" class="tab-view">
         <div class="grid-layout-two-col">
           <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Agent Sessions</h3>
-              <span class="badge badge-info" id="session-count">0 sessions</span>
+            <div class="card-header flex-between">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 class="card-title">Agent Sessions</h3>
+                <span class="badge badge-info" id="session-count">0 sessions</span>
+              </div>
+              <button class="btn btn-secondary btn-xs" id="btn-refresh-sessions" title="Refresh Sessions & Events">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Refresh
+              </button>
             </div>
-            <div class="card-body scrollable" id="sessions-container">
-              <!-- Rendered via app.js -->
+            <div class="card-body scrollable">
+              <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                <button class="btn btn-secondary btn-xs btn-scope active" id="btn-scope-current">Current Repo</button>
+                <button class="btn btn-secondary btn-xs btn-scope" id="btn-scope-all">All Repositories</button>
+              </div>
+              <div id="sessions-container">
+                <!-- Rendered via app.js -->
+              </div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Hook Ingestion & Event Stream</h3>
-              <span class="badge badge-info" id="event-count">0 events</span>
+            <div class="card-header flex-between">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 class="card-title">Session Efficiency & Event Stream</h3>
+                <span class="badge badge-info" id="event-count">0 events</span>
+              </div>
+              <span class="text-muted" style="font-size: 11px;">Click event to expand details</span>
             </div>
-            <div class="card-body scrollable" id="events-container">
-              <!-- Rendered via app.js -->
+            <div class="card-body scrollable">
+              <!-- Efficiency Gains Metric Box -->
+              <div class="session-analytics-card" id="session-analytics-panel" style="margin-bottom: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                      <span id="analytics-title">Efficiency Gains</span>
+                      <span class="badge badge-success" id="analytics-badge">ASC-1 Engine</span>
+                    </div>
+                    <div class="text-muted" id="analytics-subtitle" style="font-size: 11px; margin-top: 2px;">Token reduction & KV-cache optimization</div>
+                  </div>
+                  <div class="text-muted font-mono" id="analytics-session-id" style="font-size: 11px;"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px;">
+                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Tokens Saved</span>
+                    <div class="font-mono" id="metric-tokens-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-emerald-light);">0</div>
+                    <div class="text-muted font-mono" id="metric-tokens-pct" style="font-size: 10px;">0% pruned</div>
+                  </div>
+                  <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); padding: 8px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Raw Dump Cut</span>
+                    <div class="font-mono" id="metric-raw-reduction" style="font-size: 16px; font-weight: 700; color: var(--accent-indigo-light);">0%</div>
+                    <div class="text-muted" id="metric-raw-detail" style="font-size: 10px;">vs 32k dump</div>
+                  </div>
+                  <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">KV Cache Hit</span>
+                    <div class="font-mono" id="metric-cache-hits" style="font-size: 16px; font-weight: 700; color: #60a5fa;">0%</div>
+                    <div class="text-muted font-mono" id="metric-cache-detail" style="font-size: 10px;">0 hits</div>
+                  </div>
+                  <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 8px; border-radius: 6px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; display: block;">Cost Saved</span>
+                    <div class="font-mono" id="metric-cost-saved" style="font-size: 16px; font-weight: 700; color: var(--accent-amber);">$0.00</div>
+                    <div class="text-muted font-mono" id="metric-cost-detail" style="font-size: 10px;">est. USD</div>
+                  </div>
+                </div>
+
+                <div id="analytics-traces-section" style="display: none; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Context Planning Traces</span>
+                    <span class="badge badge-info" id="analytics-trace-count" style="font-size: 10px;">0 traces</span>
+                  </div>
+                  <div id="analytics-traces-list" style="max-height: 120px; overflow-y: auto;"></div>
+                </div>
+              </div>
+
+              <!-- Events Container -->
+              <div id="events-container">
+                <!-- Rendered via app.js -->
+              </div>
             </div>
           </div>
         </div>
@@ -503,6 +566,6 @@
     </div>
   </div>
 
-  <script src="/app.js"></script>
+  <script src="/app.js?v=7"></script>
 </body>
 </html>

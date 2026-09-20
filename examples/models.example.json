@@ -1,0 +1,34 @@
+[
+  {
+    "name": "gpt-5.3-codex",
+    "input_per_m": 1.75,
+    "cached_input_per_m": 0.175,
+    "output_per_m": 7.00,
+    "context_tokens": 400000,
+    "quality": 0.96
+  },
+  {
+    "name": "claude-sonnet",
+    "input_per_m": 3.00,
+    "cached_input_per_m": 0.30,
+    "output_per_m": 15.00,
+    "context_tokens": 200000,
+    "quality": 0.93
+  },
+  {
+    "name": "gemini",
+    "input_per_m": 2.00,
+    "cached_input_per_m": 0.20,
+    "output_per_m": 8.00,
+    "context_tokens": 1000000,
+    "quality": 0.94
+  },
+  {
+    "name": "local",
+    "input_per_m": 0.00,
+    "cached_input_per_m": 0.00,
+    "output_per_m": 0.00,
+    "context_tokens": 32768,
+    "quality": 0.74
+  }
+]

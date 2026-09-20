@@ -483,12 +483,7 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 }
 
 func profile(name string) router.ModelProfile {
-	for _, p := range router.Profiles() {
-		if strings.EqualFold(p.Name, name) {
-			return p
-		}
-	}
-	return router.ModelProfile{InputPerM: 1.5, CachedInputPerM: 0.15, OutputPerM: 6}
+	return router.GetProfile(name)
 }
 
 func (s *Service) trace(task, modelName string, budget int, p model.ContextPlan, hit bool) error {
@@ -627,15 +622,24 @@ func (s *Service) Route(task string, budget int) map[string]any {
 }
 
 func DefaultDBPath() string {
-	if _, err := os.Stat(".contextos"); err == nil {
-		return filepath.Join(".contextos", "context.db")
-	}
+	// Prefer global ~/.contextos/ first to avoid reading repo-local DBs
+	// when the CWD happens to contain a .contextos/ directory (e.g. the
+	// ContextOS source tree itself).
 	home, err := os.UserHomeDir()
 	if err == nil && home != "" {
+		globalDB := filepath.Join(home, ".contextos", "context.db")
+		if _, err := os.Stat(globalDB); err == nil {
+			return globalDB
+		}
+		// Global dir doesn't exist yet — create it and use it
 		p := filepath.Join(home, ".contextos")
 		if err := os.MkdirAll(p, 0700); err == nil {
 			return filepath.Join(p, "context.db")
 		}
+	}
+	// Fallback to repo-local .contextos/ only if home is unavailable
+	if _, err := os.Stat(".contextos"); err == nil {
+		return filepath.Join(".contextos", "context.db")
 	}
 	_ = os.MkdirAll(".contextos", 0700)
 	return filepath.Join(".contextos", "context.db")

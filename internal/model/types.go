@@ -54,6 +54,7 @@ type WorkItem struct {
 
 type Session struct {
 	ID        string `json:"id"`
+	Repo      string `json:"repo,omitempty"`
 	Agent     string `json:"agent"`
 	WorkItem  string `json:"work_item,omitempty"`
 	StartedAt string `json:"started_at"`

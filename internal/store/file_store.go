@@ -530,6 +530,13 @@ func (fs *FileStore) LatestSession(repoID string) (*model.Session, error) {
 func (fs *FileStore) ListSessions(repoID string) ([]model.Session, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
+	if repoID == "" || repoID == "all" {
+		var all []model.Session
+		for _, list := range fs.sessions {
+			all = append(all, list...)
+		}
+		return all, nil
+	}
 	return append([]model.Session(nil), fs.sessions[repoID]...), nil
 }
 
