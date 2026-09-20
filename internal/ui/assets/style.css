@@ -230,6 +230,11 @@ body {
   border-color: rgba(99, 102, 241, 0.2);
 }
 
+.metric-card.highlight-cyan {
+  background: linear-gradient(145deg, var(--bg-surface) 0%, rgba(6, 182, 212, 0.06) 100%);
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
 .metric-label {
   font-size: 11px;
   font-weight: 600;
@@ -253,6 +258,10 @@ body {
 
 .metric-card.highlight-indigo .metric-value {
   color: var(--accent-indigo-light);
+}
+
+.metric-card.highlight-cyan .metric-value {
+  color: var(--accent-cyan-light);
 }
 
 .metric-sub {

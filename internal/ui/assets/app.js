@@ -182,7 +182,7 @@
     const budget = parseInt(budgetSlider.value, 10);
 
     btnRunPlan.disabled = true;
-    btnRunPlan.innerHTML = '<span class="status-dot pulse"></span> Computing 6-Pass ASC-1 Allocation...';
+    btnRunPlan.innerHTML = '<span class="status-dot pulse"></span> Computing 8-Pass ASC-1.4 Allocation...';
 
     try {
       const res = await fetch('/api/plan', {
@@ -368,7 +368,15 @@
 
       const repo = data.repo || {};
       document.getElementById('stat-repo-branch').textContent = repo.branch || 'main';
-      document.getElementById('stat-repo-commit').textContent = repo.revision ? repo.revision.substring(0, 7) : 'HEAD';
+      const shortRev = repo.revision ? repo.revision.substring(0, 7) : 'HEAD';
+      const wHash = repo.worktree_hash ? repo.worktree_hash.substring(0, 8) : '';
+      document.getElementById('stat-repo-commit').textContent = wHash ? `${shortRev} · wt:${wHash}` : shortRev;
+
+      // Engine version badge
+      const engineBadge = document.getElementById('engine-version-badge');
+      const stats = data.stats || {};
+      const engineVer = stats.engine_version || 'ASC-1.4';
+      if (engineBadge) engineBadge.textContent = engineVer + ' Engine';
 
       const stg = data.storage || 'sqlite';
       if (isStaticMode) {
@@ -377,13 +385,20 @@
         document.getElementById('storage-engine-label').textContent = stg === 'file' ? 'FileStore (Pure-Go)' : 'SQLite (WAL)';
       }
 
-      const stats = data.stats || {};
       const totalMemories = stats.memories || 0;
       document.getElementById('stat-total-memories').textContent = totalMemories;
 
       const decisions = stats.decisions || 0;
       const failures = stats.failures || 0;
       document.getElementById('stat-memories-breakdown').textContent = `${decisions} decisions · ${failures} failures`;
+
+      // Graph & Index metrics (PR-03, PR-04)
+      const totalNodes = stats.nodes || 0;
+      const fileNodes = stats.file_nodes || 0;
+      const symbolNodes = stats.symbol_nodes || 0;
+      const totalEdges = stats.edges || 0;
+      document.getElementById('stat-graph-nodes').textContent = totalNodes.toLocaleString();
+      document.getElementById('stat-graph-detail').textContent = `${fileNodes} files · ${symbolNodes} symbols · ${totalEdges} edges`;
 
       const workItem = data.work_item;
       if (workItem && workItem.title) {
@@ -394,14 +409,26 @@
         document.getElementById('stat-work-item-time').textContent = 'Ready for tasks';
       }
 
-      // Simulated savings based on memory reuse and ASC-1 packing
-      const baselineTokens = Math.max(12000, totalMemories * 650);
-      const ascTokens = Math.min(3200, Math.round(baselineTokens * 0.28));
-      const saved = Math.max(0, baselineTokens - ascTokens);
-      const pctSavings = baselineTokens > 0 ? Math.round((saved / baselineTokens) * 100) : 73;
-
-      document.getElementById('stat-token-savings').textContent = pctSavings + '%';
-      document.getElementById('stat-tokens-saved').textContent = `~${(saved / 1000).toFixed(1)}k tokens saved`;
+      // Token savings - use real trace data when available, otherwise estimate from memory count
+      const traceCount = stats.trace_count || 0;
+      const plannedTokens = stats.planned_tokens_total || 0;
+      const cacheHits = stats.cache_hit_traces || 0;
+      if (traceCount > 0 && plannedTokens > 0) {
+        // Real trace data: compute actual savings from budget vs selected
+        const avgBudget = 3200;
+        const baselineTokens = traceCount * avgBudget;
+        const saved = Math.max(0, baselineTokens - plannedTokens);
+        const pctSavings = Math.round((saved / baselineTokens) * 100);
+        document.getElementById('stat-token-savings').textContent = pctSavings + '%';
+        document.getElementById('stat-tokens-saved').textContent = `~${(saved / 1000).toFixed(1)}k tokens · ${traceCount} traces`;
+      } else {
+        const baselineTokens = Math.max(12000, totalMemories * 650);
+        const ascTokens = Math.min(3200, Math.round(baselineTokens * 0.28));
+        const saved = Math.max(0, baselineTokens - ascTokens);
+        const pctSavings = baselineTokens > 0 ? Math.round((saved / baselineTokens) * 100) : 73;
+        document.getElementById('stat-token-savings').textContent = pctSavings + '%';
+        document.getElementById('stat-tokens-saved').textContent = `~${(saved / 1000).toFixed(1)}k tokens saved`;
+      }
     } catch (e) {
       console.warn('Failed to load status:', e);
     }

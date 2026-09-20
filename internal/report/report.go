@@ -183,7 +183,7 @@ func (r *Report) ToMarkdown() string {
 	sb.WriteString("# ContextOS Empirical Evaluation & Benchmark Report\n\n")
 	sb.WriteString(fmt.Sprintf("**Repository:** `%s` (`%s` @ `%s`)  \n", r.RepoName, r.Branch, shortRev))
 	sb.WriteString(fmt.Sprintf("**Generated At:** `%s UTC`  \n", r.GeneratedAt.Format("2006-01-02 15:04:05")))
-	sb.WriteString("**Evaluation Framework:** ContextOS ASC-1 6-Pass Context Runtime  \n\n")
+	sb.WriteString("**Evaluation Framework:** ContextOS ASC-1.4 8-Pass Context Runtime  \n\n")
 
 	sb.WriteString("### Badges\n")
 	sb.WriteString(fmt.Sprintf("[![ContextOS Token Savings](https://img.shields.io/badge/Token_Pruned-%.1f%%25-brightgreen.svg)](#)\n", r.Summary.SavingsPercentage))
@@ -232,16 +232,18 @@ func (r *Report) ToMarkdown() string {
 			t.ID, taskClean, modelName, t.Budget, t.SelectedTokens, t.TokensSaved, t.SavingsPct, cacheTag, t.CreatedAt))
 	}
 
-	sb.WriteString("\n---\n\n")
+	sb.WriteString("---\n\n")
 	sb.WriteString("## 4. Methodology & Optimization Architecture\n\n")
-	sb.WriteString("ContextOS uses the **ASC-1 6-Pass Algorithmic Pipeline**:\n\n")
+	sb.WriteString("ContextOS uses the **ASC-1.4 8-Pass Algorithmic Pipeline**:\n\n")
 	sb.WriteString("1. **BM25 Lexical Retrieval**: Identifies relevant engineering symbols and memories matching lexical tokens.\n")
 	sb.WriteString("2. **HashSemantic Cosine Similarity**: Matches concepts across varied wording without external model latency.\n")
-	sb.WriteString("3. **Reciprocal Rank Fusion & Authority Scoring**: Combines lexical and semantic ranks with user authority multipliers.\n")
-	sb.WriteString("4. **Knapsack Density Packing**: Selects highest utility per token until budget boundary.\n")
-	sb.WriteString("5. **(1 - 1/e) Sviridenko Singleton Rescue**: Rescues high-value monolithic decisions from being starved by small items.\n")
-	sb.WriteString("6. **KV-Cache Alignment Partition**: Enforces byte-identical ordering on the Stable Prefix for Claude/Gemini cache hits.\n\n")
-	sb.WriteString("*Report generated autonomously by ContextOS.*  \n")
+	sb.WriteString("3. **Graph PPR Centrality (PR-03)**: Personalized PageRank over the code dependency graph with logarithmic degree normalization.\n")
+	sb.WriteString("4. **Reciprocal Rank Fusion & Authority Scoring**: Combines lexical, semantic, and graph ranks with user authority multipliers.\n")
+	sb.WriteString("5. **Temporal Staleness Filter (PR-08)**: Path-scoped git-diff intersection to penalize or reject stale candidates.\n")
+	sb.WriteString("6. **Knapsack Density Packing**: Selects highest utility per token until budget boundary.\n")
+	sb.WriteString("7. **(1 - 1/e) Sviridenko Singleton Rescue**: Rescues high-value monolithic decisions from being starved by small items.\n")
+	sb.WriteString("8. **KV-Cache Alignment Partition**: Enforces byte-identical ordering on the Stable Prefix for Claude/Gemini cache hits.\n\n")
+	sb.WriteString("*Report generated autonomously by ContextOS ASC-1.4.*  \n")
 
 	return sb.String()
 }
