@@ -14,6 +14,7 @@ import (
 	"contextos/internal/allocator"
 	"contextos/internal/db"
 	"contextos/internal/gitidx"
+	"contextos/internal/graph"
 	"contextos/internal/model"
 	"contextos/internal/router"
 	"contextos/internal/store"
@@ -190,6 +191,64 @@ func (s *Service) buildEdges() error {
 		_ = s.Store.SaveNodesAndEdges(s.RepoID, nil, nil, edges)
 	}
 	return nil
+}
+
+func (s *Service) computeGraphScores(task string) map[string]float64 {
+	nodes, err := s.Store.ListNodes(s.RepoID)
+	if err != nil || len(nodes) == 0 {
+		return nil
+	}
+	g := graph.New(graph.DefaultConfig())
+	for _, n := range nodes {
+		g.AddNode(&graph.Node{
+			ID:    n.ID,
+			Name:  n.Name,
+			Kind:  n.Kind,
+			Path:  n.Path,
+			Lines: n.EndLine - n.StartLine + 1,
+		})
+	}
+	fileByBase := map[string]string{}
+	for _, n := range nodes {
+		if n.Kind == "file" {
+			fileByBase[n.Name] = n.ID
+			fileByBase[n.Path] = n.ID
+		}
+	}
+	for _, n := range nodes {
+		if n.Kind != "file" {
+			continue
+		}
+		p := filepath.Join(s.Repo.Path, filepath.FromSlash(n.Path))
+		b, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		txt := string(b)
+		for base, dst := range fileByBase {
+			if base == n.Name || base == n.Path {
+				continue
+			}
+			if strings.Contains(txt, base) {
+				edgeKind := "import"
+				if strings.HasSuffix(n.Path, "_test.go") || strings.Contains(n.Path, "test") {
+					edgeKind = "test-reference"
+				}
+				g.AddEdge(n.ID, dst, edgeKind)
+			}
+		}
+	}
+
+	seeds := g.ExtractSeeds(task, nil, nil)
+	ppr := g.ComputePPR(seeds)
+	scores := make(map[string]float64, len(nodes))
+	for _, n := range nodes {
+		scores[n.ID] = g.CompositeScore(n.ID, ppr, nil)
+		if n.Path != "" {
+			scores[n.Path] = scores[n.ID]
+		}
+	}
+	return scores
 }
 
 func (s *Service) Remember(kind, content, authority, scope, workID string, confidence float64, provenance []string) (model.Memory, error) {
@@ -453,11 +512,13 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	}
 	ms = append(ms, codes...)
 
+	graphScores := s.computeGraphScores(task)
 	p := allocator.Plan(allocator.Request{
 		Task:         task,
 		Budget:       budget,
 		Model:        modelName,
 		RepoRevision: s.Repo.Revision,
+		GraphScores:  graphScores,
 	}, ms)
 	p.Model = modelName
 	p.CreatedAt = time.Now().UTC()

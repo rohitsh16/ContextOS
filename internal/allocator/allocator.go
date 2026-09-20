@@ -11,11 +11,12 @@ import (
 
 // Request defines the input parameters for a context planning and allocation query.
 type Request struct {
-	Task         string  // Task description or query prompt from the user/agent.
-	Budget       int     // Maximum total token budget allocated for context packing.
-	Model        string  // Target model identifier.
-	RepoRevision string  // Current git revision/commit hash used to evaluate freshness and staleness.
-	AvgDocLen    float64 // Average document token length for BM25 normalization; 0 = auto-computed from candidates.
+	Task         string             // Task description or query prompt from the user/agent.
+	Budget       int                // Maximum total token budget allocated for context packing.
+	Model        string             // Target model identifier.
+	RepoRevision string             // Current git revision/commit hash used to evaluate freshness and staleness.
+	AvgDocLen    float64            // Average document token length for BM25 normalization; 0 = auto-computed from candidates.
+	GraphScores  map[string]float64 // Graph centrality scores from internal/graph (PR-03).
 }
 
 // authorityScore maps the provenance or source authority string of a memory to a numeric weight in [0.45, 1.0].
@@ -106,12 +107,22 @@ func Score(req Request, m model.Memory) model.Candidate {
 	reuse := math.Min(1, float64(m.ReuseCount)/10.0)
 	affinity := 0.6*lex + 0.4*kindBoost(m.Kind)
 
-	// Graph centrality proxy: count structural path indicators (file paths, package refs).
-	lower := strings.ToLower(m.Content)
-	pathSeps := strings.Count(lower, "/") + strings.Count(lower, ".") + strings.Count(lower, "::")
+	// Graph centrality: check if graph intelligence computed a score for this node/location/ID (PR-03).
 	graph := 0.0
-	if pathSeps >= 1 || m.Kind == "code" {
-		graph = math.Min(1.0, 0.4+float64(pathSeps)*0.1)
+	if req.GraphScores != nil {
+		if s, ok := req.GraphScores[m.ID]; ok {
+			graph = s
+		} else if s, ok := req.GraphScores[m.Location]; ok {
+			graph = s
+		}
+	}
+	// Fallback to structural path indicator proxy if no graph score provided
+	if graph == 0.0 {
+		lower := strings.ToLower(m.Content)
+		pathSeps := strings.Count(lower, "/") + strings.Count(lower, ".") + strings.Count(lower, "::")
+		if pathSeps >= 1 || m.Kind == "code" {
+			graph = math.Min(1.0, 0.4+float64(pathSeps)*0.1)
+		}
 	}
 
 	evidence := 0.0

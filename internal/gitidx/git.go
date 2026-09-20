@@ -46,6 +46,12 @@ func isExcludedPath(relPath string) bool {
 			return true
 		}
 	}
+	base := filepath.Base(clean)
+	ext := strings.ToLower(filepath.Ext(base))
+	switch ext {
+	case ".db", ".db-shm", ".db-wal", ".log", ".tmp":
+		return true
+	}
 	return false
 }
 
