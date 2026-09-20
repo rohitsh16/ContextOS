@@ -202,22 +202,36 @@ func rankBy(n int, less func(i, j int) bool) []int {
 	return idx
 }
 
-// Plan executes the budget-constrained context optimization algorithm across a collection of memories.
-// It applies four mathematically-grounded passes in sequence:
+// Formal Objective Function (PR-10):
+//
+//   F(C) = sum_i alpha_i Coverage_i(C) + sum_j beta_j Relevance_j(C) - lambda Redundancy(C) + eta Cache(C) - rho Risk(C)
+//
+// Classification of terms:
+//   - Coverage(C): submodular (diminishing returns over code/memory coverage)
+//   - Relevance(C): modular (independent item scores under BM25/PPR/Dense)
+//   - Redundancy(C): supermodular penalty (pairwise term/content overlap)
+//   - Cache(C): modular (prefix stability benefit)
+//   - Risk(C): supermodular penalty (accumulated staleness/invalidation risk)
+//
+// Explicit theoretical assumptions:
+//   - Assumption A1: Monotonicity — F(A) <= F(B) for A subseteq B in unconstrained utility
+//   - Assumption A2: Submodularity — Delta(e | A) >= Delta(e | B) for A subseteq B
+//   - Assumption A3: Non-negative costs — c(e) > 0 for all candidate memories
+//   - Assumption A4: Feasibility — total token cost sum_{e in C} c(e) <= Budget
+//
+// Plan executes the budget-constrained context optimization algorithm across candidate memories.
+// It applies four passes in sequence:
 //
 //  1. BM25 Lexical Scoring  — TF saturation + length normalization (Robertson & Sparck Jones 1994).
-//     Replaces raw Jaccard overlap; penalizes verbose docs, rewards precise term matches.
 //
-//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position,
-//     not raw score, eliminating inter-signal scale bias (Cormack et al., 2009).
-//     Gated multiplicatively by authority × freshness × confidence.
+//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position
+//     (Cormack et al., 2009), gated multiplicatively by authority × freshness × confidence.
 //
-//  3. Singleton Rescue — after greedy packing, if a single item that fits the full budget has a
-//     higher aggregate score than the entire greedy selection, it replaces the selection.
-//     Provides the (1-1/e) ≈ 0.63 approximation guarantee (Sviridenko 2004).
+//  3. Singleton Rescue — density-greedy selection with singleton rescue and fill pass.
+//     After greedy packing, if a single item that fits the budget has a higher aggregate score
+//     than the greedy selection, it replaces the selection as a knapsack safeguard.
 //
-//  4. Fill Pass — after the primary selection (including any rescue), fill remaining budget
-//     with the highest-density eligible items not yet selected.
+//  4. Fill Pass — fills remaining budget with highest-density eligible items not yet selected.
 func Plan(req Request, ms []model.Memory) model.ContextPlan {
 	if req.Budget <= 0 {
 		req.Budget = 4000
