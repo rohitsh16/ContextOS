@@ -2,20 +2,35 @@ package model
 
 import "time"
 
+type EvidenceItem struct {
+	Type    string  `json:"type"` // "source", "test", "commit", "user", "inference"
+	ID      string  `json:"id,omitempty"`
+	Path    string  `json:"path,omitempty"`
+	Snippet string  `json:"snippet,omitempty"`
+	Weight  float64 `json:"weight,omitempty"`
+}
+
 type Memory struct {
-	ID                    string  `json:"id"`
-	Kind                  string  `json:"kind"`
-	Content               string  `json:"content"`
-	Scope                 string  `json:"scope"`
-	ValidFromRevision     string  `json:"valid_from_revision,omitempty"`
-	InvalidatedAtRevision string  `json:"invalidated_at_revision,omitempty"`
-	Authority             string  `json:"authority"`
-	Confidence            float64 `json:"confidence"`
-	TokenCost             int     `json:"token_cost"`
-	ReuseCount            int     `json:"reuse_count"`
-	LastAccessedAt        string  `json:"last_accessed_at,omitempty"`
-	Source                string  `json:"source,omitempty"`
-	Location              string  `json:"location,omitempty"`
+	ID                    string         `json:"id"`
+	Kind                  string         `json:"kind"`
+	Content               string         `json:"content"`
+	Claim                 string         `json:"claim,omitempty"`
+	Scope                 string         `json:"scope"`
+	ValidFromRevision     string         `json:"valid_from_revision,omitempty"`
+	InvalidatedAtRevision string         `json:"invalidated_at_revision,omitempty"`
+	Authority             string         `json:"authority"`
+	Confidence            float64        `json:"confidence"`
+	TokenCost             int            `json:"token_cost"`
+	ReuseCount            int            `json:"reuse_count"`
+	LastAccessedAt        string         `json:"last_accessed_at,omitempty"`
+	Source                string         `json:"source,omitempty"`
+	Location              string         `json:"location,omitempty"`
+	Locations             []string       `json:"locations,omitempty"`
+	Evidence              []EvidenceItem `json:"evidence,omitempty"`
+	Dependencies          []string       `json:"dependencies,omitempty"`
+	Supersedes            string         `json:"supersedes,omitempty"`
+	SupersededBy          string         `json:"superseded_by,omitempty"`
+	Timestamp             string         `json:"timestamp,omitempty"`
 }
 
 type Candidate struct {
