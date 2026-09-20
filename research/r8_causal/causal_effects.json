@@ -1,0 +1,38 @@
+[
+  {
+    "candidate_id": "cand-dec",
+    "kind": "decision",
+    "propensity_score": 0.715587000713465,
+    "observed_outcome": 1,
+    "counterfactual_out": 0.734,
+    "causal_effect": 0.266,
+    "statistically_significant": true
+  },
+  {
+    "candidate_id": "cand-con",
+    "kind": "constraint",
+    "propensity_score": 0.732068085548535,
+    "observed_outcome": 1,
+    "counterfactual_out": 0.6832,
+    "causal_effect": 0.31679999999999997,
+    "statistically_significant": true
+  },
+  {
+    "candidate_id": "cand-fail",
+    "kind": "failure",
+    "propensity_score": 0.6837827856022397,
+    "observed_outcome": 1,
+    "counterfactual_out": 0.802,
+    "causal_effect": 0.19799999999999995,
+    "statistically_significant": true
+  },
+  {
+    "candidate_id": "cand-code",
+    "kind": "code",
+    "propensity_score": 0.6360547615038756,
+    "observed_outcome": 1,
+    "counterfactual_out": 0.904,
+    "causal_effect": 0.09599999999999997,
+    "statistically_significant": false
+  }
+]

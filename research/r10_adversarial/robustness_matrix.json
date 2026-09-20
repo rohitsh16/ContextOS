@@ -1,0 +1,12 @@
+{
+  "blocked_attacks": 5,
+  "robustness_rate": 1,
+  "status": "GREEN",
+  "vector_resilience": {
+    "budget_starvation": 1,
+    "deprecated_code_trap": 1,
+    "future_leakage_trap": 1,
+    "memory_poisoning": 1,
+    "semantic_distractor": 1
+  }
+}

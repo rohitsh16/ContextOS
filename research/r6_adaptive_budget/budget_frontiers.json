@@ -1,0 +1,47 @@
+[
+  {
+    "task_query": "Fix nil pointer dereference in payment handler",
+    "task_type": "local_edit",
+    "uncertainty_score": 0.15,
+    "optimal_budget": 870,
+    "tokens_saved_vs_max": 3226,
+    "predicted_success": 0.98,
+    "sequential_stopped": true
+  },
+  {
+    "task_query": "Refactor cross-file database connection pool",
+    "task_type": "cross_file_refactor",
+    "uncertainty_score": 0.25,
+    "optimal_budget": 2176,
+    "tokens_saved_vs_max": 1920,
+    "predicted_success": 0.98,
+    "sequential_stopped": true
+  },
+  {
+    "task_query": "Migrate billing architecture to event-driven outbox",
+    "task_type": "architectural_migration",
+    "uncertainty_score": 0.35,
+    "optimal_budget": 5222,
+    "tokens_saved_vs_max": -1126,
+    "predicted_success": 0.98,
+    "sequential_stopped": true
+  },
+  {
+    "task_query": "Simple lookup of JWT expiration config",
+    "task_type": "cross_file_refactor",
+    "uncertainty_score": 0.45,
+    "optimal_budget": 2393,
+    "tokens_saved_vs_max": 1703,
+    "predicted_success": 0.98,
+    "sequential_stopped": true
+  },
+  {
+    "task_query": "Implement unit tests for redis mutex lock",
+    "task_type": "cross_file_refactor",
+    "uncertainty_score": 0.55,
+    "optimal_budget": 2393,
+    "tokens_saved_vs_max": 1703,
+    "predicted_success": 0.98,
+    "sequential_stopped": true
+  }
+]

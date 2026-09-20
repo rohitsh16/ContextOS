@@ -1,0 +1,112 @@
+[
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.975,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.78048780487805,
+    "prefix_invalidation_risk": 0.025
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.965,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.695652173913045,
+    "prefix_invalidation_risk": 0.035
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.955,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.612440191387561,
+    "prefix_invalidation_risk": 0.045
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.945,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.530805687203793,
+    "prefix_invalidation_risk": 0.055
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.975,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.78048780487805,
+    "prefix_invalidation_risk": 0.025
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.965,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.695652173913045,
+    "prefix_invalidation_risk": 0.035
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.955,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.612440191387561,
+    "prefix_invalidation_risk": 0.045
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.945,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.530805687203793,
+    "prefix_invalidation_risk": 0.055
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.975,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.78048780487805,
+    "prefix_invalidation_risk": 0.025
+  },
+  {
+    "total_tokens": 75,
+    "stable_prefix_tokens": 75,
+    "uncached_tokens": 0,
+    "cache_hit_probability": 0.965,
+    "uncached_cost_usd": 0.000225,
+    "cached_cost_usd": 0.000022499999999999998,
+    "dollar_savings": 0.00020250000000000002,
+    "croi": 8.695652173913045,
+    "prefix_invalidation_risk": 0.035
+  }
+]

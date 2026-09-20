@@ -1,0 +1,387 @@
+[
+  {
+    "competitor_a": "B0",
+    "competitor_b": "B3",
+    "score_a": 1,
+    "score_b": 0,
+    "margin": 23.868308320395606
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "B7",
+    "score_a": 1,
+    "score_b": 0,
+    "margin": 16.61838978015448
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "B9",
+    "score_a": 1,
+    "score_b": 0,
+    "margin": 1.946532919272336
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R1-MSC",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -9.484774521998517
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R2-Hybrid",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -12.61456666799183
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -19.129960596678856
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -26.98566698179701
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -32.929322811036364
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -50.208708470748
+  },
+  {
+    "competitor_a": "B0",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -93.55719453336087
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "B7",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -7.249918540241123
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "B9",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -21.92177540112327
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R1-MSC",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -33.35308284239412
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R2-Hybrid",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -36.48287498838744
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -42.99826891707446
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -50.853975302192616
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -56.79763113143197
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -74.0770167911436
+  },
+  {
+    "competitor_a": "B3",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -117.42550285375647
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "B9",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -14.671856860882146
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R1-MSC",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -26.103164302152997
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R2-Hybrid",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -29.23295644814631
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -35.748350376833336
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -43.60405676195149
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -49.547712591190844
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -66.82709825090248
+  },
+  {
+    "competitor_a": "B7",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -110.17558431351534
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R1-MSC",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -11.431307441270853
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R2-Hybrid",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -14.561099587264167
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -21.076493515951192
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -28.932199901069346
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -34.8758557303087
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -52.155241390020336
+  },
+  {
+    "competitor_a": "B9",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -95.5037274526332
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R2-Hybrid",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -3.1297921459933136
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -9.645186074680339
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -17.500892459798493
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -23.444548289037847
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -40.72393394874948
+  },
+  {
+    "competitor_a": "R1-MSC",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -84.07242001136234
+  },
+  {
+    "competitor_a": "R2-Hybrid",
+    "competitor_b": "R3-VOI",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -6.5153939286870255
+  },
+  {
+    "competitor_a": "R2-Hybrid",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -14.37110031380518
+  },
+  {
+    "competitor_a": "R2-Hybrid",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -20.314756143044534
+  },
+  {
+    "competitor_a": "R2-Hybrid",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -37.59414180275617
+  },
+  {
+    "competitor_a": "R2-Hybrid",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -80.94262786536903
+  },
+  {
+    "competitor_a": "R3-VOI",
+    "competitor_b": "R4-Econ",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -7.855706385118154
+  },
+  {
+    "competitor_a": "R3-VOI",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -13.799362214357508
+  },
+  {
+    "competitor_a": "R3-VOI",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -31.078747874069144
+  },
+  {
+    "competitor_a": "R3-VOI",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -74.427233936682
+  },
+  {
+    "competitor_a": "R4-Econ",
+    "competitor_b": "R5-Belief",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -5.943655829239354
+  },
+  {
+    "competitor_a": "R4-Econ",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -23.22304148895099
+  },
+  {
+    "competitor_a": "R4-Econ",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -66.57152755156386
+  },
+  {
+    "competitor_a": "R5-Belief",
+    "competitor_b": "R6-Adaptive",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -17.279385659711636
+  },
+  {
+    "competitor_a": "R5-Belief",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -60.6278717223245
+  },
+  {
+    "competitor_a": "R6-Adaptive",
+    "competitor_b": "R7-CacheCoOpt",
+    "score_a": 0,
+    "score_b": 1,
+    "margin": -43.348486062612864
+  }
+]

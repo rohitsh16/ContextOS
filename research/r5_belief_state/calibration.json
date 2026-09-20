@@ -1,0 +1,41 @@
+{
+  "total_memories": 4,
+  "brier_score": 0.009140614834582225,
+  "ece": 0.06551985431386104,
+  "conformal_cutoff": 0.09160305343511449,
+  "beliefs": [
+    {
+      "memory_id": "mem-1",
+      "prior_belief": 0.85,
+      "posterior_belief": 0.999,
+      "evidence_count": 2,
+      "calibrated": true,
+      "conformal_fresh": true
+    },
+    {
+      "memory_id": "mem-2",
+      "prior_belief": 0.9,
+      "posterior_belief": 0.9983558040118382,
+      "evidence_count": 2,
+      "calibrated": true,
+      "conformal_fresh": true
+    },
+    {
+      "memory_id": "mem-3",
+      "prior_belief": 0.75,
+      "posterior_belief": 0.1678321678321679,
+      "evidence_count": 2,
+      "calibrated": true,
+      "conformal_fresh": true
+    },
+    {
+      "memory_id": "mem-4",
+      "prior_belief": 0.6,
+      "posterior_belief": 0.09160305343511449,
+      "evidence_count": 2,
+      "calibrated": true,
+      "conformal_fresh": true
+    }
+  ],
+  "status": "GREEN"
+}

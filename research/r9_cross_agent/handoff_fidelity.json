@@ -1,0 +1,13 @@
+{
+  "source_agent": "claude-3.5-sonnet",
+  "target_agent": "antigravity-gemini-2.0",
+  "decisions_preserved": 1,
+  "decisions_lost": 0,
+  "constraints_preserved": 1,
+  "constraints_lost": 0,
+  "entropy_before": 1.5849625007211563,
+  "conditional_entropy_loss": 0,
+  "state_continuity": 1,
+  "rediscovery_avoided": true,
+  "status": "GREEN"
+}

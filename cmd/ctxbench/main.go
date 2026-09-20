@@ -21,6 +21,20 @@ func main() {
 	ablations := flag.Bool("ablations", false, "run ablation experiment comparing full system against disabled subsystems")
 	gate := flag.Bool("gate", false, "enforce CI regression gates (PR-19)")
 	table := flag.Bool("table", false, "display Section 24 benchmark table")
+	audit := flag.Bool("audit", false, "run Phase R0 benchmark audit (PR.md Section 5)")
+	r1 := flag.Bool("r1", false, "run Phase R1: Minimum Sufficient Context (PR.md Section 6)")
+	r2 := flag.Bool("r2", false, "run Phase R2: Submodularity vs Complementarity (PR.md Section 7)")
+	r3 := flag.Bool("r3", false, "run Phase R3: Value of Information (PR.md Section 8)")
+	r4 := flag.Bool("r4", false, "run Phase R4: Memory Economics & Forgetting (PR.md Section 9)")
+	r5 := flag.Bool("r5", false, "run Phase R5: Belief State & Uncertainty (PR.md Section 10)")
+	r6 := flag.Bool("r6", false, "run Phase R6: Adaptive Context Budgets (PR.md Section 11)")
+	r7 := flag.Bool("r7", false, "run Phase R7: Two-Tier Cache Co-Optimization (PR.md Section 12)")
+	r8 := flag.Bool("r8", false, "run Phase R8: Causal Context Attribution (PR.md Section 13)")
+	r9 := flag.Bool("r9", false, "run Phase R9: Cross-Agent State Preservation (PR.md Section 14)")
+	r10 := flag.Bool("r10", false, "run Phase R10: Adversarial Evaluation (PR.md Section 15)")
+	r11 := flag.Bool("r11", false, "run Phase R11: Research Tournament (PR.md Section 16)")
+	r12 := flag.Bool("r12", false, "run Phase R12: Release Gating & Production Verification (PR.md Section 17)")
+	allResearch := flag.Bool("all-research", false, "run full research suite R1 -> R12 sequentially (PR.md)")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
 
@@ -44,6 +58,259 @@ func main() {
 		if len(selected) > 0 {
 			cfg.Baselines = selected
 		}
+	}
+
+	if *audit {
+		report, err := bench.RunR0Audit(*seed, *n, *budget)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "audit error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, err := json.MarshalIndent(report, "", "  ")
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "json marshal error: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println(string(b))
+		} else {
+			fmt.Println("=== ContextOS Phase R0 Benchmark Audit (PR.md Section 5) ===")
+			fmt.Printf("Audit Status: %s\n\n", report.R0Status)
+			fmt.Println("1. Cost Accounting Reconciliation:")
+			fmt.Printf("   Sum of components: $%.6f | Reported: $%.6f | Reconciled: %v\n",
+				report.Accounting.SumComponentUSD, report.Accounting.ReportedTotalUSD, report.Accounting.Reconciled)
+			fmt.Printf("   %s\n\n", report.Accounting.Explanation)
+
+			fmt.Println("2. Cache Metric Semantic Disentanglement:")
+			fmt.Printf("   Plan Cache Hit: %v | Provider Prompt Cache Hit: %v\n",
+				report.CacheMetrics.ContextPlanCacheHit, report.CacheMetrics.ProviderPromptCacheHit)
+			fmt.Printf("   Regression Gate: %s | Research Target (60%%): %s\n\n",
+				report.CacheMetrics.RegressionGateStatus, report.CacheMetrics.ResearchTargetStatus)
+
+			fmt.Println("3. Task-Success Oracle Validation (Stratified Confusion Matrix):")
+			fmt.Printf("   Evaluated Tasks: %d | Precision: %.3f | Recall: %.3f | Accuracy: %.3f | F1: %.3f\n",
+				report.OracleValidation.TotalEvaluated,
+				report.OracleValidation.OverallMatrix.Precision,
+				report.OracleValidation.OverallMatrix.Recall,
+				report.OracleValidation.OverallMatrix.Accuracy,
+				report.OracleValidation.OverallMatrix.F1Score)
+			fmt.Printf("   Valid Proxy: %v\n\n", report.OracleValidation.ValidProxy)
+
+			fmt.Println("4. Future-Information Leakage Audit:")
+			fmt.Printf("   %s\n\n", report.FutureLeakageAudit)
+
+			fmt.Println("5. Dataset Separation & Holdout Corpus:")
+			fmt.Printf("   %s\n\n", report.HoldoutStatus)
+
+			fmt.Println("6. Baseline Freeze Manifest:")
+			fmt.Println("   Generated at benchmarks/manifests/manifest_r0_audit.json")
+			fmt.Println()
+			fmt.Println(report.CostExplanation)
+			fmt.Println()
+			fmt.Println(report.CacheExplanation)
+		}
+		if report.R0Status != "GREEN" {
+			os.Exit(1)
+		}
+		return
+	}
+
+	if *allResearch {
+		if err := bench.RunAllResearchSuite(*n); err != nil {
+			fmt.Fprintf(os.Stderr, "research suite error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if *r1 {
+		res, err := bench.RunPhaseR1(*n)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R1 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R1 Minimum Sufficient Context: Status=%s, B*(95%%)=%d tokens, DPR=%.3f\n",
+				res.Status, res.BStar["0.95"], res.DPR)
+		}
+		return
+	}
+
+	if *r2 {
+		res, err := bench.RunPhaseR2(*n)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R2 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R2 Submodularity vs Complementarity: Status=%s, Curvature=%.3f, Diminishing=%.1f%%, HybridAdvantage=+%.1f%%\n",
+				res.Status, res.Curvature, res.DiminishingRatio*100, res.HybridAdvantage)
+		}
+		return
+	}
+
+	if *r3 {
+		res, err := bench.RunPhaseR3(*n)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R3 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R3 Value of Information: Status=%s, Relevance-VOI Corr=%.3f, TokensToSufficiency=%d\n",
+				res.Status, res.RelevanceVOICorrel, res.TokensToSufficiency)
+		}
+		return
+	}
+
+	if *r4 {
+		res, err := bench.RunPhaseR4()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R4 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R4 Memory Economics: Status=%s, Persisted=%d, Pruned=%d, Portfolio ROI=%.2fx\n",
+				res.Status, res.PersistedCount, res.ForgettingCount, res.AverageROI)
+		}
+		return
+	}
+
+	if *r5 {
+		res, err := bench.RunPhaseR5()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R5 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R5 Belief State: Status=%s, Brier=%.4f, ECE=%.4f, ConformalCutoff=%.3f\n",
+				res.Status, res.BrierScore, res.ECE, res.ConformalCutoff)
+		}
+		return
+	}
+
+	if *r6 {
+		res, err := bench.RunPhaseR6(*n)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R6 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R6 Adaptive Budgets: Status=%s, Token Savings=%.1f%% (Adaptive: %.0f vs Fixed: %.0f)\n",
+				res.Status, res.TokenSavingsRatio*100, res.AvgAdaptiveBudget, res.AvgFixedBudget)
+		}
+		return
+	}
+
+	if *r7 {
+		res, err := bench.RunPhaseR7(10)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R7 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R7 Cache Economics: Status=%s, Cache ROI=%.2fx, Hit Rate=%.1f%%, Saved=$%.6f\n",
+				res.Status, res.AverageCROI, res.AverageHitRate*100, res.TotalSavedUSD)
+		}
+		return
+	}
+
+	if *r8 {
+		res, err := bench.RunPhaseR8(*n)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R8 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R8 Causal Attribution: Status=%s, Doubly Robust Tau=+%.3f, Decision Attribution=+%.3f\n",
+				res.Status, res.DoublyRobustTau, res.KindAttributions["decision"])
+		}
+		return
+	}
+
+	if *r9 {
+		res, err := bench.RunPhaseR9()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R9 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R9 Cross-Agent State: Status=%s, State Continuity=%.3f, Rediscovery Avoided=%v\n",
+				res.Status, res.StateContinuity, res.RediscoveryAvoided)
+		}
+		return
+	}
+
+	if *r10 {
+		res, err := bench.RunPhaseR10("rev-100")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R10 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Phase R10 Adversarial Robustness: Status=%s, Robustness Rate=%.1f%% (%d/%d attacks blocked)\n",
+				res.Status, res.RobustnessRate*100, res.BlockedAttacks, res.TotalAttacks)
+		}
+		return
+	}
+
+	if *r11 {
+		res, err := bench.RunPhaseR11()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R11 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Println(bench.FormatTournamentTable(res))
+		}
+		return
+	}
+
+	if *r12 {
+		res, err := bench.RunPhaseR12()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "R12 error: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Println(bench.FormatReleaseGateReport(res))
+		}
+		return
 	}
 
 	if *sweep {
@@ -109,7 +376,7 @@ func main() {
 
 	if *ablations {
 		type AblationResult struct {
-			Condition string             `json:"condition"`
+			Condition string               `json:"condition"`
 			Report    bench.BaselineReport `json:"report"`
 		}
 		conditions := []struct {

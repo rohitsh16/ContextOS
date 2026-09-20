@@ -48,7 +48,15 @@ func (e *ScopedStalenessEvaluator) EvaluateStaleness(m model.Memory) (float64, b
 		return 1.0, true
 	}
 
-	// 2. If revision matches current revision, it is definitely fresh
+	// 2. Future information leak prevention (PR.md R0-H4):
+	// Evidence created in future revisions is invalid / hard-stale for historical replay at e.CurrentRevision
+	if e.CurrentRevision != "" && m.ValidFromRevision != "" {
+		if m.ValidFromRevision > e.CurrentRevision {
+			return 1.0, true
+		}
+	}
+
+	// 3. If revision matches current revision, it is definitely fresh
 	if m.ValidFromRevision != "" && m.ValidFromRevision == e.CurrentRevision {
 		return 0.0, false
 	}

@@ -1,0 +1,62 @@
+[
+  {
+    "candidate_id": "cand-constraint-1",
+    "relevance_score": 0.72,
+    "action_entropy": 0.6270840510319263,
+    "expected_utility": 0.843,
+    "voi": 0.3729159489680737,
+    "cost_tokens": 18,
+    "voi_per_token": 0.020717552720448538,
+    "decision_changed": true
+  },
+  {
+    "candidate_id": "cand-legit-1",
+    "relevance_score": 0.88,
+    "action_entropy": 0.1271637226696362,
+    "expected_utility": 0.9824999999999999,
+    "voi": 0.8069043327058547,
+    "cost_tokens": 25,
+    "voi_per_token": 0.032276173308234186,
+    "decision_changed": true
+  },
+  {
+    "candidate_id": "cand-deprecated-trap",
+    "relevance_score": 0.8,
+    "action_entropy": 0.011407757737461144,
+    "expected_utility": 1,
+    "voi": 0.710520337149901,
+    "cost_tokens": 30,
+    "voi_per_token": 0.023684011238330034,
+    "decision_changed": true
+  },
+  {
+    "candidate_id": "cand-future-trap",
+    "relevance_score": 0.9,
+    "action_entropy": 0.011407757737461144,
+    "expected_utility": 1,
+    "voi": 0.27498919937849514,
+    "cost_tokens": 30,
+    "voi_per_token": 0.009166306645949838,
+    "decision_changed": true
+  },
+  {
+    "candidate_id": "cand-poison-1",
+    "relevance_score": 0.6,
+    "action_entropy": 0.20677830986542264,
+    "expected_utility": 0.9674999999999999,
+    "voi": 0.07961864725053366,
+    "cost_tokens": 20,
+    "voi_per_token": 0.0039809323625266835,
+    "decision_changed": true
+  },
+  {
+    "candidate_id": "cand-distractor-1",
+    "relevance_score": 0.85,
+    "action_entropy": 0.1943918578315763,
+    "expected_utility": 0.97,
+    "voi": 0.09200509928438,
+    "cost_tokens": 35,
+    "voi_per_token": 0.002628717122410857,
+    "decision_changed": false
+  }
+]
