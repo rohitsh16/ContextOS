@@ -1,7 +1,7 @@
 {
   "manifest_id": "manifest-r15-freeze-42",
   "benchmark_version": "R15.0-alpha",
-  "timestamp": "2026-09-21T14:10:11.955293Z",
+  "timestamp": "2026-09-21T19:01:32.353753Z",
   "gate": "R15.5",
   "total_tasks": 120,
   "total_successes": 120,
@@ -87,8 +87,14 @@
   ],
   "taxonomy_distribution": [
     {
-      "bucket": "over-reasoning",
-      "description": "Model allocated excessive reasoning tokens on trivial tasks",
+      "bucket": "verification failure",
+      "description": "Generated patch failed automated test assertions",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "controller overhead",
+      "description": "Decision engine compute exceeded 5% of task budget",
       "count": 0,
       "percentage": 0
     },
@@ -99,14 +105,32 @@
       "percentage": 0
     },
     {
+      "bucket": "bad calibration",
+      "description": "Significant gap between confidence and empirical success probability",
+      "count": 0,
+      "percentage": 0
+    },
+    {
       "bucket": "under-retrieval",
       "description": "Model attempted reasoning without necessary repository evidence",
       "count": 0,
       "percentage": 0
     },
     {
-      "bucket": "verification failure",
-      "description": "Generated patch failed automated test assertions",
+      "bucket": "over-reasoning",
+      "description": "Model allocated excessive reasoning tokens on trivial tasks",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "missing context",
+      "description": "Omission of necessary dependency files from working context",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "transient provider failure",
+      "description": "Simulated upstream rate limit or API timeout",
       "count": 0,
       "percentage": 0
     },
@@ -117,26 +141,20 @@
       "percentage": 0
     },
     {
-      "bucket": "bad calibration",
-      "description": "Significant gap between confidence and empirical success probability",
-      "count": 0,
-      "percentage": 0
-    },
-    {
       "bucket": "bad success oracle",
       "description": "Discrepancy between oracle verification and ground-truth correctness",
       "count": 0,
       "percentage": 0
     },
     {
-      "bucket": "cache side effect",
-      "description": "Prompt cache miss or invalidation penalty",
+      "bucket": "wrong context",
+      "description": "Distractor files displaced relevant context",
       "count": 0,
       "percentage": 0
     },
     {
-      "bucket": "controller overhead",
-      "description": "Decision engine compute exceeded 5% of task budget",
+      "bucket": "cache side effect",
+      "description": "Prompt cache miss or invalidation penalty",
       "count": 0,
       "percentage": 0
     },
@@ -149,24 +167,6 @@
     {
       "bucket": "over-retrieval",
       "description": "Redundant retrieval operations performed after evidence saturation",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "missing context",
-      "description": "Omission of necessary dependency files from working context",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "wrong context",
-      "description": "Distractor files displaced relevant context",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "transient provider failure",
-      "description": "Simulated upstream rate limit or API timeout",
       "count": 0,
       "percentage": 0
     }

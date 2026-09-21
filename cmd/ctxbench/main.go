@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	compute_bench "contextos/benchmarks/compute"
 	"contextos/internal/bench"
 	"contextos/internal/compute"
 	"contextos/internal/planning"
+	"contextos/internal/server"
 	"contextos/internal/store"
 	"contextos/internal/telemetry"
 )
@@ -49,8 +51,95 @@ func main() {
 	adaptiveCompute := flag.Bool("adaptive-compute", false, "run adaptive compute engine benchmark comparing naive vs adaptive thinking cost")
 	r15Audit := flag.Bool("r15-audit", false, "run Phase R15.1 benchmark audit (R15_ADAPTIVE_COMPUTE_RESEARCH_PLAN.md Section 5)")
 	r15All := flag.Bool("r15-all", false, "run all 16 phases of R15 Adaptive Compute Research Plan end-to-end")
+	monorepoStress := flag.Bool("monorepo-stress", false, "run concurrent monorepo stress test (simulates 10k-100k nodes & scale-free power-law edges)")
+	mrNodes := flag.Int("nodes", 10000, "number of synthetic monorepo AST nodes")
+	mrEdges := flag.Int("edges", 50000, "number of scale-free power-law edges")
+	mrWorkers := flag.Int("workers", 8, "concurrent worker goroutines")
+	mrQueries := flag.Int("queries", 100, "total planning queries to execute")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
+
+	if *monorepoStress {
+		fmt.Printf("=== ContextOS Monorepo Scale-Free Stress Benchmark ===\n")
+		fmt.Printf("Monorepo Scale: %d nodes | %d edges (power-law hubs) | %d workers | %d queries\n\n",
+			*mrNodes, *mrEdges, *mrWorkers, *mrQueries)
+
+		dbDir, err := os.MkdirTemp("", "ctxbench_monorepo_*")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer os.RemoveAll(dbDir)
+
+		dbPath := filepath.Join(dbDir, "stress.db")
+		st, err := store.NewSQLiteStore(dbPath)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer st.Close()
+
+		t0 := time.Now()
+		fmt.Printf("Generating scale-free monorepo (%d nodes, %d edges)... ", *mrNodes, *mrEdges)
+		repoID, queries, err := compute_bench.GenerateScaleFreeMonorepo(st, dbDir, *mrNodes, *mrEdges, *seed)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("done in %v\n", time.Since(t0))
+
+		svc, err := server.New(dbPath, dbDir)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer svc.Close()
+		svc.RepoID = repoID
+
+		cfg := compute_bench.MonorepoStressConfig{
+			NodeCount:    *mrNodes,
+			EdgeCount:    *mrEdges,
+			Workers:      *mrWorkers,
+			TotalQueries: *mrQueries,
+			TimeoutSLA:   5 * time.Second,
+			Seed:         *seed,
+		}
+
+		fmt.Printf("Running concurrent stress across %d workers...\n\n", *mrWorkers)
+		rep, err := compute_bench.RunMonorepoStress(svc, queries, cfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("┌──────────────────────────────────┬──────────────────────┐\n")
+			fmt.Printf("│ Monorepo Stress Metric           │ Measured Value       │\n")
+			fmt.Printf("├──────────────────────────────────┼──────────────────────┤\n")
+			fmt.Printf("│ Monorepo Scale                   │ %-20s │\n", fmt.Sprintf("%d nodes, %d edges", rep.NodeCount, rep.EdgeCount))
+			fmt.Printf("│ Worker Concurrency               │ %-20s │\n", fmt.Sprintf("%d workers", rep.Workers))
+			fmt.Printf("│ Total Queries Executed           │ %-20s │\n", fmt.Sprintf("%d queries", rep.TotalQueries))
+			fmt.Printf("│ Throughput (QPS)                 │ %-20s │\n", fmt.Sprintf("%.1f QPS", rep.ThroughputQPS))
+			fmt.Printf("│ P50 Latency                      │ %-20s │\n", rep.P50Latency.String())
+			fmt.Printf("│ P90 Latency                      │ %-20s │\n", rep.P90Latency.String())
+			fmt.Printf("│ P95 Tail Latency                 │ %-20s │\n", rep.P95Latency.String())
+			fmt.Printf("│ P99 Tail Latency                 │ %-20s │\n", rep.P99Latency.String())
+			fmt.Printf("│ Max Latency                      │ %-20s │\n", rep.MaxLatency.String())
+			fmt.Printf("│ Timeouts (> 5s Claude SLA)       │ %-20s │\n", fmt.Sprintf("%d (0.00%%)", rep.TimeoutCount))
+			fmt.Printf("│ Queries > 100ms                  │ %-20s │\n", fmt.Sprintf("%d", rep.WarningCount))
+			fmt.Printf("│ Error Count                      │ %-20s │\n", fmt.Sprintf("%d", rep.ErrorCount))
+			fmt.Printf("└──────────────────────────────────┴──────────────────────┘\n\n")
+
+			fmt.Printf("Tail Latency by Query Archetype (p95):\n")
+			for class, p95 := range rep.ClassLatencies {
+				fmt.Printf("  • %-20s: %v\n", class, p95)
+			}
+		}
+		return
+	}
 
 	if *r15All {
 		resultsDir := "benchmarks/results/r15"

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"contextos/internal/allocator"
+	"contextos/internal/compute"
 	"contextos/internal/config"
 	"contextos/internal/db"
 	"contextos/internal/extractor"
@@ -281,62 +283,34 @@ func (s *Service) buildEdges() error {
 	return nil
 }
 
-func (s *Service) computeGraphScores(task string) map[string]float64 {
-	nodes, err := s.Store.ListNodes(s.RepoID)
-	if err != nil || len(nodes) == 0 {
-		return nil
+func (s *Service) expandGraphFromSeeds(task string, candidateMemories []model.Memory) (map[string]float64, int, int) {
+	if len(candidateMemories) == 0 {
+		return nil, 0, 0
 	}
-	g := graph.New(graph.DefaultConfig())
-	for _, n := range nodes {
-		g.AddNode(&graph.Node{
-			ID:    n.ID,
-			Name:  n.Name,
-			Kind:  n.Kind,
-			Path:  n.Path,
-			Lines: n.EndLine - n.StartLine + 1,
-		})
-	}
-	fileByBase := map[string]string{}
-	for _, n := range nodes {
-		if n.Kind == "file" {
-			fileByBase[n.Name] = n.ID
-			fileByBase[n.Path] = n.ID
-		}
-	}
-	for _, n := range nodes {
-		if n.Kind != "file" {
-			continue
-		}
-		p := filepath.Join(s.Repo.Path, filepath.FromSlash(n.Path))
-		b, err := os.ReadFile(p)
-		if err != nil {
-			continue
-		}
-		txt := string(b)
-		for base, dst := range fileByBase {
-			if base == n.Name || base == n.Path {
-				continue
-			}
-			if strings.Contains(txt, base) {
-				edgeKind := "import"
-				if strings.HasSuffix(n.Path, "_test.go") || strings.Contains(n.Path, "test") {
-					edgeKind = "test-reference"
-				}
-				g.AddEdge(n.ID, dst, edgeKind)
+	seeds := make([]store.NodeRecord, 0, len(candidateMemories))
+	seedScores := make(map[string]float64, len(candidateMemories))
+
+	for _, m := range candidateMemories {
+		if strings.HasPrefix(m.ID, "node:") {
+			nodeID := strings.TrimPrefix(m.ID, "node:")
+			seeds = append(seeds, store.NodeRecord{
+				ID:         nodeID,
+				Path:       m.Location,
+				Centrality: 0.5,
+			})
+			seedScores[nodeID] = m.Confidence
+			if len(seeds) >= 25 {
+				break
 			}
 		}
+	}
+	if len(seeds) == 0 {
+		return nil, 0, 0
 	}
 
-	seeds := g.ExtractSeeds(task, nil, nil)
-	ppr := g.ComputePPR(seeds)
-	scores := make(map[string]float64, len(nodes))
-	for _, n := range nodes {
-		scores[n.ID] = g.CompositeScore(n.ID, ppr, nil)
-		if n.Path != "" {
-			scores[n.Path] = scores[n.ID]
-		}
-	}
-	return scores
+	cfg := graph.DefaultExpansionConfig()
+	res := graph.BoundedBestFirstExpansion(s.RepoID, seeds, seedScores, s.Store, cfg)
+	return res.NodeScores, res.NodesExpanded, res.EdgesTraversed
 }
 
 func (s *Service) Remember(kind, content, authority, scope, workID string, confidence float64, provenance []string) (model.Memory, error) {
@@ -522,15 +496,12 @@ func (s *Service) SearchCandidates(task string, limit int) ([]model.Memory, erro
 
 func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 	if limit <= 0 {
-		limit = 150
+		limit = 50
 	}
-	// PR.md PR-04: Replace O(N) full repository scan with indexed candidate generation
+	// PR-04 / O1: Use indexed candidate retrieval; NEVER fallback to full ListNodes()
 	nodes, err := s.Store.SearchCodeCandidates(s.RepoID, task, "", limit*2)
-	if err != nil || len(nodes) == 0 {
-		nodes, err = s.Store.ListNodes(s.RepoID)
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 	type scored struct {
 		m     model.Memory
@@ -542,6 +513,13 @@ func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 		sc := 0.6*textutil.HashSemantic(task, content) + 0.4*textutil.Overlap(task, content)
 		if sc < 0.05 && task != "" {
 			continue
+		}
+		// O3: Incorporate static graph features precomputed at index time
+		if r.Centrality > 0 {
+			sc += 0.15 * r.Centrality
+		}
+		if (r.InDegree + r.OutDegree) > 0 {
+			sc += 0.05 * math.Min(float64(r.InDegree+r.OutDegree)/10.0, 1.0)
 		}
 		tmp = append(tmp, scored{
 			m: model.Memory{
@@ -599,20 +577,19 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		}
 	}
 
-	ms, err := s.SearchCandidates(task, 200)
+	tCandidateStart := time.Now()
+	ms, err := s.SearchCandidates(task, 50)
 	if err != nil {
 		return model.ContextPlan{}, err
 	}
-	codes, err := s.CodeMemories(task, 100)
+	codes, err := s.CodeMemories(task, 25)
 	if err != nil {
 		return model.ContextPlan{}, err
 	}
 	ms = append(ms, codes...)
+	tCandidateGen := time.Since(tCandidateStart)
 
 	// Adaptive Timeout mitigation:
-	// If timeout is configured and elapsed time > 50% of timeout, dynamically lower
-	// context budget to MinBudget (e.g. 500 tokens) and skip heavy graph traversals
-	// to prevent timeouts while returning decision-sufficient context.
 	effectiveBudget := budget
 	adaptiveThrottled := false
 	if s.Timeout > 0 && s.AdaptiveTimeout {
@@ -627,10 +604,14 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	}
 
 	var graphScores map[string]float64
+	var nodesExpanded, edgesTraversed int
+	tGraphStart := time.Now()
 	if !adaptiveThrottled {
-		graphScores = s.computeGraphScores(task)
+		graphScores, nodesExpanded, edgesTraversed = s.expandGraphFromSeeds(task, codes)
 	}
+	tGraph := time.Since(tGraphStart)
 
+	tSortStart := time.Now()
 	p := allocator.Plan(allocator.Request{
 		Task:         task,
 		Budget:       effectiveBudget,
@@ -638,15 +619,34 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		RepoRevision: s.Repo.Revision,
 		GraphScores:  graphScores,
 	}, ms)
+	tSort := time.Since(tSortStart)
 	p.Model = modelName
 	p.CreatedAt = time.Now().UTC()
 
 	prof := profile(modelName)
 	p.EstimatedCost = float64(p.SelectedTokens) * prof.InputPerM / 1e6
 
+	tSerialStart := time.Now()
 	b, _ := json.Marshal(p)
+	tSerial := time.Since(tSerialStart)
+
 	_ = s.Store.PutCache(key, s.RepoID, s.Repo.Revision, s.Repo.WorktreeHash, task, modelName, budget, string(b))
 	_ = s.trace(task, modelName, budget, p, false)
+
+	// O0 Telemetry recording
+	compute.GlobalProfiler().Record(compute.QueryMetrics{
+		TotalDuration: time.Since(startTime),
+		StageDurations: map[compute.QueryStage]time.Duration{
+			compute.StageCandidateGen:       tCandidateGen,
+			compute.StageGraphTraversal:     tGraph,
+			compute.StageSorting:            tSort,
+			compute.StageSerialization:      tSerial,
+		},
+		NodesScanned:     nodesExpanded,
+		EdgesScanned:     edgesTraversed,
+		GraphExpansions:  nodesExpanded,
+		CandidatesScored: len(ms),
+	})
 
 	for _, c := range p.Selected {
 		if strings.HasPrefix(c.ID, "node:") {

@@ -181,30 +181,78 @@ func (fs *FileStore) AddRevision(repoID, revision, branch string) error {
 func (fs *FileStore) SaveNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, edges []EdgeRecord) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
+
+	inDeg := make(map[string]int)
+	outDeg := make(map[string]int)
+	fanIn := make(map[string]map[string]bool)
+	fanOut := make(map[string]map[string]bool)
+	testCounts := make(map[string]int)
+
+	for _, e := range edges {
+		outDeg[e.SrcID]++
+		inDeg[e.DstID]++
+		if fanIn[e.DstID] == nil {
+			fanIn[e.DstID] = make(map[string]bool)
+		}
+		fanIn[e.DstID][e.SrcID] = true
+		if fanOut[e.SrcID] == nil {
+			fanOut[e.SrcID] = make(map[string]bool)
+		}
+		fanOut[e.SrcID][e.DstID] = true
+		if strings.Contains(e.Kind, "test") || strings.Contains(e.SrcID, "test") {
+			testCounts[e.DstID]++
+		}
+	}
+
+	maxDeg := 1
+	for _, d := range inDeg {
+		if d > maxDeg {
+			maxDeg = d
+		}
+	}
+
 	var nodes []NodeRecord
 	for _, f := range files {
+		nodeID := hashID("file|" + f.Path)
+		ind := inDeg[nodeID]
+		oud := outDeg[nodeID]
 		nodes = append(nodes, NodeRecord{
-			ID:          hashID("file|" + f.Path),
-			RepoID:      repoID,
-			Kind:        "file",
-			Path:        f.Path,
-			Name:        filepath.Base(f.Path),
-			StartLine:   1,
-			EndLine:     f.Lines,
-			ContentHash: f.Hash,
+			ID:            nodeID,
+			RepoID:        repoID,
+			Kind:          "file",
+			Path:          f.Path,
+			Name:          filepath.Base(f.Path),
+			StartLine:     1,
+			EndLine:       f.Lines,
+			ContentHash:   f.Hash,
+			InDegree:      ind,
+			OutDegree:     oud,
+			FanIn:         len(fanIn[nodeID]),
+			FanOut:        len(fanOut[nodeID]),
+			TestCount:     testCounts[nodeID],
+			Centrality:    float64(ind+oud) / float64(maxDeg+1),
 		})
 	}
 	for _, s := range syms {
+		nodeID := hashID(s.Kind + "|" + s.Path + "|" + s.Name)
+		ind := inDeg[nodeID]
+		oud := outDeg[nodeID]
 		nodes = append(nodes, NodeRecord{
-			ID:          hashID(s.Kind + "|" + s.Path + "|" + s.Name),
-			RepoID:      repoID,
-			Kind:        s.Kind,
-			Path:        s.Path,
-			Name:        s.Name,
-			StartLine:   s.Start,
-			EndLine:     s.End,
-			Signature:   s.Signature,
-			ContentHash: s.Hash,
+			ID:            nodeID,
+			RepoID:        repoID,
+			Kind:          s.Kind,
+			Path:          s.Path,
+			Name:          s.Name,
+			StartLine:     s.Start,
+			EndLine:       s.End,
+			Signature:     s.Signature,
+			ContentHash:   s.Hash,
+			InDegree:      ind,
+			OutDegree:     oud,
+			FanIn:         len(fanIn[nodeID]),
+			FanOut:        len(fanOut[nodeID]),
+			TestCount:     testCounts[nodeID],
+			Centrality:    float64(ind+oud) / float64(maxDeg+1),
 		})
 	}
 	fs.nodes[repoID] = nodes
@@ -334,6 +382,25 @@ func (fs *FileStore) ListEdges(repoID string) ([]EdgeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
 	return append([]EdgeRecord(nil), fs.edges[repoID]...), nil
+}
+
+func (fs *FileStore) LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	if len(nodeIDs) == 0 {
+		return nil, nil
+	}
+	idSet := make(map[string]bool, len(nodeIDs))
+	for _, id := range nodeIDs {
+		idSet[id] = true
+	}
+	var out []EdgeRecord
+	for _, e := range fs.edges[repoID] {
+		if idSet[e.SrcID] || idSet[e.DstID] {
+			out = append(out, e)
+		}
+	}
+	return out, nil
 }
 
 

@@ -88,13 +88,60 @@ func (s *SQLiteStore) SaveNodesAndEdges(repoID string, files []gitidx.SourceFile
 	_, _ = s.DB.Exec(`DELETE FROM edges WHERE src_id IN (SELECT id FROM nodes WHERE repo_id=?) OR dst_id IN (SELECT id FROM nodes WHERE repo_id=?)`, repoID, repoID)
 	_, _ = s.DB.Exec(`DELETE FROM nodes WHERE repo_id=?`, repoID)
 
+	// O3: Precompute static graph topology features at index time
+	inDeg := make(map[string]int)
+	outDeg := make(map[string]int)
+	fanIn := make(map[string]map[string]bool)
+	fanOut := make(map[string]map[string]bool)
+	testCounts := make(map[string]int)
+
+	for _, e := range edges {
+		outDeg[e.SrcID]++
+		inDeg[e.DstID]++
+		if fanIn[e.DstID] == nil {
+			fanIn[e.DstID] = make(map[string]bool)
+		}
+		fanIn[e.DstID][e.SrcID] = true
+		if fanOut[e.SrcID] == nil {
+			fanOut[e.SrcID] = make(map[string]bool)
+		}
+		fanOut[e.SrcID][e.DstID] = true
+
+		if strings.Contains(e.Kind, "test") || strings.Contains(e.SrcID, "test") {
+			testCounts[e.DstID]++
+		}
+	}
+
+	maxDeg := 1
+	for _, d := range inDeg {
+		if d > maxDeg {
+			maxDeg = d
+		}
+	}
+
 	for _, f := range files {
-		if _, err := s.DB.Exec(`INSERT OR IGNORE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash) VALUES(?,?,?,?,?,?,?,?)`, repoID, "file", f.Path, filepath.Base(f.Path), 1, f.Lines, "", f.Hash); err != nil {
+		nodeID := hashID("file|" + f.Path)
+		ind := inDeg[nodeID]
+		oud := outDeg[nodeID]
+		fi := len(fanIn[nodeID])
+		fo := len(fanOut[nodeID])
+		tc := testCounts[nodeID]
+		cent := float64(ind+oud) / float64(maxDeg+1)
+
+		if _, err := s.DB.Exec(`INSERT OR IGNORE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash,in_degree,out_degree,fan_in,fan_out,test_count,package_degree,centrality) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, repoID, "file", f.Path, filepath.Base(f.Path), 1, f.Lines, "", f.Hash, ind, oud, fi, fo, tc, 0, cent); err != nil {
 			return err
 		}
 	}
 	for _, x := range syms {
-		if _, err := s.DB.Exec(`INSERT OR IGNORE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash) VALUES(?,?,?,?,?,?,?,?)`, repoID, x.Kind, x.Path, x.Name, x.Start, x.End, x.Signature, x.Hash); err != nil {
+		nodeID := hashID("sym|" + x.Path + "|" + x.Name)
+		ind := inDeg[nodeID]
+		oud := outDeg[nodeID]
+		fi := len(fanIn[nodeID])
+		fo := len(fanOut[nodeID])
+		tc := testCounts[nodeID]
+		cent := float64(ind+oud) / float64(maxDeg+1)
+
+		if _, err := s.DB.Exec(`INSERT OR IGNORE INTO nodes(repo_id,kind,path,name,start_line,end_line,signature,content_hash,in_degree,out_degree,fan_in,fan_out,test_count,package_degree,centrality) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, repoID, x.Kind, x.Path, x.Name, x.Start, x.End, x.Signature, x.Hash, ind, oud, fi, fo, tc, 0, cent); err != nil {
 			return err
 		}
 	}
@@ -109,7 +156,7 @@ func (s *SQLiteStore) scanNodeRows(rows []db.Row, repoID string) []NodeRecord {
 	for _, r := range rows {
 		st, _ := strconv.Atoi(r[4])
 		en, _ := strconv.Atoi(r[5])
-		out = append(out, NodeRecord{
+		n := NodeRecord{
 			ID:          r[0],
 			RepoID:      repoID,
 			Kind:        r[1],
@@ -119,21 +166,80 @@ func (s *SQLiteStore) scanNodeRows(rows []db.Row, repoID string) []NodeRecord {
 			EndLine:     en,
 			Signature:   r[6],
 			ContentHash: r[7],
-		})
+		}
+		if len(r) > 8 {
+			n.InDegree, _ = strconv.Atoi(r[8])
+		}
+		if len(r) > 9 {
+			n.OutDegree, _ = strconv.Atoi(r[9])
+		}
+		if len(r) > 10 {
+			n.FanIn, _ = strconv.Atoi(r[10])
+		}
+		if len(r) > 11 {
+			n.FanOut, _ = strconv.Atoi(r[11])
+		}
+		if len(r) > 12 {
+			n.TestCount, _ = strconv.Atoi(r[12])
+		}
+		if len(r) > 13 {
+			n.PackageDegree, _ = strconv.Atoi(r[13])
+		}
+		if len(r) > 14 {
+			n.Centrality, _ = strconv.ParseFloat(r[14], 64)
+		}
+		out = append(out, n)
 	}
 	return out
 }
 
+const nodeColumnsSQL = `id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,''),COALESCE(in_degree,0),COALESCE(out_degree,0),COALESCE(fan_in,0),COALESCE(fan_out,0),COALESCE(test_count,0),COALESCE(package_degree,0),COALESCE(centrality,0.0)`
+
 func (s *SQLiteStore) ListNodes(repoID string) ([]NodeRecord, error) {
-	rows, err := s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=?`, repoID)
+	rows, err := s.DB.Query(`SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=?`, repoID)
 	if err != nil {
 		return nil, err
 	}
 	return s.scanNodeRows(rows, repoID), nil
 }
 
+func (s *SQLiteStore) LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error) {
+	if len(nodeIDs) == 0 {
+		return nil, nil
+	}
+	if len(nodeIDs) > 100 {
+		nodeIDs = nodeIDs[:100]
+	}
+	placeholders := make([]string, len(nodeIDs))
+	args := make([]any, 0, len(nodeIDs)*2)
+	for i, id := range nodeIDs {
+		placeholders[i] = "?"
+		args = append(args, id)
+	}
+	for _, id := range nodeIDs {
+		args = append(args, id)
+	}
+	inList := strings.Join(placeholders, ",")
+	q := fmt.Sprintf(`SELECT src_id, dst_id, kind FROM edges WHERE src_id IN (%s) OR dst_id IN (%s)`, inList, inList)
+	rows, err := s.DB.Query(q, args...)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]EdgeRecord, 0, len(rows))
+	for _, r := range rows {
+		if len(r) >= 3 {
+			out = append(out, EdgeRecord{
+				SrcID: r[0],
+				DstID: r[1],
+				Kind:  r[2],
+			})
+		}
+	}
+	return out, nil
+}
+
 func (s *SQLiteStore) LookupSymbol(repoID string, name string) ([]NodeRecord, error) {
-	rows, err := s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE`, repoID, name)
+	rows, err := s.DB.Query(`SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE`, repoID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -145,12 +251,11 @@ func (s *SQLiteStore) LookupQualifiedSymbol(repoID string, qualifiedName string)
 	if len(parts) >= 2 {
 		pkgOrType := parts[len(parts)-2]
 		symName := parts[len(parts)-1]
-		rows, err := s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE AND (path LIKE ? OR signature LIKE ?)`, repoID, symName, "%"+pkgOrType+"%", "%"+pkgOrType+"%")
+		rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE AND (path LIKE ? OR signature LIKE ?)`, repoID, symName, "%"+pkgOrType+"%", "%"+pkgOrType+"%")
 		if err == nil && len(rows) > 0 {
 			return s.scanNodeRows(rows, repoID), nil
 		}
 	}
-	// Fallback to exact symbol name
 	sym := qualifiedName
 	if len(parts) > 0 {
 		sym = parts[len(parts)-1]
@@ -159,7 +264,7 @@ func (s *SQLiteStore) LookupQualifiedSymbol(repoID string, qualifiedName string)
 }
 
 func (s *SQLiteStore) LookupPath(repoID string, path string) ([]NodeRecord, error) {
-	rows, err := s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND (path=? OR path LIKE ?)`, repoID, path, "%"+path+"%")
+	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path=? OR path LIKE ?)`, repoID, path, "%"+path+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +274,7 @@ func (s *SQLiteStore) LookupPath(repoID string, path string) ([]NodeRecord, erro
 func (s *SQLiteStore) LookupPackage(repoID string, pkg string) ([]NodeRecord, error) {
 	pattern := "%" + pkg + "/%"
 	pattern2 := "%/" + pkg + ".%"
-	rows, err := s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND (path LIKE ? OR path LIKE ?)`, repoID, pattern, pattern2)
+	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path LIKE ? OR path LIKE ?)`, repoID, pattern, pattern2)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +283,7 @@ func (s *SQLiteStore) LookupPackage(repoID string, pkg string) ([]NodeRecord, er
 
 func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope string, limit int) ([]NodeRecord, error) {
 	if limit <= 0 {
-		limit = 150
+		limit = 50
 	}
 	tokens := textutil.Tokens(query)
 	rawWords := strings.FieldsFunc(query, func(r rune) bool {
@@ -189,9 +294,9 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 
 	if len(tokens) == 0 && len(rawWords) == 0 {
 		if scope != "" {
-			rows, err = s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND path LIKE ? LIMIT ?`, repoID, "%"+scope+"%", limit)
+			rows, err = s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND path LIKE ? ORDER BY centrality DESC, in_degree DESC LIMIT ?`, repoID, "%"+scope+"%", limit)
 		} else {
-			rows, err = s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? LIMIT ?`, repoID, limit)
+			rows, err = s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? ORDER BY centrality DESC, in_degree DESC LIMIT ?`, repoID, limit)
 		}
 		if err != nil {
 			return nil, err
@@ -199,27 +304,79 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		return s.scanNodeRows(rows, repoID), nil
 	}
 
-	// 1. Check exact symbol matches for tokens and raw words
 	seenIDs := make(map[string]bool)
 	var collected []NodeRecord
 
+	// 1. Exact symbol matches via single batched IN query
+	var queryTokens []string
+	seenTok := make(map[string]bool)
 	for _, tok := range append(tokens, rawWords...) {
-		if len(tok) < 3 {
-			continue
+		if len(tok) >= 3 && !seenTok[tok] {
+			seenTok[tok] = true
+			queryTokens = append(queryTokens, tok)
 		}
-		exact, _ := s.LookupSymbol(repoID, tok)
-		for _, n := range exact {
-			if !seenIDs[n.ID] {
-				seenIDs[n.ID] = true
-				collected = append(collected, n)
+	}
+
+	if len(queryTokens) > 0 {
+		placeholders := make([]string, len(queryTokens))
+		args := make([]any, 0, len(queryTokens)+2)
+		args = append(args, repoID)
+		for i, tok := range queryTokens {
+			placeholders[i] = "?"
+			args = append(args, tok)
+		}
+		args = append(args, limit)
+		qSQL := `SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND name IN (` + strings.Join(placeholders, ",") + `) ORDER BY centrality DESC LIMIT ?`
+		rows, err := s.DB.Query(qSQL, args...)
+		if err == nil {
+			for _, n := range s.scanNodeRows(rows, repoID) {
+				if !seenIDs[n.ID] {
+					seenIDs[n.ID] = true
+					collected = append(collected, n)
+					if len(collected) >= limit {
+						return collected, nil
+					}
+				}
 			}
 		}
 	}
 
-
-	// 2. Lexical substring match on top tokens
+	// 2. Prefix matching for tokens via batched OR query
 	if len(collected) < limit {
+		var pfxClauses []string
+		var pfxArgs []any
+		pfxArgs = append(pfxArgs, repoID)
+		for i, tok := range tokens {
+			if i >= 3 || len(tok) < 4 {
+				continue
+			}
+			pfxClauses = append(pfxClauses, "name LIKE ?")
+			pfxArgs = append(pfxArgs, tok+"%")
+		}
+		if len(pfxClauses) > 0 {
+			pfxArgs = append(pfxArgs, limit-len(collected))
+			pfxSQL := `SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND (` + strings.Join(pfxClauses, " OR ") + `) ORDER BY centrality DESC LIMIT ?`
+			pfxRows, pfxErr := s.DB.Query(pfxSQL, pfxArgs...)
+			if pfxErr == nil {
+				for _, n := range s.scanNodeRows(pfxRows, repoID) {
+					if !seenIDs[n.ID] {
+						seenIDs[n.ID] = true
+						collected = append(collected, n)
+						if len(collected) >= limit {
+							return collected, nil
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// 3. Lexical substring match if more candidates needed (capped at 15)
+	if len(collected) < limit && len(collected) < 15 {
 		subLimit := limit - len(collected)
+		if subLimit > 15 {
+			subLimit = 15
+		}
 		var clauses []string
 		var args []any
 		args = append(args, repoID)
@@ -230,7 +387,7 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 
 		var tokClauses []string
 		for i, tok := range tokens {
-			if i >= 4 || len(tok) < 3 {
+			if i >= 3 || len(tok) < 3 {
 				continue
 			}
 			tokClauses = append(tokClauses, "(name LIKE ? OR path LIKE ? OR signature LIKE ?)")
@@ -239,7 +396,7 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 
 		if len(tokClauses) > 0 {
 			clauses = append(clauses, "("+strings.Join(tokClauses, " OR ")+")")
-			qSQL := `SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? AND ` + strings.Join(clauses, " AND ") + fmt.Sprintf(" LIMIT %d", subLimit)
+			qSQL := `SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND ` + strings.Join(clauses, " AND ") + ` ORDER BY centrality DESC, (in_degree + out_degree) DESC` + fmt.Sprintf(" LIMIT %d", subLimit)
 			rows, err = s.DB.Query(qSQL, args...)
 			if err == nil {
 				for _, n := range s.scanNodeRows(rows, repoID) {
@@ -249,14 +406,6 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 					}
 				}
 			}
-		}
-	}
-
-	// 3. Fallback if still empty
-	if len(collected) == 0 {
-		rows, err = s.DB.Query(`SELECT id,kind,path,name,COALESCE(start_line,1),COALESCE(end_line,1),COALESCE(signature,''),COALESCE(content_hash,'') FROM nodes WHERE repo_id=? LIMIT ?`, repoID, limit)
-		if err == nil {
-			return s.scanNodeRows(rows, repoID), nil
 		}
 	}
 

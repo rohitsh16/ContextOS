@@ -9,15 +9,22 @@ import (
 
 // NodeRecord represents an AST symbol or source file entry.
 type NodeRecord struct {
-	ID          string `json:"id"`
-	RepoID      string `json:"repo_id"`
-	Kind        string `json:"kind"`
-	Path        string `json:"path"`
-	Name        string `json:"name"`
-	StartLine   int    `json:"start_line"`
-	EndLine     int    `json:"end_line"`
-	Signature   string `json:"signature"`
-	ContentHash string `json:"content_hash"`
+	ID            string  `json:"id"`
+	RepoID        string  `json:"repo_id"`
+	Kind          string  `json:"kind"`
+	Path          string  `json:"path"`
+	Name          string  `json:"name"`
+	StartLine     int     `json:"start_line"`
+	EndLine       int     `json:"end_line"`
+	Signature     string  `json:"signature"`
+	ContentHash   string  `json:"content_hash"`
+	InDegree      int     `json:"in_degree"`
+	OutDegree     int     `json:"out_degree"`
+	FanIn         int     `json:"fan_in"`
+	FanOut        int     `json:"fan_out"`
+	TestCount     int     `json:"test_count"`
+	PackageDegree int     `json:"package_degree"`
+	Centrality    float64 `json:"centrality"`
 }
 
 // EdgeRecord represents a dependency, import, or call edge between nodes.
@@ -102,6 +109,7 @@ type Store interface {
 	UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error
 	ListNodes(repoID string) ([]NodeRecord, error)
 	ListEdges(repoID string) ([]EdgeRecord, error)
+	LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error)
 
 	// Exact Indexes & Candidate Search (PR.md PR-02 & PR-04)
 	LookupSymbol(repoID string, name string) ([]NodeRecord, error)

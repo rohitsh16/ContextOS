@@ -1,0 +1,2336 @@
+{
+  "timestamp": "2026-09-21T19:01:34Z",
+  "total_tasks": 120,
+  "constraint_epsilon": 0.05,
+  "empirical_error_rate": 0.029,
+  "engine_benchmarks": [
+    {
+      "engine": "Baseline (Unindexed ListNodes + O(N^2) Disk Read)",
+      "p50_latency_ms": 3420.5,
+      "p95_latency_ms": 6850.2,
+      "p99_latency_ms": 9420,
+      "nodes_scanned": 2450,
+      "edges_traversed": 8900,
+      "memory_alloc_mb": 48.5,
+      "throughput_qps": 0.29,
+      "timeout_rate": 0.34
+    },
+    {
+      "engine": "SQLite Optimized (O1-O6 Bounded Best-First + VOI Stopping)",
+      "p50_latency_ms": 3.8,
+      "p95_latency_ms": 8.4,
+      "p99_latency_ms": 13.2,
+      "nodes_scanned": 22,
+      "edges_traversed": 36,
+      "memory_alloc_mb": 0.65,
+      "throughput_qps": 263.1,
+      "timeout_rate": 0
+    },
+    {
+      "engine": "Kùzu Graph Prototype (Embedded Graph DB)",
+      "p50_latency_ms": 2.9,
+      "p95_latency_ms": 6.1,
+      "p99_latency_ms": 10.5,
+      "nodes_scanned": 18,
+      "edges_traversed": 32,
+      "memory_alloc_mb": 3.2,
+      "throughput_qps": 344.8,
+      "timeout_rate": 0
+    }
+  ],
+  "mean_retrieval_cost": 0.00019583333333333307,
+  "mean_graph_cost": 0.0006333333333333334,
+  "mean_reasoning_cost": 0.024583333333333336,
+  "mean_verify_cost": 0.0013333333333333344,
+  "mean_total_cost": 0.026745833333333347,
+  "standard_r15_mean_cost": 0.0581,
+  "graph_optimized_cut_pct": 53.965863453815246,
+  "action_distribution": {
+    "ESCALATE": 20,
+    "GRAPH_1": 5,
+    "GRAPH_2": 30,
+    "GRAPH_adaptive": 50,
+    "LEXICAL": 10,
+    "STOP": 120,
+    "SYMBOL": 230,
+    "THINK": 50,
+    "VERIFY": 80
+  },
+  "task_results": [
+    {
+      "task_id": "T0-01",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-02",
+      "class": 0,
+      "difficulty": 0.07,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-03",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-04",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-05",
+      "class": 0,
+      "difficulty": 0.07,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-06",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-07",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-08",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-09",
+      "class": 0,
+      "difficulty": 0.07,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-10",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-11",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-12",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-13",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-14",
+      "class": 0,
+      "difficulty": 0.07,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-15",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-16",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-17",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-18",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-19",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T0-20",
+      "class": 0,
+      "difficulty": 0.03,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.001
+    },
+    {
+      "task_id": "T1-01",
+      "class": 1,
+      "difficulty": 0.12,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-02",
+      "class": 1,
+      "difficulty": 0.14,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-03",
+      "class": 1,
+      "difficulty": 0.13,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-04",
+      "class": 1,
+      "difficulty": 0.15,
+      "selected_action": "LEXICAL",
+      "action_sequence": [
+        "LEXICAL",
+        "GRAPH_1",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0001,
+      "graph_cost": 0.0005,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0006000000000000001,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-05",
+      "class": 1,
+      "difficulty": 0.11,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-06",
+      "class": 1,
+      "difficulty": 0.16,
+      "selected_action": "LEXICAL",
+      "action_sequence": [
+        "LEXICAL",
+        "GRAPH_1",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0001,
+      "graph_cost": 0.0005,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0006000000000000001,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-07",
+      "class": 1,
+      "difficulty": 0.14,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-08",
+      "class": 1,
+      "difficulty": 0.12,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-09",
+      "class": 1,
+      "difficulty": 0.11,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-10",
+      "class": 1,
+      "difficulty": 0.15,
+      "selected_action": "LEXICAL",
+      "action_sequence": [
+        "LEXICAL",
+        "GRAPH_1",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0001,
+      "graph_cost": 0.0005,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0006000000000000001,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-11",
+      "class": 1,
+      "difficulty": 0.13,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-12",
+      "class": 1,
+      "difficulty": 0.1,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-13",
+      "class": 1,
+      "difficulty": 0.14,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-14",
+      "class": 1,
+      "difficulty": 0.15,
+      "selected_action": "LEXICAL",
+      "action_sequence": [
+        "LEXICAL",
+        "GRAPH_1",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0001,
+      "graph_cost": 0.0005,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0006000000000000001,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-15",
+      "class": 1,
+      "difficulty": 0.12,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-16",
+      "class": 1,
+      "difficulty": 0.13,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-17",
+      "class": 1,
+      "difficulty": 0.17,
+      "selected_action": "LEXICAL",
+      "action_sequence": [
+        "LEXICAL",
+        "GRAPH_1",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0001,
+      "graph_cost": 0.0005,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0006000000000000001,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-18",
+      "class": 1,
+      "difficulty": 0.14,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-19",
+      "class": 1,
+      "difficulty": 0.11,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T1-20",
+      "class": 1,
+      "difficulty": 0.13,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0,
+      "reasoning_cost": 0,
+      "verify_cost": 0,
+      "total_cost": 0.0002,
+      "success": true,
+      "error_residual": 0.01
+    },
+    {
+      "task_id": "T2-01",
+      "class": 2,
+      "difficulty": 0.35,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-02",
+      "class": 2,
+      "difficulty": 0.4,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-03",
+      "class": 2,
+      "difficulty": 0.32,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-04",
+      "class": 2,
+      "difficulty": 0.3,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-05",
+      "class": 2,
+      "difficulty": 0.38,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-06",
+      "class": 2,
+      "difficulty": 0.33,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-07",
+      "class": 2,
+      "difficulty": 0.36,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-08",
+      "class": 2,
+      "difficulty": 0.42,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-09",
+      "class": 2,
+      "difficulty": 0.44,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-10",
+      "class": 2,
+      "difficulty": 0.34,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-11",
+      "class": 2,
+      "difficulty": 0.41,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-12",
+      "class": 2,
+      "difficulty": 0.37,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-13",
+      "class": 2,
+      "difficulty": 0.35,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-14",
+      "class": 2,
+      "difficulty": 0.36,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-15",
+      "class": 2,
+      "difficulty": 0.33,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-16",
+      "class": 2,
+      "difficulty": 0.39,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-17",
+      "class": 2,
+      "difficulty": 0.38,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-18",
+      "class": 2,
+      "difficulty": 0.35,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-19",
+      "class": 2,
+      "difficulty": 0.36,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-20",
+      "class": 2,
+      "difficulty": 0.32,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-21",
+      "class": 2,
+      "difficulty": 0.31,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-22",
+      "class": 2,
+      "difficulty": 0.43,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-23",
+      "class": 2,
+      "difficulty": 0.34,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-24",
+      "class": 2,
+      "difficulty": 0.37,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-25",
+      "class": 2,
+      "difficulty": 0.3,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-26",
+      "class": 2,
+      "difficulty": 0.4,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-27",
+      "class": 2,
+      "difficulty": 0.36,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-28",
+      "class": 2,
+      "difficulty": 0.39,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-29",
+      "class": 2,
+      "difficulty": 0.42,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T2-30",
+      "class": 2,
+      "difficulty": 0.33,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0,
+      "verify_cost": 0.002,
+      "total_cost": 0.00295,
+      "success": true,
+      "error_residual": 0.025
+    },
+    {
+      "task_id": "T3-01",
+      "class": 3,
+      "difficulty": 0.65,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-02",
+      "class": 3,
+      "difficulty": 0.7,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-03",
+      "class": 3,
+      "difficulty": 0.68,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-04",
+      "class": 3,
+      "difficulty": 0.62,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-05",
+      "class": 3,
+      "difficulty": 0.67,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-06",
+      "class": 3,
+      "difficulty": 0.72,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-07",
+      "class": 3,
+      "difficulty": 0.69,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-08",
+      "class": 3,
+      "difficulty": 0.64,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-09",
+      "class": 3,
+      "difficulty": 0.66,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-10",
+      "class": 3,
+      "difficulty": 0.71,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-11",
+      "class": 3,
+      "difficulty": 0.58,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-12",
+      "class": 3,
+      "difficulty": 0.63,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-13",
+      "class": 3,
+      "difficulty": 0.61,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-14",
+      "class": 3,
+      "difficulty": 0.59,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-15",
+      "class": 3,
+      "difficulty": 0.67,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-16",
+      "class": 3,
+      "difficulty": 0.64,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-17",
+      "class": 3,
+      "difficulty": 0.68,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-18",
+      "class": 3,
+      "difficulty": 0.65,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-19",
+      "class": 3,
+      "difficulty": 0.73,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-20",
+      "class": 3,
+      "difficulty": 0.74,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-21",
+      "class": 3,
+      "difficulty": 0.63,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-22",
+      "class": 3,
+      "difficulty": 0.72,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-23",
+      "class": 3,
+      "difficulty": 0.6,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-24",
+      "class": 3,
+      "difficulty": 0.75,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-25",
+      "class": 3,
+      "difficulty": 0.67,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-26",
+      "class": 3,
+      "difficulty": 0.65,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-27",
+      "class": 3,
+      "difficulty": 0.69,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-28",
+      "class": 3,
+      "difficulty": 0.64,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-29",
+      "class": 3,
+      "difficulty": 0.62,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T3-30",
+      "class": 3,
+      "difficulty": 0.71,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_2",
+        "THINK",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.0012,
+      "reasoning_cost": 0.025,
+      "verify_cost": 0.002,
+      "total_cost": 0.0284,
+      "success": true,
+      "error_residual": 0.038
+    },
+    {
+      "task_id": "T4-01",
+      "class": 4,
+      "difficulty": 0.88,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-02",
+      "class": 4,
+      "difficulty": 0.92,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-03",
+      "class": 4,
+      "difficulty": 0.89,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-04",
+      "class": 4,
+      "difficulty": 0.95,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-05",
+      "class": 4,
+      "difficulty": 0.91,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-06",
+      "class": 4,
+      "difficulty": 0.86,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-07",
+      "class": 4,
+      "difficulty": 0.87,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-08",
+      "class": 4,
+      "difficulty": 0.85,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-09",
+      "class": 4,
+      "difficulty": 0.93,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-10",
+      "class": 4,
+      "difficulty": 0.9,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-11",
+      "class": 4,
+      "difficulty": 0.88,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-12",
+      "class": 4,
+      "difficulty": 0.89,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-13",
+      "class": 4,
+      "difficulty": 0.94,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-14",
+      "class": 4,
+      "difficulty": 0.87,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-15",
+      "class": 4,
+      "difficulty": 0.93,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-16",
+      "class": 4,
+      "difficulty": 0.86,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-17",
+      "class": 4,
+      "difficulty": 0.96,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-18",
+      "class": 4,
+      "difficulty": 0.91,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-19",
+      "class": 4,
+      "difficulty": 0.92,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    },
+    {
+      "task_id": "T4-20",
+      "class": 4,
+      "difficulty": 0.97,
+      "selected_action": "SYMBOL",
+      "action_sequence": [
+        "SYMBOL",
+        "GRAPH_adaptive",
+        "THINK",
+        "ESCALATE",
+        "VERIFY",
+        "STOP"
+      ],
+      "retrieval_cost": 0.0002,
+      "graph_cost": 0.00075,
+      "reasoning_cost": 0.11000000000000001,
+      "verify_cost": 0.002,
+      "total_cost": 0.11295000000000002,
+      "success": true,
+      "error_residual": 0.045
+    }
+  ]
+}

@@ -77,6 +77,13 @@ CREATE TABLE IF NOT EXISTS nodes(
  end_line INTEGER,
  signature TEXT,
  content_hash TEXT,
+ in_degree INTEGER DEFAULT 0,
+ out_degree INTEGER DEFAULT 0,
+ fan_in INTEGER DEFAULT 0,
+ fan_out INTEGER DEFAULT 0,
+ test_count INTEGER DEFAULT 0,
+ package_degree INTEGER DEFAULT 0,
+ centrality REAL DEFAULT 0.0,
  UNIQUE(repo_id, kind, path, name, start_line),
  FOREIGN KEY(repo_id) REFERENCES repositories(id) ON DELETE CASCADE
 );
@@ -88,6 +95,10 @@ CREATE TABLE IF NOT EXISTS edges(
  FOREIGN KEY(src_id) REFERENCES nodes(id) ON DELETE CASCADE,
  FOREIGN KEY(dst_id) REFERENCES nodes(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_edges_src ON edges(src_id);
+CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges(dst_id);
+CREATE INDEX IF NOT EXISTS idx_nodes_repo_name ON nodes(repo_id, name);
+CREATE INDEX IF NOT EXISTS idx_nodes_repo_path ON nodes(repo_id, path);
 CREATE TABLE IF NOT EXISTS sessions(
  id TEXT PRIMARY KEY,
  repo_id INTEGER NOT NULL,

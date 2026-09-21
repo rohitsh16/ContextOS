@@ -24,11 +24,11 @@ type BootstrapCI struct {
 
 // PairedContingencyTable records the 2x2 agreement matrix for paired task outcomes.
 type PairedContingencyTable struct {
-	BothPass          int `json:"both_pass"`
-	CandidateOnlyPass int `json:"candidate_only_pass"` // Baseline fail / Candidate pass
-	BaselineOnlyPass  int `json:"baseline_only_pass"`  // Baseline pass / Candidate fail
-	BothFail          int `json:"both_fail"`
-	TotalTasks        int `json:"total_tasks"`
+	BothPass          int     `json:"both_pass"`
+	CandidateOnlyPass int     `json:"candidate_only_pass"` // Baseline fail / Candidate pass
+	BaselineOnlyPass  int     `json:"baseline_only_pass"`  // Baseline pass / Candidate fail
+	BothFail          int     `json:"both_fail"`
+	TotalTasks        int     `json:"total_tasks"`
 	McNemarChiSquare  float64 `json:"mcnemar_chi_square"`
 	McNemarPValue     float64 `json:"mcnemar_p_value"`
 }
