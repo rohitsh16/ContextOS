@@ -1,0 +1,10 @@
+{
+  "profiler_latency_us": 12.5,
+  "voi_latency_us": 8.4,
+  "total_controller_time_ms": 0.021,
+  "memory_alloc_bytes_per_task": 1024,
+  "overhead_cost_per_task_usd": 2e-7,
+  "agent_compute_cost_usd": 0.038,
+  "overhead_percentage_of_cost": 0.0005263157894736842,
+  "overhead_acceptable": true
+}

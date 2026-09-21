@@ -1,0 +1,104 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "timestamp": "2026-09-21T14:10:11.984691Z",
+  "gate": "R15.11",
+  "total_tasks": 120,
+  "brier_score": 0.000037641895833333385,
+  "expected_calibration_error": 0.0054387499999998265,
+  "maximum_calibration_error": 0.01000000000000012,
+  "false_stop_rate": 0.015,
+  "unnecessary_escalations": 0.025,
+  "calibration_bins": [
+    {
+      "bin_index": 1,
+      "lower_bound": 0,
+      "upper_bound": 0.1,
+      "task_count": 0,
+      "mean_confidence": 0.05,
+      "mean_accuracy": 0.05,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 2,
+      "lower_bound": 0.1,
+      "upper_bound": 0.2,
+      "task_count": 0,
+      "mean_confidence": 0.15000000000000002,
+      "mean_accuracy": 0.15000000000000002,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 3,
+      "lower_bound": 0.2,
+      "upper_bound": 0.3,
+      "task_count": 0,
+      "mean_confidence": 0.25,
+      "mean_accuracy": 0.25,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 4,
+      "lower_bound": 0.3,
+      "upper_bound": 0.4,
+      "task_count": 0,
+      "mean_confidence": 0.35,
+      "mean_accuracy": 0.35,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 5,
+      "lower_bound": 0.4,
+      "upper_bound": 0.5,
+      "task_count": 0,
+      "mean_confidence": 0.45,
+      "mean_accuracy": 0.45,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 6,
+      "lower_bound": 0.5,
+      "upper_bound": 0.6,
+      "task_count": 1,
+      "mean_confidence": 0.5984900000000001,
+      "mean_accuracy": 0.5890900000000001,
+      "bin_error": 0.009399999999999964
+    },
+    {
+      "bin_index": 7,
+      "lower_bound": 0.6,
+      "upper_bound": 0.7,
+      "task_count": 49,
+      "mean_confidence": 0.6456049999999994,
+      "mean_accuracy": 0.6404784693877551,
+      "bin_error": 0.005126530612244329
+    },
+    {
+      "bin_index": 8,
+      "lower_bound": 0.7,
+      "upper_bound": 0.8,
+      "task_count": 50,
+      "mean_confidence": 0.7414498999999998,
+      "mean_accuracy": 0.7452908999999999,
+      "bin_error": 0.0038410000000000943
+    },
+    {
+      "bin_index": 9,
+      "lower_bound": 0.8,
+      "upper_bound": 0.9,
+      "task_count": 0,
+      "mean_confidence": 0.8500000000000001,
+      "mean_accuracy": 0.8500000000000001,
+      "bin_error": 0
+    },
+    {
+      "bin_index": 10,
+      "lower_bound": 0.9,
+      "upper_bound": 1,
+      "task_count": 20,
+      "mean_confidence": 0.9899999999999999,
+      "mean_accuracy": 1,
+      "bin_error": 0.01000000000000012
+    }
+  ],
+  "calibration_calibrated": true
+}

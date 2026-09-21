@@ -9,17 +9,17 @@
     "os": "darwin",
     "arch": "arm64",
     "seed": 42,
-    "timestamp": "2026-09-20T21:00:49.032108Z"
+    "timestamp": "2026-09-21T13:32:34.30006Z"
   },
-  "tasks_count": 50,
+  "tasks_count": 100,
   "task_ids": null,
   "accounting": {
-    "total_runs": 50,
-    "sum_component_usd": 0.23210000000000008,
-    "reported_total_usd": 0.23210000000000008,
+    "total_runs": 100,
+    "sum_component_usd": 0.46419999999999917,
+    "reported_total_usd": 0.46419999999999917,
     "discrepancy_usd": 0,
     "reconciled": true,
-    "explanation": "Calculated sum of 50 records ($0.232100) matches reported total ($0.232100) within epsilon $0.000001"
+    "explanation": "Calculated sum of 100 records ($0.464200) matches reported total ($0.464200) within epsilon $0.000001"
   },
   "cache_metrics": {
     "context_plan_cache_hit": true,

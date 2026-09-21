@@ -106,6 +106,12 @@ func TestServerStatusAndMemoriesEndpoints(t *testing.T) {
 	if _, ok := metrics["speedup"]; !ok {
 		t.Fatal("missing speedup in metrics")
 	}
+	if _, ok := planRes["compute_plan"]; !ok {
+		t.Fatal("missing compute_plan in response")
+	}
+	if _, ok := metrics["compute_tier"]; !ok {
+		t.Fatal("missing compute_tier in metrics")
+	}
 }
 
 func TestServerStaticIndex(t *testing.T) {
@@ -123,6 +129,15 @@ func TestServerStaticIndex(t *testing.T) {
 	}
 	if !bytes.Contains(w.Body.Bytes(), []byte("ContextOS")) {
 		t.Fatalf("expected index.html to contain ContextOS")
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte(`data-tab="r15"`)) {
+		t.Fatalf("expected index.html to contain r15 nav tab")
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte(`id="view-r15"`)) {
+		t.Fatalf("expected index.html to contain view-r15 section")
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte(`r15-hero-card`)) {
+		t.Fatalf("expected index.html to contain r15-hero-card")
 	}
 }
 
@@ -145,6 +160,44 @@ func TestServerReportEndpoint(t *testing.T) {
 	}
 	if _, ok := res["markdown"]; !ok {
 		t.Fatal("expected markdown field in report response")
+	}
+}
+
+func TestServerR15Endpoint(t *testing.T) {
+	root, s := setupTestRepo(t)
+	defer s.Close()
+
+	srv := NewServer(s, root, 8765)
+	handler := srv.Handler()
+
+	req := httptest.NewRequest("GET", "/api/r15", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected r15 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var res map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatal(err)
+	}
+
+	if res["gate_verdict"] != "GREEN — PASS" {
+		t.Fatalf("expected gate_verdict GREEN — PASS, got %v", res["gate_verdict"])
+	}
+
+	kpis, ok := res["headline_kpis"].(map[string]any)
+	if !ok {
+		t.Fatal("missing headline_kpis")
+	}
+	if _, ok := kpis["cps"]; !ok {
+		t.Fatal("missing cps in headline_kpis")
+	}
+	if _, ok := res["ablation_ladder"]; !ok {
+		t.Fatal("missing ablation_ladder")
+	}
+	if _, ok := res["stratified_tiers"]; !ok {
+		t.Fatal("missing stratified_tiers")
 	}
 }
 

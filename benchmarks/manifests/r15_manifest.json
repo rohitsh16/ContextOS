@@ -1,0 +1,148 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "version": "R15.0-alpha",
+  "dataset_split": "r15-stratified-task-matrix-v1",
+  "provenance": {
+    "commit": "9657c29f70a84a6f954a56ea0cb1c02b56634e80",
+    "repository_sha": "rohitsh16/ContextOS@main",
+    "go_version": "go1.23.0",
+    "os": "darwin",
+    "arch": "arm64",
+    "seed": 42,
+    "timestamp": "2026-09-21T13:35:00Z"
+  },
+  "evaluation_parameters": {
+    "random_seed": 42,
+    "max_turns": 10,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "token_accounting_version": "v1.2-normalized",
+    "pricing_snapshot_version": "2026-09-unified",
+    "context_policy": "joint-context-allocation-asc1",
+    "stopping_policy": "calibrated-adaptive-stopping-voi",
+    "routing_policy": "voi-cost-optimal-cascade",
+    "verification_policy": "risk-adaptive-hierarchical"
+  },
+  "allowed_tools": [
+    "symbol_lookup",
+    "caller_graph",
+    "import_scanner",
+    "ast_grep",
+    "unit_test_runner",
+    "syntax_verifier"
+  ],
+  "supported_providers": [
+    {
+      "provider": "anthropic",
+      "models": ["claude-3-7-sonnet", "claude-3-5-haiku", "claude-3-5-sonnet"],
+      "effort_levels": ["minimal", "low", "medium", "high", "maximum"],
+      "reasoning_mode": "adaptive_thinking"
+    },
+    {
+      "provider": "openai",
+      "models": ["o3-mini", "o1", "gpt-4o"],
+      "effort_levels": ["low", "medium", "high"],
+      "reasoning_mode": "reasoning_effort"
+    },
+    {
+      "provider": "gemini",
+      "models": ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash-thinking"],
+      "effort_levels": ["minimal", "low", "medium", "high", "maximum"],
+      "reasoning_mode": "thinking_budget"
+    }
+  ],
+  "tasks_count": 10,
+  "tasks": [
+    {
+      "id": "T0-01",
+      "name": "find_symbol_definition",
+      "class": "T0-deterministic",
+      "difficulty": 0.05,
+      "query": "where is func HandlePlan defined in server.go",
+      "success_oracle": "exact_symbol_location",
+      "can_bypass": true
+    },
+    {
+      "id": "T0-02",
+      "name": "find_caller_graph",
+      "class": "T0-deterministic",
+      "difficulty": 0.08,
+      "query": "find callers of ComputeCost in router.go",
+      "success_oracle": "exact_caller_graph",
+      "can_bypass": true
+    },
+    {
+      "id": "T0-03",
+      "name": "list_package_imports",
+      "class": "T0-deterministic",
+      "difficulty": 0.05,
+      "query": "list imports of gitidx package",
+      "success_oracle": "exact_import_list",
+      "can_bypass": true
+    },
+    {
+      "id": "T1-01",
+      "name": "fix_typo_readme",
+      "class": "T1-trivial",
+      "difficulty": 0.15,
+      "query": "fix typo in README license link",
+      "success_oracle": "exact_patch_match",
+      "can_bypass": false
+    },
+    {
+      "id": "T1-02",
+      "name": "add_docstring",
+      "class": "T1-trivial",
+      "difficulty": 0.18,
+      "query": "add docstring comment for ExportGraph",
+      "success_oracle": "linter_and_doc_presence",
+      "can_bypass": false
+    },
+    {
+      "id": "T2-01",
+      "name": "nil_pointer_handling",
+      "class": "T2-moderate",
+      "difficulty": 0.35,
+      "query": "handle nil pointer in json error response",
+      "success_oracle": "compiler_and_unit_test",
+      "can_bypass": false
+    },
+    {
+      "id": "T2-02",
+      "name": "session_unit_test",
+      "class": "T2-moderate",
+      "difficulty": 0.40,
+      "query": "add unit test for sqlite store session expiration",
+      "success_oracle": "unit_test_pass",
+      "can_bypass": false
+    },
+    {
+      "id": "T3-01",
+      "name": "cross_module_refactor",
+      "class": "T3-difficult",
+      "difficulty": 0.65,
+      "query": "refactor cross-module cache invalidation across store and graph",
+      "success_oracle": "cross_module_integration_tests",
+      "can_bypass": false
+    },
+    {
+      "id": "T3-02",
+      "name": "concurrency_deadlock",
+      "class": "T3-difficult",
+      "difficulty": 0.70,
+      "query": "investigate concurrent deadlock in session scheduler",
+      "success_oracle": "race_detector_and_deadlock_test",
+      "can_bypass": false
+    },
+    {
+      "id": "T4-01",
+      "name": "distributed_consensus",
+      "class": "T4-critical",
+      "difficulty": 0.88,
+      "query": "design distributed multi-region replication protocol",
+      "success_oracle": "invariants_simulation_and_safety_checks",
+      "can_bypass": false
+    }
+  ],
+  "contract_status": "FROZEN"
+}

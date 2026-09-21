@@ -1,0 +1,35 @@
+[
+  {
+    "provider_name": "Anthropic",
+    "target_model": "claude-3-7-sonnet",
+    "exposes_effort_control": true,
+    "exposes_reasoning_tokens": true,
+    "supports_prompt_cache": true,
+    "input_pricing_per_m": 3,
+    "reasoning_pricing_per_m": 15,
+    "avg_task_cps_usd": 0.0581,
+    "success_rate": 0.93
+  },
+  {
+    "provider_name": "Google Gemini",
+    "target_model": "gemini-2.5-flash",
+    "exposes_effort_control": true,
+    "exposes_reasoning_tokens": true,
+    "supports_prompt_cache": true,
+    "input_pricing_per_m": 0.1,
+    "reasoning_pricing_per_m": 0.4,
+    "avg_task_cps_usd": 0.0012,
+    "success_rate": 0.89
+  },
+  {
+    "provider_name": "OpenAI",
+    "target_model": "o3-mini",
+    "exposes_effort_control": true,
+    "exposes_reasoning_tokens": true,
+    "supports_prompt_cache": true,
+    "input_pricing_per_m": 1.1,
+    "reasoning_pricing_per_m": 4.4,
+    "avg_task_cps_usd": 0.0245,
+    "success_rate": 0.91
+  }
+]

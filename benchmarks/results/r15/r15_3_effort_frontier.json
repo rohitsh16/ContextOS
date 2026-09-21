@@ -1,0 +1,5380 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "benchmark_version": "R15.0-alpha",
+  "timestamp": "2026-09-21T14:10:11.952836Z",
+  "gate": "R15.3",
+  "total_tasks": 120,
+  "effort_levels": [
+    "minimal",
+    "low",
+    "medium",
+    "high",
+    "maximum"
+  ],
+  "frontier_summary": [
+    {
+      "effort_level": "minimal",
+      "effort_index": 0,
+      "average_accuracy": 0.44354713479422464,
+      "total_reasoning_tokens": 0,
+      "avg_reasoning_tokens_per_task": 0,
+      "total_cost_usd": 1.0799999999999998,
+      "avg_cost_per_task_usd": 0.009,
+      "total_successful_tasks": 53.22565617530696,
+      "cps_usd": 0.02029096637987613,
+      "avg_latency_ms": 800,
+      "marginal_success_gain": 0,
+      "marginal_cost_usd": 0,
+      "compute_efficiency_pts": 0,
+      "is_diminishing_returns_knee": false
+    },
+    {
+      "effort_level": "low",
+      "effort_index": 1,
+      "average_accuracy": 0.5140451503578513,
+      "total_reasoning_tokens": 245760,
+      "avg_reasoning_tokens_per_task": 2048,
+      "total_cost_usd": 4.766399999999998,
+      "avg_cost_per_task_usd": 0.039719999999999984,
+      "total_successful_tasks": 61.685418042942146,
+      "cps_usd": 0.07726947715069193,
+      "avg_latency_ms": 1700,
+      "marginal_success_gain": 0.07049801556362661,
+      "marginal_cost_usd": 0.030719999999999983,
+      "compute_efficiency_pts": 2.294857277461805,
+      "is_diminishing_returns_knee": false
+    },
+    {
+      "effort_level": "medium",
+      "effort_index": 2,
+      "average_accuracy": 0.6175797209165093,
+      "total_reasoning_tokens": 983040,
+      "avg_reasoning_tokens_per_task": 8192,
+      "total_cost_usd": 15.82560000000003,
+      "avg_cost_per_task_usd": 0.13188000000000025,
+      "total_successful_tasks": 74.10956650998111,
+      "cps_usd": 0.21354328118851743,
+      "avg_latency_ms": 2600,
+      "marginal_success_gain": 0.103534570558658,
+      "marginal_cost_usd": 0.09216000000000027,
+      "compute_efficiency_pts": 1.1234219895687685,
+      "is_diminishing_returns_knee": true
+    },
+    {
+      "effort_level": "high",
+      "effort_index": 3,
+      "average_accuracy": 0.6828969768521362,
+      "total_reasoning_tokens": 1966080,
+      "avg_reasoning_tokens_per_task": 16384,
+      "total_cost_usd": 30.571200000000033,
+      "avg_cost_per_task_usd": 0.25476000000000026,
+      "total_successful_tasks": 81.94763722225635,
+      "cps_usd": 0.3730577358452152,
+      "avg_latency_ms": 3500,
+      "marginal_success_gain": 0.06531725593562698,
+      "marginal_cost_usd": 0.12288000000000002,
+      "compute_efficiency_pts": 0.5315531895802976,
+      "is_diminishing_returns_knee": true
+    },
+    {
+      "effort_level": "maximum",
+      "effort_index": 4,
+      "average_accuracy": 0.7439348445796308,
+      "total_reasoning_tokens": 3932160,
+      "avg_reasoning_tokens_per_task": 32768,
+      "total_cost_usd": 60.06240000000014,
+      "avg_cost_per_task_usd": 0.5005200000000012,
+      "total_successful_tasks": 89.2721813495557,
+      "cps_usd": 0.6728008556755073,
+      "avg_latency_ms": 4400,
+      "marginal_success_gain": 0.06103786772749453,
+      "marginal_cost_usd": 0.24576000000000092,
+      "compute_efficiency_pts": 0.24836371959429648,
+      "is_diminishing_returns_knee": true
+    }
+  ],
+  "optimal_fixed_effort_level": "minimal",
+  "optimal_fixed_cps_usd": 0.02029096637987613,
+  "task_frontiers": [
+    {
+      "task_id": "T0-01",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-02",
+      "class": "T0-deterministic",
+      "difficulty": 0.07,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8880746887966805,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.761,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9098095238095238,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8540851063829787,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.6542926829268293,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-03",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-04",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-05",
+      "class": "T0-deterministic",
+      "difficulty": 0.07,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8880746887966805,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.761,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9098095238095238,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8540851063829787,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.6542926829268293,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-06",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-07",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-08",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-09",
+      "class": "T0-deterministic",
+      "difficulty": 0.07,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8880746887966805,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.761,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9098095238095238,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8540851063829787,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.6542926829268293,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-10",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-11",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-12",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-13",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-14",
+      "class": "T0-deterministic",
+      "difficulty": 0.07,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8880746887966805,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.761,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9098095238095238,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8540851063829787,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.6542926829268293,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-15",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-16",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-17",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-18",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-19",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T0-20",
+      "class": "T0-deterministic",
+      "difficulty": 0.03,
+      "can_bypass": true,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.9223842794759826,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.8523333333333334,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.9324615384615386,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.9056279069767442,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.7733103448275862,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "low"
+    },
+    {
+      "task_id": "T1-01",
+      "class": "T1-trivial",
+      "difficulty": 0.12,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.84865625,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6815555555555556,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8825789473684211,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.799076923076923,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5724285714285714,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-02",
+      "class": "T1-trivial",
+      "difficulty": 0.14,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8338320610687023,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6564827586206896,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.872,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7794074074074074,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5494193548387096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-03",
+      "class": "T1-trivial",
+      "difficulty": 0.13,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8411814671814672,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6686428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8772679738562091,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7890943396226416,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5604406779661018,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-04",
+      "class": "T1-trivial",
+      "difficulty": 0.15,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8266037735849057,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.645,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8667741935483871,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.77,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5392307692307693,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-05",
+      "class": "T1-trivial",
+      "difficulty": 0.11,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8562608695652174,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6953076923076923,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8879337748344371,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8093725490196079,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5855471698113208,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-06",
+      "class": "T1-trivial",
+      "difficulty": 0.16,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8194925373134329,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6341290322580646,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8615897435897436,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7608571428571429,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.529764705882353,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-07",
+      "class": "T1-trivial",
+      "difficulty": 0.14,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8338320610687023,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6564827586206896,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.872,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7794074074074074,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5494193548387096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-08",
+      "class": "T1-trivial",
+      "difficulty": 0.12,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.84865625,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6815555555555556,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8825789473684211,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.799076923076923,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5724285714285714,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-09",
+      "class": "T1-trivial",
+      "difficulty": 0.11,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8562608695652174,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6953076923076923,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8879337748344371,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8093725490196079,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5855471698113208,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-10",
+      "class": "T1-trivial",
+      "difficulty": 0.15,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8266037735849057,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.645,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8667741935483871,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.77,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5392307692307693,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-11",
+      "class": "T1-trivial",
+      "difficulty": 0.13,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8411814671814672,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6686428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8772679738562091,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7890943396226416,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5604406779661018,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-12",
+      "class": "T1-trivial",
+      "difficulty": 0.1,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.864,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.71,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8933333333333334,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8200000000000001,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.6,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-13",
+      "class": "T1-trivial",
+      "difficulty": 0.14,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8338320610687023,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6564827586206896,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.872,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7794074074074074,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5494193548387096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-14",
+      "class": "T1-trivial",
+      "difficulty": 0.15,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8266037735849057,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.645,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8667741935483871,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.77,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5392307692307693,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-15",
+      "class": "T1-trivial",
+      "difficulty": 0.12,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.84865625,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6815555555555556,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8825789473684211,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.799076923076923,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5724285714285714,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-16",
+      "class": "T1-trivial",
+      "difficulty": 0.13,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8411814671814672,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6686428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8772679738562091,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7890943396226416,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5604406779661018,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-17",
+      "class": "T1-trivial",
+      "difficulty": 0.17,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8124944649446495,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6238125,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8564458598726116,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7519649122807018,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5209295774647887,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-18",
+      "class": "T1-trivial",
+      "difficulty": 0.14,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8338320610687023,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6564827586206896,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.872,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7794074074074074,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5494193548387096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-19",
+      "class": "T1-trivial",
+      "difficulty": 0.11,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8562608695652174,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6953076923076923,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8879337748344371,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.8093725490196079,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5855471698113208,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T1-20",
+      "class": "T1-trivial",
+      "difficulty": 0.13,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.8411814671814672,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.6686428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.8772679738562091,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.7890943396226416,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.5604406779661018,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-01",
+      "class": "T2-moderate",
+      "difficulty": 0.35,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7023076923076924,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.49500000000000005,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.77,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6233333333333333,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41800000000000004,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-02",
+      "class": "T2-moderate",
+      "difficulty": 0.4,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6758823529411765,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.47000000000000003,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7477777777777778,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5950000000000001,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.39857142857142863,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-03",
+      "class": "T2-moderate",
+      "difficulty": 0.32,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7189113924050633,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.511531914893617,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7836744186046511,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6415555555555555,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.43082758620689654,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-04",
+      "class": "T2-moderate",
+      "difficulty": 0.3,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7303225806451613,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5233333333333333,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7929411764705883,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6542857142857144,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.44,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-05",
+      "class": "T2-moderate",
+      "difficulty": 0.38,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6862754491017965,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4796603773584906,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7565842696629215,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6060512820512821,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.406089552238806,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-06",
+      "class": "T2-moderate",
+      "difficulty": 0.33,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7133103448275863,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5058750000000001,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7790867052023122,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6353698630136986,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.426436974789916,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-07",
+      "class": "T2-moderate",
+      "difficulty": 0.36,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6969024390243903,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.489764705882353,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7655000000000001,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6174736842105264,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41393750000000007,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-08",
+      "class": "T2-moderate",
+      "difficulty": 0.42,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6657109826589596,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4607368421052632,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7390769230769231,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5842926829268293,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3913424657534247,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-09",
+      "class": "T2-moderate",
+      "difficulty": 0.44,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.65575,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.45183050847457634,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7304782608695652,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5739047619047619,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.38436842105263164,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-10",
+      "class": "T2-moderate",
+      "difficulty": 0.34,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.707776397515528,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5003673469387755,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7745287356321839,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6292972972972973,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.4221639344262295,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-11",
+      "class": "T2-moderate",
+      "difficulty": 0.41,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6707696793002916,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4653214285714286,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7434143646408841,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.589604938271605,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.394923076923077,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-12",
+      "class": "T2-moderate",
+      "difficulty": 0.37,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.691558912386707,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.48465384615384616,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7610282485875707,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6117142857142858,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.40996946564885495,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-13",
+      "class": "T2-moderate",
+      "difficulty": 0.35,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7023076923076924,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.49500000000000005,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.77,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6233333333333333,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41800000000000004,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-14",
+      "class": "T2-moderate",
+      "difficulty": 0.36,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6969024390243903,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.489764705882353,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7655000000000001,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6174736842105264,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41393750000000007,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-15",
+      "class": "T2-moderate",
+      "difficulty": 0.33,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7133103448275863,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5058750000000001,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7790867052023122,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6353698630136986,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.426436974789916,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-16",
+      "class": "T2-moderate",
+      "difficulty": 0.39,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6810504451038576,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4747777777777778,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7521675977653631,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6004810126582278,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.40229197080291973,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-17",
+      "class": "T2-moderate",
+      "difficulty": 0.38,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6862754491017965,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4796603773584906,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7565842696629215,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6060512820512821,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.406089552238806,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-18",
+      "class": "T2-moderate",
+      "difficulty": 0.35,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7023076923076924,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.49500000000000005,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.77,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6233333333333333,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41800000000000004,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-19",
+      "class": "T2-moderate",
+      "difficulty": 0.36,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6969024390243903,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.489764705882353,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7655000000000001,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6174736842105264,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41393750000000007,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-20",
+      "class": "T2-moderate",
+      "difficulty": 0.32,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7189113924050633,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.511531914893617,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7836744186046511,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6415555555555555,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.43082758620689654,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-21",
+      "class": "T2-moderate",
+      "difficulty": 0.31,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7245814696485624,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5173478260869565,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7882923976608188,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6478591549295775,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.43534513274336284,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-22",
+      "class": "T2-moderate",
+      "difficulty": 0.43,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.660704871060172,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.45624137931034486,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7347650273224045,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5790602409638554,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.38782550335570476,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-23",
+      "class": "T2-moderate",
+      "difficulty": 0.34,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.707776397515528,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5003673469387755,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7745287356321839,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6292972972972973,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.4221639344262295,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-24",
+      "class": "T2-moderate",
+      "difficulty": 0.37,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.691558912386707,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.48465384615384616,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7610282485875707,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6117142857142858,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.40996946564885495,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-25",
+      "class": "T2-moderate",
+      "difficulty": 0.3,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7303225806451613,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5233333333333333,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7929411764705883,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6542857142857144,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.44,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-26",
+      "class": "T2-moderate",
+      "difficulty": 0.4,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6758823529411765,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.47000000000000003,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7477777777777778,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5950000000000001,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.39857142857142863,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-27",
+      "class": "T2-moderate",
+      "difficulty": 0.36,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6969024390243903,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.489764705882353,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7655000000000001,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6174736842105264,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.41393750000000007,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-28",
+      "class": "T2-moderate",
+      "difficulty": 0.39,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6810504451038576,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4747777777777778,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7521675977653631,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6004810126582278,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.40229197080291973,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-29",
+      "class": "T2-moderate",
+      "difficulty": 0.42,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.6657109826589596,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.4607368421052632,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7390769230769231,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5842926829268293,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3913424657534247,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T2-30",
+      "class": "T2-moderate",
+      "difficulty": 0.33,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.7133103448275863,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.5058750000000001,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.7790867052023122,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.6353698630136986,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.426436974789916,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-01",
+      "class": "T3-difficult",
+      "difficulty": 0.65,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5615662650602411,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37312500000000004,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.645609756097561,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4795238095238096,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.32116279069767445,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-02",
+      "class": "T3-difficult",
+      "difficulty": 0.7,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5413953488372094,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3570588235294118,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6266666666666667,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.46,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.30782608695652175,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-03",
+      "class": "T3-difficult",
+      "difficulty": 0.68,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.549377358490566,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.36339759036144575,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6341923076923077,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4677037037037037,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31310714285714286,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-04",
+      "class": "T3-difficult",
+      "difficulty": 0.62,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5740295566502464,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3831428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6571881188118812,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.49168627450980396,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3293980582524272,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-05",
+      "class": "T3-difficult",
+      "difficulty": 0.67,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5534109263657958,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.366609756097561,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6379806763285024,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.47160747663551406,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31577375565610866,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-06",
+      "class": "T3-difficult",
+      "difficulty": 0.72,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5335229357798166,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3508275862068966,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6192075471698114,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.45242857142857146,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.30261016949152547,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-07",
+      "class": "T3-difficult",
+      "difficulty": 0.69,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5453723653395786,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.36021428571428576,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.630421052631579,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4638348623853212,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31045814977973574,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-08",
+      "class": "T3-difficult",
+      "difficulty": 0.64,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5656893203883495,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37643037974683546,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6494509803921569,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.48353846153846153,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3238867924528302,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-09",
+      "class": "T3-difficult",
+      "difficulty": 0.66,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5574736842105263,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3698518518518519,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6417864077669903,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4755471698113207,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31845871559633027,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-10",
+      "class": "T3-difficult",
+      "difficulty": 0.71,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.537445727482679,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.35393023255813955,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6229289099526067,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.45619819819819823,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.30521030042918457,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-11",
+      "class": "T3-difficult",
+      "difficulty": 0.58,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5911065989847716,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.397013698630137,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.672888888888889,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5084897959183673,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.34070103092783505,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-12",
+      "class": "T3-difficult",
+      "difficulty": 0.63,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5698435207823962,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3797692307692308,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6533103448275863,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4875922330097088,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3266315789473685,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-13",
+      "class": "T3-difficult",
+      "difficulty": 0.61,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5782481389578165,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3865526315789474,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6610845771144279,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4958217821782179,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.33218719211822667,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-14",
+      "class": "T3-difficult",
+      "difficulty": 0.59,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5867858942065493,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.39348648648648654,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6689346733668342,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5042222222222222,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3378375634517767,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-15",
+      "class": "T3-difficult",
+      "difficulty": 0.67,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5534109263657958,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.366609756097561,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6379806763285024,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.47160747663551406,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31577375565610866,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-16",
+      "class": "T3-difficult",
+      "difficulty": 0.64,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5656893203883495,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37643037974683546,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6494509803921569,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.48353846153846153,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3238867924528302,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-17",
+      "class": "T3-difficult",
+      "difficulty": 0.68,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.549377358490566,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.36339759036144575,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6341923076923077,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4677037037037037,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31310714285714286,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-18",
+      "class": "T3-difficult",
+      "difficulty": 0.65,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5615662650602411,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37312500000000004,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.645609756097561,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4795238095238096,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.32116279069767445,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-19",
+      "class": "T3-difficult",
+      "difficulty": 0.73,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5296264236902051,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.34775000000000006,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6155023474178405,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4486902654867257,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3000251046025105,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-20",
+      "class": "T3-difficult",
+      "difficulty": 0.74,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5257556561085974,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3446966292134832,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6118130841121496,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4449824561403509,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.29745454545454547,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-21",
+      "class": "T3-difficult",
+      "difficulty": 0.63,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5698435207823962,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3797692307692308,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6533103448275863,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4875922330097088,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3266315789473685,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-22",
+      "class": "T3-difficult",
+      "difficulty": 0.72,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5335229357798166,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3508275862068966,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6192075471698114,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.45242857142857146,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.30261016949152547,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-23",
+      "class": "T3-difficult",
+      "difficulty": 0.6,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5825,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.39,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.665,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.5,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.335,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-24",
+      "class": "T3-difficult",
+      "difficulty": 0.75,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5219101123595506,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3416666666666667,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.608139534883721,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.44130434782608696,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2948979591836735,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-25",
+      "class": "T3-difficult",
+      "difficulty": 0.67,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5534109263657958,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.366609756097561,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6379806763285024,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.47160747663551406,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31577375565610866,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-26",
+      "class": "T3-difficult",
+      "difficulty": 0.65,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5615662650602411,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37312500000000004,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.645609756097561,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4795238095238096,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.32116279069767445,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-27",
+      "class": "T3-difficult",
+      "difficulty": 0.69,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5453723653395786,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.36021428571428576,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.630421052631579,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.4638348623853212,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.31045814977973574,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-28",
+      "class": "T3-difficult",
+      "difficulty": 0.64,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5656893203883495,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.37643037974683546,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6494509803921569,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.48353846153846153,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3238867924528302,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-29",
+      "class": "T3-difficult",
+      "difficulty": 0.62,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.5740295566502464,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3831428571428572,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6571881188118812,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.49168627450980396,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.3293980582524272,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T3-30",
+      "class": "T3-difficult",
+      "difficulty": 0.71,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.537445727482679,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.35393023255813955,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.6229289099526067,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.45619819819819823,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.30521030042918457,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-01",
+      "class": "T4-critical",
+      "difficulty": 0.88,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47400000000000003,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30409708737864083,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5617192982456142,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.39587500000000003,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2627323943661972,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-02",
+      "class": "T4-critical",
+      "difficulty": 0.92,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.45995161290322584,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.2931028037383178,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.547896551724138,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3826666666666667,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2531621621621622,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-03",
+      "class": "T4-critical",
+      "difficulty": 0.89,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47045995893223824,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30132692307692305,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5582445414847163,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.39254263565891473,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2603275261324042,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-04",
+      "class": "T4-critical",
+      "difficulty": 0.95,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.4496039603960397,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.28500000000000003,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5376595744680852,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.372962962962963,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.24606557377049185,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "maximum"
+    },
+    {
+      "task_id": "T4-05",
+      "class": "T4-critical",
+      "difficulty": 0.91,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.46343610547667347,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.29583018867924527,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5513333333333333,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.38593893129770995,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.25554266211604093,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-06",
+      "class": "T4-critical",
+      "difficulty": 0.86,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.4811380753138076,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30968316831683174,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.56870796460177,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.40260317460317463,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2675683453237411,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-07",
+      "class": "T4-critical",
+      "difficulty": 0.87,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47755925155925155,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30688235294117644,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5652070484581498,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3992283464566929,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2651459074733096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-08",
+      "class": "T4-critical",
+      "difficulty": 0.85,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.48473684210526313,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.3125,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5722222222222223,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.406,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.27,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-09",
+      "class": "T4-critical",
+      "difficulty": 0.93,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.45648496993987975,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.29038888888888886,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5444721030042919,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3794135338345864,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2507892976588629,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-10",
+      "class": "T4-critical",
+      "difficulty": 0.9,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.46693877551020413,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.2985714285714286,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5547826086956523,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.38923076923076927,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.25793103448275867,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-11",
+      "class": "T4-critical",
+      "difficulty": 0.88,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47400000000000003,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30409708737864083,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5617192982456142,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.39587500000000003,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2627323943661972,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-12",
+      "class": "T4-critical",
+      "difficulty": 0.89,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47045995893223824,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30132692307692305,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5582445414847163,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.39254263565891473,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2603275261324042,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-13",
+      "class": "T4-critical",
+      "difficulty": 0.94,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.45303585657370526,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.2876880733944955,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5410598290598292,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.376179104477612,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2484238410596027,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-14",
+      "class": "T4-critical",
+      "difficulty": 0.87,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.47755925155925155,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30688235294117644,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5652070484581498,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3992283464566929,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2651459074733096,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-15",
+      "class": "T4-critical",
+      "difficulty": 0.93,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.45648496993987975,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.29038888888888886,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5444721030042919,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3794135338345864,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2507892976588629,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-16",
+      "class": "T4-critical",
+      "difficulty": 0.86,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.4811380753138076,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.30968316831683174,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.56870796460177,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.40260317460317463,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2675683453237411,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-17",
+      "class": "T4-critical",
+      "difficulty": 0.96,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.44618897637795285,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.28232432432432436,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5342711864406781,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.369764705882353,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.24371428571428574,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "maximum"
+    },
+    {
+      "task_id": "T4-18",
+      "class": "T4-critical",
+      "difficulty": 0.91,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.46343610547667347,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.29583018867924527,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5513333333333333,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.38593893129770995,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.25554266211604093,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-19",
+      "class": "T4-critical",
+      "difficulty": 0.92,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.45995161290322584,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.2931028037383178,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.547896551724138,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.3826666666666667,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.2531621621621622,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "medium"
+    },
+    {
+      "task_id": "T4-20",
+      "class": "T4-critical",
+      "difficulty": 0.97,
+      "can_bypass": false,
+      "points_by_effort": {
+        "high": {
+          "effort": "high",
+          "reasoning_tokens": 16384,
+          "cost_usd": 0.25476,
+          "accuracy": 0.4427906066536204,
+          "latency_ms": 3500
+        },
+        "low": {
+          "effort": "low",
+          "reasoning_tokens": 2048,
+          "cost_usd": 0.03972,
+          "accuracy": 0.2796607142857143,
+          "latency_ms": 1700
+        },
+        "maximum": {
+          "effort": "maximum",
+          "reasoning_tokens": 32768,
+          "cost_usd": 0.50052,
+          "accuracy": 0.5308945147679326,
+          "latency_ms": 4400
+        },
+        "medium": {
+          "effort": "medium",
+          "reasoning_tokens": 8192,
+          "cost_usd": 0.13188,
+          "accuracy": 0.36658394160583946,
+          "latency_ms": 2600
+        },
+        "minimal": {
+          "effort": "minimal",
+          "reasoning_tokens": 0,
+          "cost_usd": 0.009,
+          "accuracy": 0.24136977491961417,
+          "latency_ms": 800
+        }
+      },
+      "recommended_knee_level": "maximum"
+    }
+  ]
+}

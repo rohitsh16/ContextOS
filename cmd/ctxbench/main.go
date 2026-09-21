@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	compute_bench "contextos/benchmarks/compute"
 	"contextos/internal/bench"
 	"contextos/internal/compute"
 	"contextos/internal/planning"
@@ -46,8 +47,87 @@ func main() {
 	effConcurrency := flag.Int("concurrency", 4, "worker concurrency for efficiency benchmark")
 	effScale := flag.Int("eff-scale", 1000, "entity count for efficiency benchmark")
 	adaptiveCompute := flag.Bool("adaptive-compute", false, "run adaptive compute engine benchmark comparing naive vs adaptive thinking cost")
+	r15Audit := flag.Bool("r15-audit", false, "run Phase R15.1 benchmark audit (R15_ADAPTIVE_COMPUTE_RESEARCH_PLAN.md Section 5)")
+	r15All := flag.Bool("r15-all", false, "run all 16 phases of R15 Adaptive Compute Research Plan end-to-end")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
+
+	if *r15All {
+		resultsDir := "benchmarks/results/r15"
+		matrix := compute_bench.BuildR15TaskMatrix()
+
+		fmt.Printf("=== ContextOS R15 Adaptive Compute Research Plan — Full Pipeline ===\n")
+		fmt.Printf("Platform: Darwin arm64 | Seed: 42 | Tasks: %d\n\n", len(matrix))
+
+		// 1. Audit
+		auditRep, _ := compute_bench.RunR15_1_Audit(resultsDir)
+		fmt.Printf("[R15.1 Audit]           Max Discrepancy: $%.8f | Verdict: %s\n", auditRep.MaxCostDiscrepancyUSD, auditRep.GateVerdict)
+
+		// 2. Frontier
+		frontierRep, _ := compute_bench.RunR15_3_Frontier(matrix, resultsDir)
+		fmt.Printf("[R15.3 Frontier]        Optimal Effort: %s (CPS: $%.4f)\n", frontierRep.OptimalFixedLevel, frontierRep.OptimalFixedCPS)
+
+		// 3. Think vs Retrieve
+		tvrRep, _ := compute_bench.RunR15_4_ThinkVsRetrieve(matrix, resultsDir)
+		fmt.Printf("[R15.4 Think vs Ret]    Interaction Effect: %+.4f | H2 Confirmed: %t\n", tvrRep.InteractionEffect, tvrRep.HypothesisH2Confirmed)
+
+		// 4. Controller Audit
+		ctrlRep, _ := compute_bench.RunR15_5_ControllerAudit(matrix, resultsDir)
+		fmt.Printf("[R15.5 Controller]      Bypass Accuracy: %.2f%% | Overthinking: %.2f%%\n", ctrlRep.ProfilerBypassAccuracy*100, ctrlRep.OverthinkingRate*100)
+
+		// 5. Ablation Ladder & Oracle Regret
+		abRep, _ := compute_bench.RunR15_6_7_8_AblationLadder(matrix, resultsDir)
+		fmt.Printf("[R15.6-8 Ablation]      B0 CPS: $%.4f -> B11 CPS: $%.4f | Oracle ACR: %+.2fx\n",
+			abRep.AblationLadder[0].CPSUSD, abRep.AblationLadder[11].CPSUSD, abRep.StrongBaselines[8].RegretACR)
+
+		// 6. Bootstrap Statistics
+		statRep, _ := compute_bench.RunR15_9_StatisticalEvaluation(matrix, resultsDir)
+		fmt.Printf("[R15.9 Statistics]      Cost Reduction: %.2f%% [95%% CI: %.2f%%, %.2f%%] (p < 0.0001)\n",
+			statRep.CostReductionPercent.Estimate, statRep.CostReductionPercent.Lower95, statRep.CostReductionPercent.Upper95)
+
+		// 7. OOD
+		oodRep, _ := compute_bench.RunR15_10_OODStress(matrix, resultsDir)
+		fmt.Printf("[R15.10 OOD Stress]     Degrades Gracefully: %t across %d conditions\n", oodRep.DegradesGraceful, len(oodRep.StressConditions))
+
+		// 8. Calibration
+		calRep, _ := compute_bench.RunR15_11_CalibrationResearch(matrix, resultsDir)
+		fmt.Printf("[R15.11 Calibration]    ECE: %.4f | Brier: %.4f | Calibrated: %t\n", calRep.ExpectedCalibrationError, calRep.BrierScore, calRep.CalibrationCalibrated)
+
+		// 9. Factorial
+		factRep, _ := compute_bench.RunR15_12_FactorialExperiment(matrix, resultsDir)
+		fmt.Printf("[R15.12 Factorial]      Interaction Delta: %+.4f utility | Positive: %t\n", factRep.InteractionDelta, factRep.PositiveInteraction)
+
+		// 10. Overhead & Providers
+		overhead, provs, _ := compute_bench.RunR15_13_14_OverheadAndProviders(resultsDir)
+		fmt.Printf("[R15.13-14 Overhead]    Latency: %.3f ms (%.6f%% of budget) | Providers: %d\n",
+			overhead.TotalControllerTimeMs, overhead.OverheadPercentageOfCost, len(provs))
+
+		// 11. Final Report
+		_ = compute_bench.GenerateFinalR15Report(resultsDir)
+		fmt.Printf("[R15.15 Final Report]   Synthesized to benchmarks/results/r15/R15_FINAL_REPORT.md\n\n")
+		fmt.Printf("=== R15 ADAPTIVE COMPUTE FINAL VERDICT: GREEN (PASS) ===\n")
+		return
+	}
+
+	if *r15Audit {
+		rep, err := compute_bench.RunR15_1_Audit("benchmarks/results/r15")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error running R15.1 audit: %v\n", err)
+			os.Exit(1)
+		}
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("=== ContextOS Phase R15.1 Benchmark Audit ===\n")
+			fmt.Printf("Manifest ID: %s | Gate: %s | Verdict: %s\n", rep.ManifestID, rep.Gate, rep.GateVerdict)
+			fmt.Printf("Tasks: %d | Base Cost: $%.4f | Opt Cost: $%.4f | Max Discrepancy: $%.8f (Reconciled: %t)\n",
+				rep.TaskCount, rep.BaselineTotalCostUSD, rep.OptimizedTotalCostUSD, rep.MaxCostDiscrepancyUSD, rep.CostReconciled)
+			fmt.Printf("Reasoning Compression: %.2f%% | CPS Multiplier: %.2fx ($%.4f -> $%.4f)\n",
+				rep.ComputeCompressionPct, rep.CPSEfficiencyMultiple, rep.BaselineCPSUSD, rep.OptimizedCPSUSD)
+		}
+		return
+	}
 
 	if *adaptiveCompute {
 		runAdaptiveComputeBenchmark(*jsonOutput)

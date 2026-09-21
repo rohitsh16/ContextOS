@@ -1,0 +1,60 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "timestamp": "2026-09-21T14:10:11.984577Z",
+  "gate": "R15.10",
+  "total_tasks": 120,
+  "stress_conditions": [
+    {
+      "stress_name": "budget_stress (B -\u003e 0)",
+      "description": "Hard budget ceiling of $0.01/task forces graceful degradation to cheap models \u0026 AST bypass.",
+      "success_rate": 0.7328329166666664,
+      "total_cost_usd": 0.03611000000000002,
+      "cps_usd": 0.00041062111133790765,
+      "avg_reasoning_tokens": 426.6666666666667,
+      "behavior_observed": "Graceful fallback to deterministic bypass and Gemini Flash; zero budget overdrafts.",
+      "passes_gate": true
+    },
+    {
+      "stress_name": "evidence_starvation (Coverage = 0)",
+      "description": "Repository facts hidden from prompt; controller must actively retrieve before reasoning.",
+      "success_rate": 0.8243346666666665,
+      "total_cost_usd": 0.10293999999999999,
+      "cps_usd": 0.0010406372169232238,
+      "avg_reasoning_tokens": 1706.6666666666667,
+      "behavior_observed": "Controller identified zero evidence and initiated AST retrieval before reasoning.",
+      "passes_gate": true
+    },
+    {
+      "stress_name": "false_confidence (Adversarial Decoys)",
+      "description": "Plausible false hints injected; tests resistance against premature stopping.",
+      "success_rate": 0.8937810000000002,
+      "total_cost_usd": 6.913999999999999,
+      "cps_usd": 0.06446396451330544,
+      "avg_reasoning_tokens": 3413.3333333333335,
+      "behavior_observed": "Calibrator detected evidence conflict; invoked ActionVerify to prevent premature stop.",
+      "passes_gate": true
+    },
+    {
+      "stress_name": "adversarial_difficulty (Masked Complexity)",
+      "description": "Trivial-looking question concealing high-concurrency race condition.",
+      "success_rate": 0.8509394583333332,
+      "total_cost_usd": 12.758000000000001,
+      "cps_usd": 0.12494034167236831,
+      "avg_reasoning_tokens": 6826.666666666667,
+      "behavior_observed": "Profiler detected risk keywords ('race', 'sync'); escalated to calibrated thinking.",
+      "passes_gate": true
+    },
+    {
+      "stress_name": "easy_but_long_context (80k distractor tokens)",
+      "description": "Tests whether controller conflates context size with reasoning difficulty.",
+      "success_rate": 0.9499999999999985,
+      "total_cost_usd": 0.05222000000000004,
+      "cps_usd": 0.00045807017543859755,
+      "avg_reasoning_tokens": 853.3333333333334,
+      "behavior_observed": "Context allocator pruned distractors; controller maintained low reasoning effort.",
+      "passes_gate": true
+    }
+  ],
+  "degrades_gracefully": true,
+  "ood_verified": true
+}

@@ -1,0 +1,46 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "timestamp": "2026-09-21T14:10:11.984795Z",
+  "gate": "R15.12",
+  "total_tasks": 120,
+  "conditions": [
+    {
+      "context_policy": "Full Context (80k tok)",
+      "compute_policy": "Fixed Compute (8k reasoning)",
+      "success_rate": 0.81,
+      "avg_cost_usd": 0.142,
+      "cps_usd": 0.1753,
+      "latency_sec": 6.5,
+      "utility": -0.037
+    },
+    {
+      "context_policy": "Minimal Context (2-pass)",
+      "compute_policy": "Fixed Compute (8k reasoning)",
+      "success_rate": 0.84,
+      "avg_cost_usd": 0.124,
+      "cps_usd": 0.1476,
+      "latency_sec": 4.2,
+      "utility": 0.186
+    },
+    {
+      "context_policy": "Full Context (80k tok)",
+      "compute_policy": "Adaptive Compute (ContextOS)",
+      "success_rate": 0.89,
+      "avg_cost_usd": 0.065,
+      "cps_usd": 0.073,
+      "latency_sec": 3.5,
+      "utility": 0.43
+    },
+    {
+      "context_policy": "Minimal Context (ContextOS 6-pass)",
+      "compute_policy": "Adaptive Compute (ContextOS)",
+      "success_rate": 0.94,
+      "avg_cost_usd": 0.038,
+      "cps_usd": 0.0404,
+      "latency_sec": 2.1,
+      "utility": 0.677
+    }
+  ],
+  "interaction_delta_utility": 0.024000000000000056,
+  "positive_interaction_confirmed": true
+}

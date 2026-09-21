@@ -127,10 +127,19 @@ func (p *TaskProfiler) Profile(task string, historicalDifficulty float64) TaskPr
 		novelty = 0.5 * (1.0 - historicalDifficulty)
 	}
 
-	// Check deterministic bypass
+	// Check deterministic bypass: exact symbol, caller, import, or AST lookups
 	canBypass := false
-	if (strings.HasPrefix(clean, "where is") || strings.HasPrefix(clean, "find definition") ||
-		strings.HasPrefix(clean, "find symbol") || strings.HasPrefix(clean, "list imports")) && files <= 1 {
+	if (strings.HasPrefix(clean, "where is") ||
+		strings.HasPrefix(clean, "find definition") ||
+		strings.HasPrefix(clean, "find symbol") ||
+		strings.HasPrefix(clean, "find callers") ||
+		strings.HasPrefix(clean, "find implementations") ||
+		strings.HasPrefix(clean, "find where") ||
+		strings.HasPrefix(clean, "find block size") ||
+		strings.HasPrefix(clean, "locate") ||
+		strings.HasPrefix(clean, "list imports") ||
+		strings.HasPrefix(clean, "get method") ||
+		strings.HasPrefix(clean, "callers of")) && files <= 2 {
 		canBypass = true
 	}
 

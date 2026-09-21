@@ -1,0 +1,177 @@
+{
+  "manifest_id": "manifest-r15-freeze-42",
+  "benchmark_version": "R15.0-alpha",
+  "timestamp": "2026-09-21T14:10:11.984122Z",
+  "gate": "R15.9",
+  "bootstrap_replicates": 10000,
+  "random_seed": 42,
+  "total_tasks": 120,
+  "mean_cost_diff_usd": {
+    "point_estimate": 0.07337697499999987,
+    "lower_95_ci": 0.06669136708333318,
+    "upper_95_ci": 0.08011030833333328,
+    "standard_error": 0.003436041447076795
+  },
+  "median_cost_diff_usd": {
+    "point_estimate": 0.04657999999999998,
+    "lower_95_ci": 0.04657999999999998,
+    "upper_95_ci": 0.04657999999999998,
+    "standard_error": 0
+  },
+  "cost_reduction_percent": {
+    "point_estimate": 57.604784895588054,
+    "lower_95_ci": 52.3562310278956,
+    "upper_95_ci": 62.89080572565033,
+    "standard_error": 2.6974732666640575
+  },
+  "success_rate_diff": {
+    "point_estimate": 0.18109075000000005,
+    "lower_95_ci": 0.17663654166666679,
+    "upper_95_ci": 0.18547004166666686,
+    "standard_error": 0.002260041917517909
+  },
+  "candidate_cps_usd": {
+    "point_estimate": 0.05809614534841346,
+    "lower_95_ci": 0.050424982539510485,
+    "upper_95_ci": 0.06556455615459363,
+    "standard_error": 0.0038592723490641226
+  },
+  "baseline_cps_usd": {
+    "point_estimate": 0.17019059262079902,
+    "lower_95_ci": 0.1681366635075598,
+    "upper_95_ci": 0.17222209953764964,
+    "standard_error": 0.0010393888510001783
+  },
+  "contingency_table": {
+    "both_pass": 98,
+    "candidate_only_pass": 22,
+    "baseline_only_pass": 0,
+    "both_fail": 0,
+    "total_tasks": 120,
+    "mcnemar_chi_square": 20.045454545454547,
+    "mcnemar_p_value": 0.00004437975004067462
+  },
+  "stratified_tiers": [
+    {
+      "class": "T0-deterministic",
+      "task_count": 20,
+      "baseline_cps_usd": 0.1565310997729083,
+      "candidate_cps_usd": 0,
+      "cost_reduction_percent": {
+        "point_estimate": 100,
+        "lower_95_ci": 100,
+        "upper_95_ci": 100,
+        "standard_error": 0
+      },
+      "success_diff": {
+        "point_estimate": 0.186232,
+        "lower_95_ci": 0.185248,
+        "upper_95_ci": 0.187544,
+        "standard_error": 0.0005770376764128998
+      },
+      "mean_cost_diff_usd": {
+        "point_estimate": 0.12738000000000002,
+        "lower_95_ci": 0.12738000000000002,
+        "upper_95_ci": 0.12738000000000002,
+        "standard_error": 0
+      }
+    },
+    {
+      "class": "T1-trivial",
+      "task_count": 20,
+      "baseline_cps_usd": 0.159570070276974,
+      "candidate_cps_usd": 0.000870372340425532,
+      "cost_reduction_percent": {
+        "point_estimate": 99.35770921651749,
+        "lower_95_ci": 99.35770921651749,
+        "upper_95_ci": 99.35770921651749,
+        "standard_error": 0
+      },
+      "success_diff": {
+        "point_estimate": 0.14173,
+        "lower_95_ci": 0.14041800000000002,
+        "upper_95_ci": 0.14296000000000003,
+        "standard_error": 0.0006541601073131862
+      },
+      "mean_cost_diff_usd": {
+        "point_estimate": 0.12656185,
+        "lower_95_ci": 0.12656185,
+        "upper_95_ci": 0.12656185,
+        "standard_error": 0
+      }
+    },
+    {
+      "class": "T2-moderate",
+      "task_count": 30,
+      "baseline_cps_usd": 0.16752620254651754,
+      "candidate_cps_usd": 0.08727434550091569,
+      "cost_reduction_percent": {
+        "point_estimate": 36.56775003925265,
+        "lower_95_ci": 36.56775003925265,
+        "upper_95_ci": 36.56775003925265,
+        "standard_error": 0
+      },
+      "success_diff": {
+        "point_estimate": 0.1654575,
+        "lower_95_ci": 0.1641575,
+        "upper_95_ci": 0.1667575,
+        "standard_error": 0.0006708880937794266
+      },
+      "mean_cost_diff_usd": {
+        "point_estimate": 0.04657999999999999,
+        "lower_95_ci": 0.04657999999999999,
+        "upper_95_ci": 0.04657999999999999,
+        "standard_error": 0
+      }
+    },
+    {
+      "class": "T3-difficult",
+      "task_count": 30,
+      "baseline_cps_usd": 0.17915746203440824,
+      "candidate_cps_usd": 0.08920294737725303,
+      "cost_reduction_percent": {
+        "point_estimate": 36.56775003925265,
+        "lower_95_ci": 36.56775003925265,
+        "upper_95_ci": 36.56775003925265,
+        "standard_error": 0
+      },
+      "success_diff": {
+        "point_estimate": 0.19480500000000003,
+        "lower_95_ci": 0.19331000000000004,
+        "upper_95_ci": 0.19639750000000003,
+        "standard_error": 0.0007859206285465457
+      },
+      "mean_cost_diff_usd": {
+        "point_estimate": 0.04657999999999999,
+        "lower_95_ci": 0.04657999999999999,
+        "upper_95_ci": 0.04657999999999999,
+        "standard_error": 0
+      }
+    },
+    {
+      "class": "T4-critical",
+      "task_count": 20,
+      "baseline_cps_usd": 0.18964896034017117,
+      "candidate_cps_usd": 0.09080174400032817,
+      "cost_reduction_percent": {
+        "point_estimate": 36.56775003925265,
+        "lower_95_ci": 36.56775003925265,
+        "upper_95_ci": 36.56775003925265,
+        "standard_error": 0
+      },
+      "success_diff": {
+        "point_estimate": 0.21818875,
+        "lower_95_ci": 0.21682374999999995,
+        "upper_95_ci": 0.21974875,
+        "standard_error": 0.0007444334108064975
+      },
+      "mean_cost_diff_usd": {
+        "point_estimate": 0.04657999999999997,
+        "lower_95_ci": 0.04657999999999997,
+        "upper_95_ci": 0.04657999999999997,
+        "standard_error": 0
+      }
+    }
+  ],
+  "statistically_validated": true
+}
