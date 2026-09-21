@@ -219,11 +219,123 @@ func (fs *FileStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return append([]NodeRecord(nil), fs.nodes[repoID]...), nil
 }
 
+func (fs *FileStore) LookupSymbol(repoID string, name string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if strings.EqualFold(n.Name, name) {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+func (fs *FileStore) LookupQualifiedSymbol(repoID string, qualifiedName string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	parts := strings.Split(qualifiedName, ".")
+	symName := qualifiedName
+	pkgOrType := ""
+	if len(parts) >= 2 {
+		pkgOrType = strings.ToLower(parts[len(parts)-2])
+		symName = parts[len(parts)-1]
+	}
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if strings.EqualFold(n.Name, symName) {
+			if pkgOrType == "" || strings.Contains(strings.ToLower(n.Path), pkgOrType) || strings.Contains(strings.ToLower(n.Signature), pkgOrType) {
+				out = append(out, n)
+			}
+		}
+	}
+	return out, nil
+}
+
+func (fs *FileStore) LookupPath(repoID string, path string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if n.Path == path || strings.Contains(n.Path, path) {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+func (fs *FileStore) LookupPackage(repoID string, pkg string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	var out []NodeRecord
+	pkgLow := strings.ToLower(pkg)
+	for _, n := range fs.nodes[repoID] {
+		if strings.Contains(strings.ToLower(n.Path), pkgLow) {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope string, limit int) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	if limit <= 0 {
+		limit = 150
+	}
+	nodes := fs.nodes[repoID]
+	if len(nodes) == 0 {
+		return nil, nil
+	}
+	tokens := textutil.Tokens(query)
+	if len(tokens) == 0 {
+		if len(nodes) > limit {
+			return append([]NodeRecord(nil), nodes[:limit]...), nil
+		}
+		return append([]NodeRecord(nil), nodes...), nil
+	}
+
+	type scored struct {
+		n  NodeRecord
+		sc float64
+	}
+	var tmp []scored
+	scopeLow := strings.ToLower(scope)
+
+	for _, n := range nodes {
+		if scope != "" && !strings.Contains(strings.ToLower(n.Path), scopeLow) {
+			continue
+		}
+		content := fmt.Sprintf("%s %s %s %s", n.Kind, n.Name, n.Signature, n.Path)
+		sc := 0.6*textutil.HashSemantic(query, content) + 0.4*textutil.Overlap(query, content)
+		if strings.Contains(strings.ToLower(query), strings.ToLower(n.Name)) {
+			sc += 0.35
+		}
+		if sc > 0.05 || len(tmp) < limit {
+			tmp = append(tmp, scored{n: n, sc: sc})
+		}
+	}
+
+	sort.Slice(tmp, func(i, j int) bool {
+		return tmp[i].sc > tmp[j].sc
+	})
+	if len(tmp) > limit {
+		tmp = tmp[:limit]
+	}
+
+	out := make([]NodeRecord, len(tmp))
+	for i, s := range tmp {
+		out[i] = s.n
+	}
+	return out, nil
+}
+
 func (fs *FileStore) ListEdges(repoID string) ([]EdgeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
 	return append([]EdgeRecord(nil), fs.edges[repoID]...), nil
 }
+
 
 func (fs *FileStore) UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error {
 	fs.mu.Lock()

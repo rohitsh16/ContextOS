@@ -20,6 +20,11 @@ func main() {
 	mcpMode := flag.Bool("mcp", false, "run MCP JSON-RPC over stdio")
 	uiMode := flag.Bool("ui", false, "run web UI dashboard")
 	port := flag.Int("port", 8765, "web UI dashboard port")
+	timeout := flag.Duration("timeout", 0, "query timeout (e.g. 500ms, or CONTEXTOS_TIMEOUT / CONTEXTOS_TIMEOUT_MS)")
+	budget := flag.Int("budget", 4000, "default context budget in tokens (or CONTEXTOS_BUDGET)")
+	minBudget := flag.Int("min-budget", 500, "minimum context budget floor under adaptive timeout (or CONTEXTOS_MIN_BUDGET)")
+	adaptiveTimeout := flag.Bool("adaptive-timeout", true, "adaptively lower context budget if query approaches deadline (or CONTEXTOS_ADAPTIVE_TIMEOUT)")
+	retrievalMode := flag.String("retrieval-mode", "adaptive", "retrieval mode: adaptive, indexed, or baseline (or CONTEXTOS_RETRIEVAL_MODE)")
 	flag.Parse()
 	rp, _ := filepath.Abs(*repo)
 	dp := *dbPath
@@ -38,8 +43,13 @@ func main() {
 		stg = os.Getenv("CONTEXTOS_STORAGE")
 	}
 	s, e := server.NewWithOptions(dp, rp, server.Options{
-		StorageType: stg,
-		AutoPrune:   *autoPrune,
+		StorageType:     stg,
+		AutoPrune:       *autoPrune,
+		Timeout:         *timeout,
+		DefaultBudget:   *budget,
+		MinBudget:       *minBudget,
+		AdaptiveTimeout: *adaptiveTimeout,
+		RetrievalMode:   *retrievalMode,
 	})
 	if e != nil {
 		fmt.Fprintln(os.Stderr, e)

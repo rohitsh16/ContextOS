@@ -301,11 +301,16 @@ $$
 
 The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
 
-See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, [`docs/DASHBOARD_METRICS.md`](docs/DASHBOARD_METRICS.md) for the dashboard efficiency metrics glossary, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
 
 ---
 
 ## License
 
-For non-commercial research and evaluation purposes only. All other rights reserved.
+Licensed under the **Business Source License 1.1 (BSL 1.1)**:
+- **Free** for personal, academic, and local developer use with AI coding agents.
+- **Commercial & Hosted / SaaS** use requires a commercial license from the author.
+- Converts to **Apache 2.0** on January 1, 2030.
+
+See [`LICENSE`](LICENSE) for full terms or commercial inquiries.
 

@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"contextos/internal/allocator"
+	"contextos/internal/config"
 	"contextos/internal/db"
 	"contextos/internal/extractor"
 	"contextos/internal/gitidx"
@@ -23,19 +25,29 @@ import (
 	"contextos/internal/textutil"
 )
 
-// Options configures storage engine and runtime feature flags for Service.
+// Options configures storage engine, runtime feature flags, timeouts, and adaptive context settings for Service.
 type Options struct {
-	StorageType string // "sqlite" (default) or "file" (zero-dependency pure Go)
-	AutoPrune   bool   // opt-in automatic storage pruning during planning/indexing
+	StorageType     string        // "sqlite" (default) or "file" (zero-dependency pure Go)
+	AutoPrune       bool          // opt-in automatic storage pruning during planning/indexing
+	Timeout         time.Duration // Query timeout (e.g. 500ms). If exceeded or close, throttles context
+	DefaultBudget   int           // Default context budget in tokens (e.g. 4000)
+	MinBudget       int           // Minimum context budget floor when adaptive timeout mitigates deadline (e.g. 500)
+	AdaptiveTimeout bool          // Automatically lower context budget / shed stages if time is running out
+	RetrievalMode   string        // "baseline", "indexed", "adaptive"
 }
 
 // Service is the primary ContextOS runtime orchestrator.
 type Service struct {
-	Store     store.Store
-	DB        *db.DB // Retained for backward compatibility when SQLiteStore is active
-	Repo      gitidx.Repo
-	RepoID    string
-	AutoPrune bool
+	Store           store.Store
+	DB              *db.DB // Retained for backward compatibility when SQLiteStore is active
+	Repo            gitidx.Repo
+	RepoID          string
+	AutoPrune       bool
+	Timeout         time.Duration
+	DefaultBudget   int
+	MinBudget       int
+	AdaptiveTimeout bool
+	RetrievalMode   string
 }
 
 // New creates a new Service using default options.
@@ -100,12 +112,86 @@ func NewWithOptions(dbPath, repoPath string, opts Options) (*Service, error) {
 
 	autoPrune := opts.AutoPrune || os.Getenv("CONTEXTOS_AUTO_PRUNE") == "1" || strings.EqualFold(os.Getenv("CONTEXTOS_AUTO_PRUNE"), "true")
 
+	// Load repository-level config (.contextos/config.toml) if present
+	repoCfg, _ := config.Load(r.Path)
+
+	timeout := opts.Timeout
+	if timeout == 0 {
+		if tStr := os.Getenv("CONTEXTOS_TIMEOUT"); tStr != "" {
+			if d, err := time.ParseDuration(tStr); err == nil {
+				timeout = d
+			}
+		} else if msStr := os.Getenv("CONTEXTOS_TIMEOUT_MS"); msStr != "" {
+			if ms, err := strconv.Atoi(msStr); err == nil && ms > 0 {
+				timeout = time.Duration(ms) * time.Millisecond
+			}
+		} else if repoCfg.Retrieval.TimeoutMs > 0 {
+			timeout = time.Duration(repoCfg.Retrieval.TimeoutMs) * time.Millisecond
+		}
+	}
+
+	defaultBudget := opts.DefaultBudget
+	if defaultBudget <= 0 {
+		if bStr := os.Getenv("CONTEXTOS_BUDGET"); bStr != "" {
+			if b, err := strconv.Atoi(bStr); err == nil && b > 0 {
+				defaultBudget = b
+			}
+		} else if repoCfg.Allocator.DefaultBudget > 0 {
+			defaultBudget = repoCfg.Allocator.DefaultBudget
+		}
+	}
+	if defaultBudget <= 0 {
+		defaultBudget = 4000
+	}
+
+	minBudget := opts.MinBudget
+	if minBudget <= 0 {
+		if mbStr := os.Getenv("CONTEXTOS_MIN_BUDGET"); mbStr != "" {
+			if mb, err := strconv.Atoi(mbStr); err == nil && mb > 0 {
+				minBudget = mb
+			}
+		} else if repoCfg.Allocator.MinBudgetTokens > 0 {
+			minBudget = repoCfg.Allocator.MinBudgetTokens
+		}
+	}
+	if minBudget <= 0 {
+		minBudget = 500
+	}
+
+	adaptiveTimeout := opts.AdaptiveTimeout
+	if !adaptiveTimeout {
+		atEnv := os.Getenv("CONTEXTOS_ADAPTIVE_TIMEOUT")
+		if atEnv != "" {
+			adaptiveTimeout = atEnv == "1" || strings.EqualFold(atEnv, "true")
+		} else if repoCfg.Retrieval.AdaptiveTimeout {
+			adaptiveTimeout = true
+		} else if timeout > 0 {
+			adaptiveTimeout = true // default true when timeout is set
+		}
+	}
+
+	retrievalMode := strings.ToLower(opts.RetrievalMode)
+	if retrievalMode == "" {
+		retrievalMode = strings.ToLower(os.Getenv("CONTEXTOS_RETRIEVAL_MODE"))
+	}
+	if retrievalMode == "" && repoCfg.Retrieval.Mode != "" {
+		retrievalMode = strings.ToLower(repoCfg.Retrieval.Mode)
+	}
+	if retrievalMode == "" {
+		retrievalMode = "adaptive"
+	}
+
 	return &Service{
-		Store:     st,
-		DB:        d,
-		Repo:      r,
-		RepoID:    repoID,
-		AutoPrune: autoPrune,
+		Store:           st,
+		DB:              d,
+		Repo:            r,
+		RepoID:          repoID,
+		AutoPrune:       autoPrune,
+		Timeout:         timeout,
+		DefaultBudget:   defaultBudget,
+		MinBudget:       minBudget,
+		AdaptiveTimeout: adaptiveTimeout,
+		RetrievalMode:   retrievalMode,
 	}, nil
 }
 
@@ -436,9 +522,13 @@ func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 	if limit <= 0 {
 		limit = 150
 	}
-	nodes, err := s.Store.ListNodes(s.RepoID)
-	if err != nil {
-		return nil, err
+	// PR.md PR-04: Replace O(N) full repository scan with indexed candidate generation
+	nodes, err := s.Store.SearchCodeCandidates(s.RepoID, task, "", limit*2)
+	if err != nil || len(nodes) == 0 {
+		nodes, err = s.Store.ListNodes(s.RepoID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	type scored struct {
 		m     model.Memory
@@ -480,6 +570,10 @@ func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 
 func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, error) {
 	_ = s.RefreshRepo()
+	startTime := time.Now()
+	if budget <= 0 {
+		budget = s.DefaultBudget
+	}
 	if budget <= 0 {
 		budget = 4000
 	}
@@ -513,10 +607,31 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	}
 	ms = append(ms, codes...)
 
-	graphScores := s.computeGraphScores(task)
+	// Adaptive Timeout mitigation:
+	// If timeout is configured and elapsed time > 50% of timeout, dynamically lower
+	// context budget to MinBudget (e.g. 500 tokens) and skip heavy graph traversals
+	// to prevent timeouts while returning decision-sufficient context.
+	effectiveBudget := budget
+	adaptiveThrottled := false
+	if s.Timeout > 0 && s.AdaptiveTimeout {
+		elapsed := time.Since(startTime)
+		if elapsed > s.Timeout/2 {
+			effectiveBudget = s.MinBudget
+			if effectiveBudget <= 0 {
+				effectiveBudget = 500
+			}
+			adaptiveThrottled = true
+		}
+	}
+
+	var graphScores map[string]float64
+	if !adaptiveThrottled {
+		graphScores = s.computeGraphScores(task)
+	}
+
 	p := allocator.Plan(allocator.Request{
 		Task:         task,
-		Budget:       budget,
+		Budget:       effectiveBudget,
 		Model:        modelName,
 		RepoRevision: s.Repo.Revision,
 		GraphScores:  graphScores,
@@ -625,12 +740,17 @@ func (s *Service) Handoff(task, target string, budget int) (map[string]any, erro
 
 func (s *Service) Stats() (map[string]any, error) {
 	r := map[string]any{
-		"repo":          s.Repo.Path,
-		"revision":      s.Repo.Revision,
-		"worktree_hash": s.Repo.WorktreeHash,
-		"branch":        s.Repo.Branch,
-		"auto_prune":    s.AutoPrune,
-		"engine_version": "ASC-1.4",
+		"repo":             s.Repo.Path,
+		"revision":         s.Repo.Revision,
+		"worktree_hash":    s.Repo.WorktreeHash,
+		"branch":           s.Repo.Branch,
+		"auto_prune":       s.AutoPrune,
+		"engine_version":   "ASC-1.4",
+		"timeout_ms":       s.Timeout.Milliseconds(),
+		"adaptive_timeout": s.AdaptiveTimeout,
+		"default_budget":   s.DefaultBudget,
+		"min_budget":       s.MinBudget,
+		"retrieval_mode":   s.RetrievalMode,
 	}
 
 	// Storage engine detection
@@ -672,12 +792,18 @@ func (s *Service) Stats() (map[string]any, error) {
 		r["trace_count"] = cnt
 	}
 
-	// Active engine features (reflects completed PRs)
+	// Active engine features (reflects completed PRs and performance subsystems)
 	r["features"] = []string{
 		"portable-integrations",     // PR-01
 		"content-addressed-worktree", // PR-02
 		"graph-intelligence-ppr",    // PR-03
 		"incremental-indexing",      // PR-04
+		"positional-trigrams",       // PR-11..12
+		"compressed-postings",       // PR-13..15
+		"block-max-wand",            // PR-16..17
+		"scope-localization",        // PR-18
+		"candidate-fusion",          // PR-22..24
+		"adaptive-timeout",          // Adaptive context throttling
 	}
 
 	return r, nil

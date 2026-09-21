@@ -78,8 +78,8 @@ func TestServerStatusAndMemoriesEndpoints(t *testing.T) {
 		t.Fatal("expected at least one memory")
 	}
 
-	// 4. POST /api/plan
-	planBody := []byte(`{"task":"Raft consensus failover","budget":2000}`)
+	// 4. POST /api/plan with timeout and adaptive options
+	planBody := []byte(`{"task":"Raft consensus failover","budget":2000,"timeout_ms":500,"adaptive_budget":true}`)
 	req = httptest.NewRequest("POST", "/api/plan", bytes.NewReader(planBody))
 	w = httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
@@ -92,6 +92,19 @@ func TestServerStatusAndMemoriesEndpoints(t *testing.T) {
 	}
 	if _, ok := planRes["plan"]; !ok {
 		t.Fatal("missing plan in response")
+	}
+	metrics, ok := planRes["metrics"].(map[string]any)
+	if !ok {
+		t.Fatal("missing metrics map in plan response")
+	}
+	if _, ok := metrics["touch_ratio_pct"]; !ok {
+		t.Fatal("missing touch_ratio_pct in metrics")
+	}
+	if _, ok := metrics["search_space_pruned_pct"]; !ok {
+		t.Fatal("missing search_space_pruned_pct in metrics")
+	}
+	if _, ok := metrics["speedup"]; !ok {
+		t.Fatal("missing speedup in metrics")
 	}
 }
 

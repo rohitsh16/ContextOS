@@ -22,6 +22,8 @@ Drawing from published research on **SWE-bench**, **SWE-ContextBench**, and prom
 - **Handoff Continuity:** Preserved **100.0% context transfer fidelity** across agent restarts and model handoffs (vs. **20.0%** without ContextOS).
 - **Contradiction Exposure:** Eliminated conflicting decisions (**0.0% contradiction rate** via typed contradiction graph).
 
+> **Glossary & Metric Definitions**: For plain-English explanations, real-world analogies, and mathematical definitions of all dashboard terms (including *Uncompressed Baseline*, *Direct Cost Saved*, *KV Cache*, *Cost w/ Cloud Cache*, and *Compound Savings*), see the [Dashboard Metrics & Efficiency Guide](DASHBOARD_METRICS.md).
+
 ---
 
 ## 2. Industry Context & Evaluation Methodology

@@ -1,0 +1,68 @@
+Business Source License 1.1
+
+Parameters:
+
+Licensor:                     Rohit Shukla
+Software:                     ContextOS
+Licensed Work:                The ContextOS software, libraries, command-line tools,
+                              daemons (contextd), hook handlers, allocator algorithms,
+                              and associated documentation.
+Change Date:                  January 1, 2030
+Change License:               Apache License, Version 2.0
+Additional Use Grant:         You may use the Licensed Work free of charge for:
+                              1. Personal, non-commercial, academic, and evaluation purposes.
+                              2. Local development on individual developer workstations
+                                 integrated with personal AI coding agents (including
+                                 Claude Code, Cursor, Antigravity, Codex, and Gemini CLI).
+                              3. Testing, research, and educational benchmarking.
+
+                              Use of the Licensed Work, or any subset thereof, to provide
+                              a hosted, managed, or software-as-a-service (SaaS) offering,
+                              or any commercial deployment across an organization or enterprise
+                              without a direct commercial license from the Licensor, is strictly
+                              prohibited.
+
+================================================================================
+
+Terms
+
+1. Grant of License.
+The Licensor hereby grants you the right to copy, modify, create derivative works,
+redistribute, and make non-production, evaluation, or permitted uses of the Licensed
+Work under the Additional Use Grant above, subject to the terms and conditions of this
+License.
+
+2. Commercial and Production Use.
+Any use of the Licensed Work that does not satisfy the Additional Use Grant—including
+any deployment in a commercial production environment, team-wide enterprise distribution,
+or offering the software or its API as a paid or managed service to third parties—requires
+a separate, written Commercial License agreement signed by the Licensor.
+
+For commercial licensing inquiries, enterprise agreements, or custom deployment terms,
+please contact the Licensor directly:
+Email / Contact: contact@contextos.dev (or directly via the repository owner: Rohit Shukla)
+
+3. Change Date and Conversion.
+Effective on the Change Date specified above, this License shall automatically convert
+to the Change License (Apache License, Version 2.0). From the Change Date forward, your
+use of this specific version of the Licensed Work will be governed exclusively by the
+terms of the Change License.
+
+4. Notice Requirements.
+If you redistribute the Licensed Work or any portion thereof, you must retain this
+LICENSE file, all copyright notices, and patent/trademark attributions intact. You may
+not alter the terms of this License or remove the Additional Use Grant.
+
+5. Intellectual Property & Patent Reservations.
+All rights, title, copyright, and patent rights in and to the Licensed Work not
+expressly granted herein are reserved by the Licensor. No trademark or trade name
+rights are granted under this License.
+
+6. Disclaimer of Warranties.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE LICENSOR OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.

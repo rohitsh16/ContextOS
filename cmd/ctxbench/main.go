@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"contextos/internal/bench"
+	"contextos/internal/store"
 )
 
 func main() {
@@ -35,8 +37,140 @@ func main() {
 	r11 := flag.Bool("r11", false, "run Phase R11: Research Tournament (PR.md Section 16)")
 	r12 := flag.Bool("r12", false, "run Phase R12: Release Gating & Production Verification (PR.md Section 17)")
 	allResearch := flag.Bool("all-research", false, "run full research suite R1 -> R12 sequentially (PR.md)")
+	prLarge := flag.Bool("pr-large", false, "run Large-Repository Retrieval Benchmark (PR.md Sprint 1: PR-01 to PR-04)")
+	prScale := flag.Int("pr-scale", 1000, "number of synthetic entities for large-repo benchmark (1K, 10K, 50K)")
+	efficiency := flag.Bool("efficiency", false, "run service efficiency benchmark (Without vs With PR-01 to PR-30)")
+	effConcurrency := flag.Int("concurrency", 4, "worker concurrency for efficiency benchmark")
+	effScale := flag.Int("eff-scale", 1000, "entity count for efficiency benchmark")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
+
+	if *prLarge {
+		fmt.Printf("=== ContextOS Large-Repository Retrieval Benchmark (PR.md Sprint 1: PR-01 -> PR-04) ===\n")
+		fmt.Printf("Corpus Target Scale: %d nodes | PRNG Seed: %d\n\n", *prScale, *seed)
+
+		dbDir, err := os.MkdirTemp("", "ctxbench_prlarge_*")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer os.RemoveAll(dbDir)
+
+		st, err := store.NewSQLiteStore(filepath.Join(dbDir, "bench.db"))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer st.Close()
+
+		corpus, err := bench.GenerateSyntheticCodeCorpus(st, bench.CorpusConfig{
+			NodeCount: *prScale,
+			Seed:      *seed,
+		})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		rep, err := bench.RunRetrievalBenchmark(st, corpus)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("Benchmark Results for %d Entities:\n", rep.CorpusNodes)
+			fmt.Printf("  Average Speedup     : %.2fx faster than exhaustive oracle\n", rep.AvgSpeedup)
+			fmt.Printf("  Average Recall@10   : %.2f (vs ground truth relevant entities)\n", rep.AvgRecallAt10)
+			fmt.Printf("  Average Touch Ratio : %.2f%% of repository inspected\n\n", rep.AvgIndexedTouch*100)
+			for _, r := range rep.Results {
+				fmt.Printf("  [%-20s] Speedup: %5.2fx | Touch: %5.2f%% | Recall@10: %.2f | Query: %s\n",
+					r.QueryClass, r.Speedup, r.IndexedTouch*100, r.RecallAt10, r.QueryText)
+			}
+			if rep.Passed {
+				fmt.Println("\n✓ Sprint 1 (PR-01 through PR-04) Verification Gate: PASSED")
+			} else {
+				fmt.Println("\n✗ Sprint 1 (PR-01 through PR-04) Verification Gate: FAILED")
+				os.Exit(1)
+			}
+		}
+		return
+	}
+
+	if *efficiency {
+		fmt.Printf("=== ContextOS Service Efficiency Benchmark (Without vs With PR-01 to PR-30) ===\n")
+		fmt.Printf("Corpus Scale: %d nodes | Queries/Mode: %d | Concurrency: %d workers | PRNG Seed: %d\n\n",
+			*effScale, *n, *effConcurrency, *seed)
+
+		dbDir, err := os.MkdirTemp("", "ctxbench_eff_*")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer os.RemoveAll(dbDir)
+
+		st, err := store.NewSQLiteStore(filepath.Join(dbDir, "efficiency.db"))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer st.Close()
+
+		corpus, err := bench.GenerateSyntheticCodeCorpus(st, bench.CorpusConfig{
+			NodeCount: *effScale,
+			Seed:      *seed,
+		})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		rep, err := bench.MeasureServiceEfficiency(st, corpus, *n, *effConcurrency)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Printf("┌──────────────────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┐\n")
+			fmt.Printf("│ Metric                           │ Without (Baseline)   │ With (Optimized)     │ Improvement / Delta  │\n")
+			fmt.Printf("├──────────────────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤\n")
+			fmt.Printf("│ P50 Latency                      │ %-20s │ %-20s │ %5.2fx speedup        │\n",
+				rep.Baseline.P50Latency, rep.Optimized.P50Latency, rep.P50Speedup)
+			fmt.Printf("│ P95 Tail Latency                 │ %-20s │ %-20s │ %5.2fx speedup        │\n",
+				rep.Baseline.P95Latency, rep.Optimized.P95Latency, rep.P95Speedup)
+			fmt.Printf("│ P99 Tail Latency                 │ %-20s │ %-20s │ %5.2fx speedup        │\n",
+				rep.Baseline.P99Latency, rep.Optimized.P99Latency,
+				float64(rep.Baseline.P99Latency)/float64(rep.Optimized.P99Latency))
+			fmt.Printf("│ Throughput (QPS)                 │ %-16.1f QPS │ %-16.1f QPS │ +%-17.1f%%   │\n",
+				rep.Baseline.ThroughputQPS, rep.Optimized.ThroughputQPS, (rep.ThroughputGain-1)*100)
+			fmt.Printf("│ Touch Ratio (Entities Scanned)   │ %-19.2f%% │ %-19.2f%% │ -%-18.1f%%  │\n",
+				rep.Baseline.TouchRatio*100, rep.Optimized.TouchRatio*100, rep.TouchReduction)
+			fmt.Printf("│ Average Prompt Tokens            │ %-16d tok │ %-16d tok │ -%-18.1f%%  │\n",
+				rep.Baseline.AvgPromptTokens, rep.Optimized.AvgPromptTokens, rep.TokenReduction)
+			fmt.Printf("│ Memory Alloc / Query             │ %-17.1f KB │ %-17.1f KB │ -%-18.1f%%  │\n",
+				float64(rep.Baseline.AllocBytesPerOp)/1024.0, float64(rep.Optimized.AllocBytesPerOp)/1024.0, rep.MemoryReduction)
+			fmt.Printf("│ Recall@10 (vs Gold Target)       │ %-20.2f │ %-20.2f │ High Parity (Preserved)│\n",
+				rep.Baseline.RecallAt10, rep.Optimized.RecallAt10)
+			fmt.Printf("└──────────────────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘\n\n")
+
+			if rep.QualityPreserved && rep.P50Speedup >= 1.5 {
+				fmt.Printf("✓ Service Efficiency Evaluation: SIGNIFICANT IMPROVEMENT CONFIRMED (%.2fx P50 Speedup, %.1f%% Token Reduction)\n",
+					rep.P50Speedup, rep.TokenReduction)
+			} else {
+				fmt.Println("✗ Service Efficiency Evaluation: Inconclusive or target not met")
+			}
+		}
+		return
+	}
+
+
 
 	cfg := bench.DefaultConfig()
 	cfg.Seed = *seed

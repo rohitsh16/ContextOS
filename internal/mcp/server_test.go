@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"contextos/internal/server"
 )
@@ -131,6 +132,63 @@ func TestMCPServerProtocols(t *testing.T) {
 	_ = json.Unmarshal([]byte(lines[8]), &r9)
 	if r9.Error == nil || r9.Error.Code != -32601 {
 		t.Errorf("expected -32601 Method not found error, got %v", r9.Error)
+	}
+}
+
+func TestMCPServerTimeoutAndAdaptiveContext(t *testing.T) {
+	root := t.TempDir()
+	dbPath := filepath.Join(root, "timeout_test.db")
+
+	runGit(root, "init", "-q")
+	runGit(root, "config", "user.email", "test@example.com")
+	runGit(root, "config", "user.name", "Test")
+	os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\nfunc Run() {}\nfunc Process() {}\n"), 0600)
+	runGit(root, "add", ".")
+	runGit(root, "commit", "-qm", "init")
+
+	srv, err := server.NewWithOptions(dbPath, root, server.Options{
+		Timeout:         500 * time.Millisecond,
+		DefaultBudget:   2000,
+		MinBudget:       500,
+		AdaptiveTimeout: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer srv.Close()
+
+	m := New(srv)
+
+	// Call context_plan with custom timeout_ms and adaptive_budget
+	planReq := `{"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"context_plan","arguments":{"task":"Run Process","budget":1500,"timeout_ms":300,"adaptive_budget":true}}}` + "\n"
+	searchReq := `{"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"context_search","arguments":{"task":"Run","limit":5,"timeout_ms":200}}}` + "\n"
+
+	input := strings.NewReader(planReq + searchReq)
+	var output bytes.Buffer
+
+	if err := m.Run(input, &output); err != nil {
+		t.Fatal(err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(output.String()), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 responses, got %d", len(lines))
+	}
+
+	var r10 Response
+	if err := json.Unmarshal([]byte(lines[0]), &r10); err != nil {
+		t.Fatalf("failed to unmarshal plan response: %v", err)
+	}
+	if r10.Error != nil {
+		t.Fatalf("context_plan failed: %v", r10.Error)
+	}
+
+	var r11 Response
+	if err := json.Unmarshal([]byte(lines[1]), &r11); err != nil {
+		t.Fatalf("failed to unmarshal search response: %v", err)
+	}
+	if r11.Error != nil {
+		t.Fatalf("context_search failed: %v", r11.Error)
 	}
 }
 

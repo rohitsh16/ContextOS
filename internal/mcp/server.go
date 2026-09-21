@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"contextos/internal/server"
 )
@@ -149,8 +150,14 @@ func allTools() []ToolDefinition {
 		},
 		{
 			Name:        "context_plan",
-			Description: "Select minimum-sufficient, cache-aware context under a token budget",
-			InputSchema: schema(map[string]any{"task": prop("string"), "model": prop("string"), "budget": prop("integer")}, "task"),
+			Description: "Select minimum-sufficient, cache-aware context under a token budget with adaptive timeout mitigation",
+			InputSchema: schema(map[string]any{
+				"task":            prop("string"),
+				"model":           prop("string"),
+				"budget":          prop("integer"),
+				"timeout_ms":      prop("integer"),
+				"adaptive_budget": prop("boolean"),
+			}, "task"),
 		},
 		{
 			Name:        "context_remember",
@@ -170,7 +177,11 @@ func allTools() []ToolDefinition {
 		{
 			Name:        "context_search",
 			Description: "Search durable engineering memory and repository context",
-			InputSchema: schema(map[string]any{"task": prop("string"), "limit": prop("integer")}, "task"),
+			InputSchema: schema(map[string]any{
+				"task":       prop("string"),
+				"limit":      prop("integer"),
+				"timeout_ms": prop("integer"),
+			}, "task"),
 		},
 		{
 			Name:        "context_session_start",
@@ -338,6 +349,11 @@ func (m *MCP) Handle(q Request) Response {
 			if x, ok := a["limit"].(float64); ok {
 				lim = int(x)
 			}
+			if tms, ok := a["timeout_ms"].(float64); ok && tms > 0 {
+				oldTimeout := m.S.Timeout
+				m.S.Timeout = time.Duration(tms) * time.Millisecond
+				defer func() { m.S.Timeout = oldTimeout }()
+			}
 			v, e := m.S.SearchCandidates(task, lim)
 			if e != nil {
 				return errInternal(q.ID, e.Error())
@@ -347,9 +363,19 @@ func (m *MCP) Handle(q Request) Response {
 		case "context_plan":
 			task, _ := a["task"].(string)
 			mn, _ := a["model"].(string)
-			budget := 4000
+			budget := 0
 			if x, ok := a["budget"].(float64); ok {
 				budget = int(x)
+			}
+			if tms, ok := a["timeout_ms"].(float64); ok && tms > 0 {
+				oldTimeout := m.S.Timeout
+				m.S.Timeout = time.Duration(tms) * time.Millisecond
+				defer func() { m.S.Timeout = oldTimeout }()
+			}
+			if ab, ok := a["adaptive_budget"].(bool); ok {
+				oldAB := m.S.AdaptiveTimeout
+				m.S.AdaptiveTimeout = ab
+				defer func() { m.S.AdaptiveTimeout = oldAB }()
 			}
 			v, e := m.S.Plan(task, mn, budget)
 			if e != nil {

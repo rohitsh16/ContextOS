@@ -35,13 +35,18 @@ type MemoryConfig struct {
 }
 
 type RetrievalConfig struct {
-	Lexical  bool `json:"lexical"`
-	Semantic bool `json:"semantic"`
-	Graph    bool `json:"graph"`
+	Lexical         bool   `json:"lexical"`
+	Semantic        bool   `json:"semantic"`
+	Graph           bool   `json:"graph"`
+	TimeoutMs       int    `json:"timeout_ms"`
+	AdaptiveTimeout bool   `json:"adaptive_timeout"`
+	Mode            string `json:"mode"`
 }
 
 type AllocatorConfig struct {
-	BudgetMode string `json:"budget_mode"`
+	BudgetMode      string `json:"budget_mode"`
+	DefaultBudget   int    `json:"default_budget"`
+	MinBudgetTokens int    `json:"min_budget_tokens"`
 }
 
 type CacheConfig struct {
@@ -149,10 +154,20 @@ func Load(repoRoot string) (Config, error) {
 				cfg.Retrieval.Semantic = (v == "true")
 			} else if k == "graph" {
 				cfg.Retrieval.Graph = (v == "true")
+			} else if k == "timeout_ms" {
+				cfg.Retrieval.TimeoutMs, _ = strconv.Atoi(v)
+			} else if k == "adaptive_timeout" {
+				cfg.Retrieval.AdaptiveTimeout = (v == "true")
+			} else if k == "mode" {
+				cfg.Retrieval.Mode = v
 			}
 		case "allocator":
 			if k == "budget_mode" {
 				cfg.Allocator.BudgetMode = v
+			} else if k == "default_budget" {
+				cfg.Allocator.DefaultBudget, _ = strconv.Atoi(v)
+			} else if k == "min_budget_tokens" {
+				cfg.Allocator.MinBudgetTokens, _ = strconv.Atoi(v)
 			}
 		case "cache":
 			if k == "enabled" {

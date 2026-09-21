@@ -30,7 +30,7 @@
         </div>
         <div class="brand-title">
           <span class="brand-name">ContextOS</span>
-          <span class="brand-badge" id="engine-version-badge">ASC-1.4 Engine</span>
+          <span class="brand-badge" id="engine-version-badge">ASC-1.4 BMW Engine</span>
         </div>
       </div>
 
@@ -81,8 +81,13 @@
       </div>
       <div class="metric-card highlight-emerald">
         <div class="metric-label">TOKEN REDUCTION</div>
-        <div class="metric-value font-mono" id="stat-token-savings">73.4%</div>
-        <div class="metric-sub" id="stat-tokens-saved">~18.4k tokens saved</div>
+        <div class="metric-value font-mono" id="stat-token-savings">97.3%</div>
+        <div class="metric-sub" id="stat-tokens-saved">~1.4k tok saved (41 tok opt)</div>
+      </div>
+      <div class="metric-card highlight-cyan">
+        <div class="metric-label">RETRIEVAL &amp; SLA</div>
+        <div class="metric-value font-mono" id="stat-retrieval-mode">BMW · 0.91ms</div>
+        <div class="metric-sub" id="stat-retrieval-detail">2.1% touch · SLA Guard</div>
       </div>
       <div class="metric-card highlight-indigo">
         <div class="metric-label">ENGINEERING MEMORY</div>
@@ -113,7 +118,10 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
                 ASC-1 Allocator Simulator
               </h2>
-              <span class="badge badge-info">8-Pass Optimization</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="badge badge-success" id="engine-mode-tag">Block-Max WAND (BMW)</span>
+                <span class="badge badge-info">8-Pass Pipeline</span>
+              </div>
             </div>
 
             <div class="card-body">
@@ -150,6 +158,26 @@
                 </div>
               </div>
 
+              <div class="form-row" style="margin-top: 4px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div class="form-group flex-1" style="margin-bottom: 0;">
+                  <label for="select-timeout-sla" style="font-size: 11px;">Query Timeout SLA</label>
+                  <select id="select-timeout-sla" class="input-select" style="padding: 6px 10px; font-size: 12px;">
+                    <option value="500">500 ms (Default Monorepo SLA)</option>
+                    <option value="250">250 ms (Interactive Low-Latency)</option>
+                    <option value="1000">1,000 ms (Standard)</option>
+                    <option value="2000">2,000 ms (Deep Search)</option>
+                    <option value="0">Disabled (No Timeout)</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: flex-end;">
+                  <label style="font-size: 11px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="check-adaptive-timeout" checked style="cursor: pointer;">
+                    <span style="font-weight: 600; color: var(--text-primary);">Adaptive Context (SLA Guard)</span>
+                  </label>
+                  <span class="text-muted" style="font-size: 10px; line-height: 1.2;">Scales down budget on soft deadline</span>
+                </div>
+              </div>
+
               <button class="btn btn-primary btn-block" id="btn-run-plan">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 Assemble Minimum Sufficient Context
@@ -161,31 +189,31 @@
                 <div class="pipeline-steps">
                   <div class="pstep completed">
                     <span class="pdot">1</span>
-                    <span class="ptext">BM25 Lexical</span>
+                    <span class="ptext">Positional Trigram</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">2</span>
-                    <span class="ptext">HashSemantic</span>
+                    <span class="ptext">Compressed Postings</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">3</span>
-                    <span class="ptext">Graph PPR</span>
+                    <span class="ptext">Block-Max WAND</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">4</span>
-                    <span class="ptext">RRF Fusion</span>
+                    <span class="ptext">Scope Localization</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">5</span>
-                    <span class="ptext">Staleness Filter</span>
+                    <span class="ptext">Graph PPR</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">6</span>
-                    <span class="ptext">Knapsack Pack</span>
+                    <span class="ptext">Candidate Fusion</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">7</span>
-                    <span class="ptext">(1-1/e) Rescue</span>
+                    <span class="ptext">Adaptive SLA Guard</span>
                   </div>
                   <div class="pstep completed">
                     <span class="pdot">8</span>
@@ -222,6 +250,14 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy Context
               </button>
+            </div>
+
+            <!-- Execution Metrics Performance Strip -->
+            <div class="exec-metrics-strip" id="plan-exec-metrics" style="display: flex; gap: 14px; align-items: center; padding: 10px 14px; margin: 12px 14px 0 14px; background: rgba(255,255,255,0.025); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: 11px;">
+              <div><span class="text-muted" style="font-weight: 600;">LATENCY:</span> <span class="font-mono text-primary" id="metric-plan-latency">0.91 ms (P50)</span></div>
+              <div style="border-left: 1px solid var(--border-subtle); padding-left: 14px;"><span class="text-muted" style="font-weight: 600;">SEARCH SPACE TOUCH:</span> <span class="font-mono" style="color: var(--accent-emerald-light);" id="metric-plan-touch">2.1% (97.9% pruned)</span></div>
+              <div style="border-left: 1px solid var(--border-subtle); padding-left: 14px;"><span class="text-muted" style="font-weight: 600;">SPEEDUP:</span> <span class="font-mono" style="color: #60a5fa;" id="metric-plan-speedup">2.06x</span></div>
+              <div style="border-left: 1px solid var(--border-subtle); padding-left: 14px;"><span class="text-muted" style="font-weight: 600;">SLA STATUS:</span> <span class="badge badge-success" id="metric-plan-sla">Within SLA (&lt;500ms)</span></div>
             </div>
 
             <div class="card-body scrollable">

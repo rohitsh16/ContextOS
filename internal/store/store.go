@@ -103,6 +103,13 @@ type Store interface {
 	ListNodes(repoID string) ([]NodeRecord, error)
 	ListEdges(repoID string) ([]EdgeRecord, error)
 
+	// Exact Indexes & Candidate Search (PR.md PR-02 & PR-04)
+	LookupSymbol(repoID string, name string) ([]NodeRecord, error)
+	LookupQualifiedSymbol(repoID string, qualifiedName string) ([]NodeRecord, error)
+	LookupPath(repoID string, path string) ([]NodeRecord, error)
+	LookupPackage(repoID string, pkg string) ([]NodeRecord, error)
+	SearchCodeCandidates(repoID string, query string, scope string, limit int) ([]NodeRecord, error)
+
 	// Typed Memories
 	Remember(repoID string, mem model.Memory, provenance []string) (model.Memory, error)
 	ImportMemory(repoID string, mem model.Memory, provenance []string) error
