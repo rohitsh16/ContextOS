@@ -134,6 +134,15 @@ func prop(t string) map[string]any {
 func allTools() []ToolDefinition {
 	tools := []ToolDefinition{
 		{
+			Name:        "context_compute_plan",
+			Description: "Generate provider-neutral adaptive compute plan (reasoning effort, token budget, model routing, verification tier)",
+			InputSchema: schema(map[string]any{
+				"task":               prop("string"),
+				"risk_target":        prop("number"),
+				"preferred_provider": prop("string"),
+			}, "task"),
+		},
+		{
 			Name:        "context_event",
 			Description: "Record an agent/tool event",
 			InputSchema: schema(map[string]any{"session_id": prop("string"), "event_type": prop("string"), "payload": prop("string")}, "event_type", "payload"),
@@ -381,6 +390,16 @@ func (m *MCP) Handle(q Request) Response {
 			if e != nil {
 				return errInternal(q.ID, e.Error())
 			}
+			return textOK(q.ID, v)
+
+		case "context_compute_plan":
+			task, _ := a["task"].(string)
+			riskTarget := 0.05
+			if r, ok := a["risk_target"].(float64); ok && r > 0 {
+				riskTarget = r
+			}
+			preferredProvider, _ := a["preferred_provider"].(string)
+			v := m.S.ComputePlan(task, riskTarget, preferredProvider)
 			return textOK(q.ID, v)
 
 		case "context_resume":

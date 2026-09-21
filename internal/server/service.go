@@ -20,7 +20,9 @@ import (
 	"contextos/internal/graph"
 	"contextos/internal/indexer"
 	"contextos/internal/model"
+	"contextos/internal/planning"
 	"contextos/internal/router"
+	"contextos/internal/state"
 	"contextos/internal/store"
 	"contextos/internal/textutil"
 )
@@ -848,6 +850,23 @@ func (s *Service) Route(task string, budget int) map[string]any {
 		"cached_input_per_million": p.CachedInputPerM,
 		"reason":                   "heuristic cost/complexity policy; replace with learned policy after trace collection",
 	}
+}
+
+// ComputePlan generates an adaptive compute strategy for a task.
+func (s *Service) ComputePlan(task string, riskTarget float64, preferredProvider string) planning.ComputePlan {
+	planner := planning.NewComputePlanner()
+	return planner.Generate(task, riskTarget, preferredProvider)
+}
+
+// ExecutionPlan synthesizes both context allocation and adaptive compute planning.
+func (s *Service) ExecutionPlan(task, modelName string, budget int, riskTarget float64, preferredProvider string) (planning.ExecutionPlan, error) {
+	ctxPlan, err := s.Plan(task, modelName, budget)
+	if err != nil {
+		return planning.ExecutionPlan{}, err
+	}
+	cPlan := s.ComputePlan(task, riskTarget, preferredProvider)
+	ds := state.NewDecisionState(task)
+	return planning.BuildExecutionPlan(task, ctxPlan, cPlan, ds), nil
 }
 
 func DefaultDBPath() string {
