@@ -1,0 +1,147 @@
+{
+  "timestamp": "2026-09-22T12:50:50.38127Z",
+  "total_tasks": 6,
+  "avg_token_reduction_pct": 96.24883590985286,
+  "total_baseline_tokens": 26845,
+  "total_contextos_tokens": 1007,
+  "total_gemini_baseline_10turn_usd": 0.02013375,
+  "total_gemini_contextos_10turn_usd": 0.00024545625,
+  "gemini_net_savings_10turn_usd": 0.019888293749999997,
+  "gemini_savings_pct_10turn": 98.78087167070217,
+  "total_claude_baseline_10turn_usd": 0.80535,
+  "total_claude_contextos_10turn_usd": 0.005739899999999999,
+  "claude_net_savings_10turn_usd": 0.7996101,
+  "claude_savings_pct_10turn": 99.28727882287204,
+  "results": [
+    {
+      "id": "TASK-01",
+      "name": "Pricing Registry Lookup \u0026 Model Schedules",
+      "category": "telemetry",
+      "baseline_files": [
+        "internal/telemetry/pricing_registry.go",
+        "internal/telemetry/costs.go",
+        "internal/telemetry/cost_breakdown.go"
+      ],
+      "baseline_bytes": 17148,
+      "baseline_tokens": 4287,
+      "contextos_tokens": 244,
+      "token_reduction_pct": 94.30837415442033,
+      "gemini_base_cost_1turn": 0.00032152499999999997,
+      "gemini_ctx_cost_1turn": 0.000018299999999999998,
+      "gemini_base_cost_10turn": 0.00321525,
+      "gemini_ctx_cost_10turn": 0.000059474999999999996,
+      "claude_base_cost_1turn": 0.012861000000000001,
+      "claude_ctx_cost_1turn": 0.000732,
+      "savings_pct_10turn": 98.15022160018661,
+      "bypass_latency_ms": 59.785
+    },
+    {
+      "id": "TASK-02",
+      "name": "SQLite Store Adjacent Edges \u0026 Symbol Resolution",
+      "category": "storage",
+      "baseline_files": [
+        "internal/store/sqlite_store.go",
+        "internal/store/store.go",
+        "internal/graph/expansion.go"
+      ],
+      "baseline_bytes": 47050,
+      "baseline_tokens": 11763,
+      "contextos_tokens": 164,
+      "token_reduction_pct": 98.6057978406869,
+      "gemini_base_cost_1turn": 0.0008822249999999999,
+      "gemini_ctx_cost_1turn": 0.000012299999999999999,
+      "gemini_base_cost_10turn": 0.00882225,
+      "gemini_ctx_cost_10turn": 0.000039974999999999996,
+      "claude_base_cost_1turn": 0.035289,
+      "claude_ctx_cost_1turn": 0.000492,
+      "savings_pct_10turn": 99.54688429822323,
+      "bypass_latency_ms": 56.249
+    },
+    {
+      "id": "TASK-03",
+      "name": "Hierarchical Budget Allocation \u0026 Planning",
+      "category": "compute",
+      "baseline_files": [
+        "internal/compute/budget.go",
+        "internal/allocator/allocator.go",
+        "internal/model/plan.go"
+      ],
+      "baseline_bytes": 21965,
+      "baseline_tokens": 5491,
+      "contextos_tokens": 161,
+      "token_reduction_pct": 97.06792933891823,
+      "gemini_base_cost_1turn": 0.000411825,
+      "gemini_ctx_cost_1turn": 0.000012075,
+      "gemini_base_cost_10turn": 0.00411825,
+      "gemini_ctx_cost_10turn": 0.00003924375,
+      "claude_base_cost_1turn": 0.016473,
+      "claude_ctx_cost_1turn": 0.00048300000000000003,
+      "savings_pct_10turn": 99.04707703514842,
+      "bypass_latency_ms": 58.274
+    },
+    {
+      "id": "TASK-04",
+      "name": "Hook Event Ingestion \u0026 Model Normalization",
+      "category": "hook",
+      "baseline_files": [
+        "internal/hook/handler.go",
+        "internal/hook/normalizer.go",
+        "internal/agent/session.go"
+      ],
+      "baseline_bytes": 5713,
+      "baseline_tokens": 1428,
+      "contextos_tokens": 251,
+      "token_reduction_pct": 82.42296918767506,
+      "gemini_base_cost_1turn": 0.0001071,
+      "gemini_ctx_cost_1turn": 0.000018824999999999997,
+      "gemini_base_cost_10turn": 0.001071,
+      "gemini_ctx_cost_10turn": 0.00006118124999999999,
+      "claude_base_cost_1turn": 0.004284,
+      "claude_ctx_cost_1turn": 0.000753,
+      "savings_pct_10turn": 94.28746498599439,
+      "bypass_latency_ms": 64.681
+    },
+    {
+      "id": "TASK-05",
+      "name": "Personalized PageRank Centrality Ranking",
+      "category": "graph",
+      "baseline_files": [
+        "internal/graph/ppr.go",
+        "internal/graph/graph.go",
+        "internal/extractor/symbols.go"
+      ],
+      "baseline_bytes": 9792,
+      "baseline_tokens": 2448,
+      "contextos_tokens": 174,
+      "token_reduction_pct": 92.8921568627451,
+      "gemini_base_cost_1turn": 0.0001836,
+      "gemini_ctx_cost_1turn": 0.00001305,
+      "gemini_base_cost_10turn": 0.001836,
+      "gemini_ctx_cost_10turn": 0.0000424125,
+      "claude_base_cost_1turn": 0.007344,
+      "claude_ctx_cost_1turn": 0.000522,
+      "savings_pct_10turn": 97.68995098039215,
+      "bypass_latency_ms": 58.07
+    },
+    {
+      "id": "TASK-06",
+      "name": "Deterministic Symbol Lookup (T0 Bypass)",
+      "category": "t0_bypass",
+      "baseline_files": [
+        "internal/hook/handler.go"
+      ],
+      "baseline_bytes": 5713,
+      "baseline_tokens": 1428,
+      "contextos_tokens": 13,
+      "token_reduction_pct": 99.08963585434174,
+      "gemini_base_cost_1turn": 0.0001071,
+      "gemini_ctx_cost_1turn": 9.75e-7,
+      "gemini_base_cost_10turn": 0.001071,
+      "gemini_ctx_cost_10turn": 0.00000316875,
+      "claude_base_cost_1turn": 0.004284,
+      "claude_ctx_cost_1turn": 0.000039,
+      "savings_pct_10turn": 99.70413165266106,
+      "bypass_latency_ms": 54.395
+    }
+  ]
+}
