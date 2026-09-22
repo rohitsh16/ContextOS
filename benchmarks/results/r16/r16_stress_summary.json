@@ -1,0 +1,710 @@
+{
+  "run_id": "r16-stress-d1e77ed734734700",
+  "timestamp": "2026-09-22T12:32:15.338793Z",
+  "metadata": {
+    "execution_id": "exec_31613065613036376261396535373034",
+    "run_type": "synthetic",
+    "provider_mode": "mock",
+    "pricing_version": "2026-03-v1",
+    "timestamp": "2026-09-22T12:32:15.338793Z"
+  },
+  "verdict": "GREEN",
+  "verdict_reasons": [
+    "All 4 rings passed without capability floor violations or safety regressions."
+  ],
+  "ring0_traps": [
+    {
+      "trap_name": "Under-Compute Trap",
+      "passed": true,
+      "violation_count": 0,
+      "target_floor": 0.85,
+      "observed_lcb": 0.8571057626563018,
+      "selected_model": "claude-3-7-sonnet",
+      "selected_effort": "maximum",
+      "under_compute_detected": false,
+      "overdraft_detected": false,
+      "details": "Selected claude-3-7-sonnet:maximum (LCB: 0.8571, Floor: 0.8500, Verify: true)"
+    },
+    {
+      "trap_name": "Over-Compute Trap",
+      "passed": true,
+      "violation_count": 0,
+      "target_floor": 0.75,
+      "observed_lcb": 0.8187437714795976,
+      "selected_model": "gemini-2.5-flash",
+      "selected_effort": "minimal",
+      "under_compute_detected": false,
+      "overdraft_detected": false,
+      "details": "Selected gemini-2.5-flash:minimal at $0.0002 (Floor: 0.7500)"
+    },
+    {
+      "trap_name": "Estimator-Noise Trap",
+      "passed": true,
+      "violation_count": 0,
+      "target_floor": 0.8,
+      "observed_lcb": 0.8760228291421857,
+      "selected_model": "gemini-2.5-flash",
+      "selected_effort": "maximum",
+      "under_compute_detected": false,
+      "overdraft_detected": false,
+      "details": "Base: gemini-2.5-flash:high -\u003e Under 2.2x Noise: gemini-2.5-flash:maximum (LCB: 0.8760)"
+    },
+    {
+      "trap_name": "Cost-Shock Trap (1.5x - 10x)",
+      "passed": true,
+      "violation_count": 0,
+      "target_floor": 0.84,
+      "observed_lcb": 0.9013125618037655,
+      "selected_model": "claude-3-7-sonnet",
+      "selected_effort": "high",
+      "under_compute_detected": false,
+      "overdraft_detected": false,
+      "details": "Across 1.5x-10x price shocks: Floor preserved = true, Min LCB = 0.9013 (Req: 0.8400)"
+    },
+    {
+      "trap_name": "Capability-Shock Trap",
+      "passed": true,
+      "violation_count": 0,
+      "target_floor": 0.8,
+      "observed_lcb": 0.8749815245017428,
+      "selected_model": "gemini-2.5-flash",
+      "selected_effort": "high",
+      "under_compute_detected": false,
+      "overdraft_detected": false,
+      "details": "Degraded gpt-4o-mini: Optimizer correctly escalated to gemini-2.5-flash:high (LCB: 0.8750 \u003e= 0.8000)"
+    }
+  ],
+  "ring0_passed": true,
+  "ring1_total_tasks": 500,
+  "ring1_violation_rate": 0,
+  "ring1_cost_regret": 1.1539054064627698,
+  "same_task_compute_curves": [
+    {
+      "task_id": "T1-01",
+      "class": 1,
+      "difficulty": 0.12,
+      "floor_quality": 0.75,
+      "points": [
+        {
+          "effort_level": 0,
+          "reasoning_tokens": 0,
+          "mean_quality": 0.8740000000000001,
+          "quality_lcb": 0.8714235130894958,
+          "cost_usd": 0.054,
+          "latency_ms": 250,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 1,
+          "reasoning_tokens": 2048,
+          "mean_quality": 1,
+          "quality_lcb": 0.9974235130894957,
+          "cost_usd": 0.17687999999999998,
+          "latency_ms": 600,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 2,
+          "reasoning_tokens": 8192,
+          "mean_quality": 1,
+          "quality_lcb": 0.9974235130894957,
+          "cost_usd": 0.54552,
+          "latency_ms": 1800,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 3,
+          "reasoning_tokens": 16384,
+          "mean_quality": 1,
+          "quality_lcb": 0.9974235130894957,
+          "cost_usd": 1.03704,
+          "latency_ms": 3500,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 4,
+          "reasoning_tokens": 32768,
+          "mean_quality": 1,
+          "quality_lcb": 0.9974235130894957,
+          "cost_usd": 2.0200799999999997,
+          "latency_ms": 6500,
+          "is_sufficient": true
+        }
+      ],
+      "contextos_choice": 1,
+      "contextos_choice_cost": 0.0008468999999999999,
+      "oracle_choice": 0,
+      "oracle_choice_cost": 0.054,
+      "floor_satisfied": true,
+      "is_near_optimal": true
+    },
+    {
+      "task_id": "T2-01",
+      "class": 2,
+      "difficulty": 0.35,
+      "floor_quality": 0.8,
+      "points": [
+        {
+          "effort_level": 0,
+          "reasoning_tokens": 0,
+          "mean_quality": 0.7475,
+          "quality_lcb": 0.7399852465110291,
+          "cost_usd": 0.054,
+          "latency_ms": 250,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 1,
+          "reasoning_tokens": 2048,
+          "mean_quality": 0.9376955000865388,
+          "quality_lcb": 0.9301807465975679,
+          "cost_usd": 0.17687999999999998,
+          "latency_ms": 600,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 2,
+          "reasoning_tokens": 8192,
+          "mean_quality": 1,
+          "quality_lcb": 0.9924852465110291,
+          "cost_usd": 0.54552,
+          "latency_ms": 1800,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 3,
+          "reasoning_tokens": 16384,
+          "mean_quality": 1,
+          "quality_lcb": 0.9924852465110291,
+          "cost_usd": 1.03704,
+          "latency_ms": 3500,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 4,
+          "reasoning_tokens": 32768,
+          "mean_quality": 1,
+          "quality_lcb": 0.9924852465110291,
+          "cost_usd": 2.0200799999999997,
+          "latency_ms": 6500,
+          "is_sufficient": true
+        }
+      ],
+      "contextos_choice": 2,
+      "contextos_choice_cost": 0.0026901,
+      "oracle_choice": 1,
+      "oracle_choice_cost": 0.17687999999999998,
+      "floor_satisfied": true,
+      "is_near_optimal": true
+    },
+    {
+      "task_id": "T3-01",
+      "class": 3,
+      "difficulty": 0.65,
+      "floor_quality": 0.84,
+      "points": [
+        {
+          "effort_level": 0,
+          "reasoning_tokens": 0,
+          "mean_quality": 0.5825,
+          "quality_lcb": 0.5685440292347684,
+          "cost_usd": 0.054,
+          "latency_ms": 250,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 1,
+          "reasoning_tokens": 2048,
+          "mean_quality": 0.7726955000865388,
+          "quality_lcb": 0.7587395293213072,
+          "cost_usd": 0.17687999999999998,
+          "latency_ms": 600,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 2,
+          "reasoning_tokens": 8192,
+          "mean_quality": 0.8851636471615072,
+          "quality_lcb": 0.8712076763962756,
+          "cost_usd": 0.54552,
+          "latency_ms": 1800,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 3,
+          "reasoning_tokens": 16384,
+          "mean_quality": 0.9438420687817073,
+          "quality_lcb": 0.9298860980164757,
+          "cost_usd": 1.03704,
+          "latency_ms": 3500,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 4,
+          "reasoning_tokens": 32768,
+          "mean_quality": 1,
+          "quality_lcb": 0.9860440292347684,
+          "cost_usd": 2.0200799999999997,
+          "latency_ms": 6500,
+          "is_sufficient": true
+        }
+      ],
+      "contextos_choice": 4,
+      "contextos_choice_cost": 0.16258920000000004,
+      "oracle_choice": 2,
+      "oracle_choice_cost": 0.54552,
+      "floor_satisfied": true,
+      "is_near_optimal": true
+    },
+    {
+      "task_id": "T4-01",
+      "class": 4,
+      "difficulty": 0.88,
+      "floor_quality": 0.76,
+      "points": [
+        {
+          "effort_level": 0,
+          "reasoning_tokens": 0,
+          "mean_quality": 0.456,
+          "quality_lcb": 0.4371057626563018,
+          "cost_usd": 0.054,
+          "latency_ms": 250,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 1,
+          "reasoning_tokens": 2048,
+          "mean_quality": 0.6461955000865387,
+          "quality_lcb": 0.6273012627428405,
+          "cost_usd": 0.17687999999999998,
+          "latency_ms": 600,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 2,
+          "reasoning_tokens": 8192,
+          "mean_quality": 0.7586636471615071,
+          "quality_lcb": 0.7397694098178089,
+          "cost_usd": 0.54552,
+          "latency_ms": 1800,
+          "is_sufficient": false
+        },
+        {
+          "effort_level": 3,
+          "reasoning_tokens": 16384,
+          "mean_quality": 0.8173420687817072,
+          "quality_lcb": 0.798447831438009,
+          "cost_usd": 1.03704,
+          "latency_ms": 3500,
+          "is_sufficient": true
+        },
+        {
+          "effort_level": 4,
+          "reasoning_tokens": 32768,
+          "mean_quality": 0.876,
+          "quality_lcb": 0.8571057626563018,
+          "cost_usd": 2.0200799999999997,
+          "latency_ms": 6500,
+          "is_sufficient": true
+        }
+      ],
+      "contextos_choice": 4,
+      "contextos_choice_cost": 0.5170199999999999,
+      "oracle_choice": 3,
+      "oracle_choice_cost": 1.03704,
+      "floor_satisfied": true,
+      "is_near_optimal": true
+    }
+  ],
+  "baselines": {
+    "B0_fixed_strong_default": {
+      "baseline": "B0_fixed_strong_default",
+      "description": "Fixed strong model (o1) at default medium effort",
+      "success_rate": 0.8,
+      "total_cost_usd": 21.704799999999988,
+      "average_cost_usd": 0.5426199999999997,
+      "cost_per_success": 0.6782749999999996,
+      "average_reasoning_tokens": 8192,
+      "floor_violations": 17,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 19.6608,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 21.704799999999988
+      }
+    },
+    "B1_fixed_high_reasoning": {
+      "baseline": "B1_fixed_high_reasoning",
+      "description": "Fixed strong model (o1) at high effort (16k)",
+      "success_rate": 1,
+      "total_cost_usd": 41.36560000000002,
+      "average_cost_usd": 1.0341400000000005,
+      "cost_per_success": 1.0341400000000005,
+      "average_reasoning_tokens": 16384,
+      "floor_violations": 9,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 39.3216,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 41.36560000000002
+      }
+    },
+    "B2_fixed_maximum": {
+      "baseline": "B2_fixed_maximum",
+      "description": "Fixed strong model (o1) at maximum effort (32k)",
+      "success_rate": 1,
+      "total_cost_usd": 80.6871999999999,
+      "average_cost_usd": 2.0171799999999975,
+      "cost_per_success": 2.0171799999999975,
+      "average_reasoning_tokens": 32768,
+      "floor_violations": 8,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 78.6432,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 80.6871999999999
+      }
+    },
+    "B3_context_only": {
+      "baseline": "B3_context_only",
+      "description": "Context-only optimization; static default compute",
+      "success_rate": 0.8,
+      "total_cost_usd": 21.704799999999988,
+      "average_cost_usd": 0.5426199999999997,
+      "cost_per_success": 0.6782749999999996,
+      "average_reasoning_tokens": 8192,
+      "floor_violations": 17,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 19.6608,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 21.704799999999988
+      }
+    },
+    "B4_compute_only": {
+      "baseline": "B4_compute_only",
+      "description": "Compute-only optimization; static unpruned context",
+      "success_rate": 1,
+      "total_cost_usd": 27.60304000000001,
+      "average_cost_usd": 0.6900760000000002,
+      "cost_per_success": 0.6900760000000002,
+      "average_reasoning_tokens": 10649.6,
+      "floor_violations": 9,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 25.55903999999998,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 27.60304000000001
+      }
+    },
+    "B5_model_routing_only": {
+      "baseline": "B5_model_routing_only",
+      "description": "Model routing only; static medium effort",
+      "success_rate": 0.8,
+      "total_cost_usd": 13.111283199999995,
+      "average_cost_usd": 0.32778207999999986,
+      "cost_per_success": 0.40972759999999986,
+      "average_reasoning_tokens": 8192,
+      "floor_violations": 17,
+      "cost_breakdown": {
+        "input_usd": 0.6523200000000003,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 11.875123199999992,
+        "visible_output_usd": 0.5798400000000002,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 13.111283199999995
+      }
+    },
+    "B6_context_plus_compute": {
+      "baseline": "B6_context_plus_compute",
+      "description": "Joint context and compute ladder",
+      "success_rate": 1,
+      "total_cost_usd": 23.67088000000001,
+      "average_cost_usd": 0.5917720000000003,
+      "cost_per_success": 0.5917720000000003,
+      "average_reasoning_tokens": 9011.2,
+      "floor_violations": 9,
+      "cost_breakdown": {
+        "input_usd": 1.0800000000000005,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 21.626879999999986,
+        "visible_output_usd": 0.9600000000000005,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 23.67088000000001
+      }
+    },
+    "B7_context_plus_routing": {
+      "baseline": "B7_context_plus_routing",
+      "description": "Joint context and model routing",
+      "success_rate": 0.8,
+      "total_cost_usd": 13.111283199999995,
+      "average_cost_usd": 0.32778207999999986,
+      "cost_per_success": 0.40972759999999986,
+      "average_reasoning_tokens": 8192,
+      "floor_violations": 17,
+      "cost_breakdown": {
+        "input_usd": 0.6523200000000003,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 11.875123199999992,
+        "visible_output_usd": 0.5798400000000002,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 13.111283199999995
+      }
+    },
+    "B8_full_capability_floor": {
+      "baseline": "B8_full_capability_floor",
+      "description": "Full ContextOS capability-floor controller",
+      "success_rate": 0.8,
+      "total_cost_usd": 5.061088000000001,
+      "average_cost_usd": 0.1265272,
+      "cost_per_success": 0.15815900000000002,
+      "average_reasoning_tokens": 12492.8,
+      "floor_violations": 8,
+      "cost_breakdown": {
+        "input_usd": 0.07488000000000002,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 4.661248,
+        "visible_output_usd": 0.08096000000000002,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 5.061088000000001
+      }
+    },
+    "B8_no_floor_ablated": {
+      "baseline": "B8_no_floor_ablated",
+      "description": "Ablated optimizer with capability floor disabled (greedy cheap)",
+      "success_rate": 0.175,
+      "total_cost_usd": 0.024399999999999988,
+      "average_cost_usd": 0.0006099999999999996,
+      "cost_per_success": 0.003485714285714284,
+      "average_reasoning_tokens": 0,
+      "floor_violations": 32,
+      "cost_breakdown": {
+        "input_usd": 0.010799999999999995,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 0,
+        "visible_output_usd": 0.009600000000000003,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 0.024399999999999988
+      }
+    },
+    "B9_offline_oracle": {
+      "baseline": "B9_offline_oracle",
+      "description": "Theoretical minimum-sufficient configuration achieving success",
+      "success_rate": 0.5,
+      "total_cost_usd": 1.4212928000000005,
+      "average_cost_usd": 0.03553232000000001,
+      "cost_per_success": 0.07106464000000003,
+      "average_reasoning_tokens": 7372.8,
+      "floor_violations": 21,
+      "cost_breakdown": {
+        "input_usd": 0.06336000000000003,
+        "cached_input_usd": 0,
+        "cache_write_usd": 0,
+        "reasoning_usd": 1.2976127999999998,
+        "visible_output_usd": 0.05631999999999998,
+        "tool_usd": 0,
+        "verification_usd": 0,
+        "retry_usd": 0,
+        "escalation_usd": 0,
+        "controller_usd": 0.0039999999999999975,
+        "total_usd": 1.4212928000000005
+      }
+    }
+  },
+  "failure_taxonomy": [
+    {
+      "category": "UNDER_COMPUTE",
+      "count": 0,
+      "percentage": 0,
+      "description": "Quality lower confidence bound fell below task floor"
+    },
+    {
+      "category": "OVER_COMPUTE",
+      "count": 0,
+      "percentage": 0,
+      "description": "Expensive reasoning allocated when cheap effort was sufficient"
+    },
+    {
+      "category": "UNDER_RETRIEVAL",
+      "count": 0,
+      "percentage": 0,
+      "description": "Task failed due to insufficient context entity retrieval"
+    },
+    {
+      "category": "OVER_RETRIEVAL",
+      "count": 1,
+      "percentage": 14.285714285714285,
+      "description": "Excessive context tokens packed without information gain"
+    },
+    {
+      "category": "BAD_MODEL_ROUTE",
+      "count": 0,
+      "percentage": 0,
+      "description": "Sub-optimal model tier selected for task complexity"
+    },
+    {
+      "category": "BAD_EFFORT",
+      "count": 0,
+      "percentage": 0,
+      "description": "Reasoning effort mismatched to marginal gain curve"
+    },
+    {
+      "category": "BAD_STOPPING",
+      "count": 0,
+      "percentage": 0,
+      "description": "Premature termination or redundant extra steps"
+    },
+    {
+      "category": "BAD_VERIFICATION",
+      "count": 0,
+      "percentage": 0,
+      "description": "Missing verification on critical task or unnecessary verify"
+    },
+    {
+      "category": "BAD_ESCALATION",
+      "count": 0,
+      "percentage": 0,
+      "description": "Delayed escalation after failed execution turn"
+    },
+    {
+      "category": "BAD_CALIBRATION",
+      "count": 2,
+      "percentage": 28.57142857142857,
+      "description": "Misestimated risk or confidence divergence"
+    },
+    {
+      "category": "COST_ACCOUNTING",
+      "count": 0,
+      "percentage": 0,
+      "description": "Unaccounted tokens or pricing registry discrepancy"
+    },
+    {
+      "category": "CACHE_SIDE_EFFECT",
+      "count": 0,
+      "percentage": 0,
+      "description": "Cache eviction or thrashing degrading performance"
+    },
+    {
+      "category": "TOOL_FAILURE",
+      "count": 0,
+      "percentage": 0,
+      "description": "Tool execution timeout or error"
+    },
+    {
+      "category": "PROVIDER_FAILURE",
+      "count": 0,
+      "percentage": 0,
+      "description": "Provider HTTP 429 rate-limit or 5xx outage"
+    },
+    {
+      "category": "CONTROLLER_OVERHEAD",
+      "count": 0,
+      "percentage": 0,
+      "description": "Controller compute overhead ratio exceeded 5% threshold"
+    },
+    {
+      "category": "ORACLE_MISMATCH",
+      "count": 4,
+      "percentage": 57.14285714285714,
+      "description": "Non-zero economic regret compared to offline oracle"
+    }
+  ],
+  "long_horizon": [
+    {
+      "horizon_turns": 10,
+      "total_cost_usd": 5.040999999999999,
+      "final_quality": 0.9199999999999999,
+      "reasoning_drift": 0.02,
+      "context_growth_rate": 120,
+      "task_remained_safe": true
+    },
+    {
+      "horizon_turns": 25,
+      "total_cost_usd": 12.669999999999998,
+      "final_quality": 0.8899999999999999,
+      "reasoning_drift": 0.05,
+      "context_growth_rate": 120,
+      "task_remained_safe": true
+    },
+    {
+      "horizon_turns": 50,
+      "total_cost_usd": 25.564999999999998,
+      "final_quality": 0.84,
+      "reasoning_drift": 0.1,
+      "context_growth_rate": 120,
+      "task_remained_safe": true
+    },
+    {
+      "horizon_turns": 100,
+      "total_cost_usd": 52.029999999999994,
+      "final_quality": 0.74,
+      "reasoning_drift": 0.2,
+      "context_growth_rate": 120,
+      "task_remained_safe": true
+    }
+  ],
+  "controller_overhead_ratio": 0.0009237802618917856,
+  "avoidable_cost_reduction": 0.9540812017603452,
+  "floor_ablation_delta_q": 0.625,
+  "trace_jsonl_path": "../results/r16/r16_stress_trace.jsonl"
+}

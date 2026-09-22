@@ -16,6 +16,7 @@ type AdaptiveController struct {
 	voi        *VOIEngine
 	router     *ModelRouter
 	estimator  *ComputeEstimator
+	optimizer  *CapabilityPreservingOptimizer
 
 	hysteresisDelta float64
 	turnThreshold   float64
@@ -30,18 +31,88 @@ func NewAdaptiveController() *AdaptiveController {
 		voi:             NewVOIEngine(DefaultUtilityWeights()),
 		router:          NewModelRouter(),
 		estimator:       NewComputeEstimator(0.50),
+		optimizer:       NewCapabilityPreservingOptimizer(NewSyntheticCapabilityEstimator(), DefaultModels()),
 		hysteresisDelta: 0.05,
 		turnThreshold:   0.10,
 	}
 }
 
+// SetOptimizer configures the capability-preserving optimizer (e.g. empirical or custom).
+func (ac *AdaptiveController) SetOptimizer(opt *CapabilityPreservingOptimizer) {
+	if opt != nil {
+		ac.optimizer = opt
+	}
+}
+
 // DecisionStepResult contains the chosen action, updated effort, and explanation.
 type DecisionStepResult struct {
-	Action      Action                 `json:"action"`
-	StopReason  string                 `json:"stop_reason,omitempty"`
-	Effort      EffortLevel            `json:"effort"`
-	CandidateVOI []CandidateActionScore `json:"candidate_voi"`
-	Model       ModelCandidate         `json:"model"`
+	Action        Action                 `json:"action"`
+	StopReason    string                 `json:"stop_reason,omitempty"`
+	Effort        EffortLevel            `json:"effort"`
+	CandidateVOI  []CandidateActionScore `json:"candidate_voi"`
+	Model         ModelCandidate         `json:"model"`
+	Configuration *Configuration         `json:"configuration,omitempty"`
+}
+
+// StepPreserving evaluates state with R16 capability floor and selects the minimum-sufficient configuration.
+func (ac *AdaptiveController) StepPreserving(
+	state ControllerState,
+	task TaskProfile,
+	floor CapabilityFloor,
+	currentEffort EffortLevel,
+) DecisionStepResult {
+	// 1. Calibrate confidence and risk
+	calibratedConf := ac.calibrator.CalibrateConfidence(
+		state.EstimatedConfidence,
+		state.Difficulty,
+		state.EvidenceCoverage,
+		state.EvidenceConflict,
+	)
+	state.EstimatedConfidence = calibratedConf
+	state.CalibratedRisk = ac.calibrator.CalibrateRisk(calibratedConf, state.Risk)
+
+	// 2. Select minimum-sufficient configuration satisfying capability floor (Invariant A, B, C, D)
+	cfg, _ := ac.optimizer.SelectMinimumSufficient(state, task, floor)
+
+	// 3. Evaluate candidate action VOIs
+	actionScores := ac.voi.EvaluateActions(
+		state.EstimatedConfidence,
+		state.CalibratedRisk,
+		state.EvidenceCoverage,
+		state.Difficulty,
+		state.CacheState,
+		state.RemainingBudget,
+	)
+
+	best := ac.voi.BestAction(actionScores)
+
+	// Invariant C: if floor mandates verification and we haven't verified, prioritize verification before stop
+	if floor.RequireVerification && best.Action == ActionStop && !state.Verified {
+		best.Action = ActionVerify
+	}
+
+	// 4. Check adaptive stopping conditions
+	if best.Action == ActionStop {
+		stop, reason := ac.stopping.ShouldStop(state, best.VOI)
+		if stop {
+			return DecisionStepResult{
+				Action:        ActionStop,
+				StopReason:    reason,
+				Effort:        cfg.Effort,
+				CandidateVOI:  actionScores,
+				Model:         cfg.Model,
+				Configuration: &cfg,
+			}
+		}
+	}
+
+	return DecisionStepResult{
+		Action:        best.Action,
+		Effort:        cfg.Effort,
+		CandidateVOI:  actionScores,
+		Model:         cfg.Model,
+		Configuration: &cfg,
+	}
 }
 
 // Step evaluates current state and selects the next optimal action.

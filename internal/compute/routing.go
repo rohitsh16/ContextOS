@@ -192,3 +192,13 @@ func (mr *ModelRouter) BuildCascade(difficulty float64) CascadePlan {
 		}
 	}
 }
+
+// Candidates returns the list of model candidates registered in the router.
+func (mr *ModelRouter) Candidates() []ModelCandidate {
+	return mr.candidates
+}
+
+// DefaultModels returns a default slice of candidate models across providers.
+func DefaultModels() []ModelCandidate {
+	return NewModelRouter().candidates
+}

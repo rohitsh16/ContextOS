@@ -1,14 +1,14 @@
 {
   "manifest_id": "manifest-r15-freeze-42",
   "benchmark_version": "R15.0-alpha",
-  "timestamp": "2026-09-21T19:01:32.353753Z",
+  "timestamp": "2026-09-22T12:23:19.521721Z",
   "gate": "R15.5",
   "total_tasks": 120,
   "total_successes": 120,
   "success_rate": 1,
-  "total_cost_usd": 0.29071999999999976,
-  "avg_cost_usd": 0.0024226666666666645,
-  "avg_reasoning_tokens": 853.3333333333334,
+  "total_cost_usd": 0.36606079999999996,
+  "avg_cost_usd": 0.0030505066666666665,
+  "avg_reasoning_tokens": 546.1333333333333,
   "profiler_difficulty_mse": 0.1664038,
   "profiler_bypass_accuracy": 0.9833333333333333,
   "overthinking_rate": 0,
@@ -87,8 +87,68 @@
   ],
   "taxonomy_distribution": [
     {
+      "bucket": "cache side effect",
+      "description": "Prompt cache miss or invalidation penalty",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "bad calibration",
+      "description": "Significant gap between confidence and empirical success probability",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "wrong context",
+      "description": "Distractor files displaced relevant context",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "under-reasoning",
+      "description": "Model allocated insufficient reasoning tokens for complex logic",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "over-reasoning",
+      "description": "Model allocated excessive reasoning tokens on trivial tasks",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "bad stopping",
+      "description": "Premature halt before reaching target confidence",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "under-retrieval",
+      "description": "Model attempted reasoning without necessary repository evidence",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "over-retrieval",
+      "description": "Redundant retrieval operations performed after evidence saturation",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "missing context",
+      "description": "Omission of necessary dependency files from working context",
+      "count": 0,
+      "percentage": 0
+    },
+    {
       "bucket": "verification failure",
       "description": "Generated patch failed automated test assertions",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "transient provider failure",
+      "description": "Simulated upstream rate limit or API timeout",
       "count": 0,
       "percentage": 0
     },
@@ -105,68 +165,8 @@
       "percentage": 0
     },
     {
-      "bucket": "bad calibration",
-      "description": "Significant gap between confidence and empirical success probability",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "under-retrieval",
-      "description": "Model attempted reasoning without necessary repository evidence",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "over-reasoning",
-      "description": "Model allocated excessive reasoning tokens on trivial tasks",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "missing context",
-      "description": "Omission of necessary dependency files from working context",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "transient provider failure",
-      "description": "Simulated upstream rate limit or API timeout",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "bad stopping",
-      "description": "Premature halt before reaching target confidence",
-      "count": 0,
-      "percentage": 0
-    },
-    {
       "bucket": "bad success oracle",
       "description": "Discrepancy between oracle verification and ground-truth correctness",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "wrong context",
-      "description": "Distractor files displaced relevant context",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "cache side effect",
-      "description": "Prompt cache miss or invalidation penalty",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "under-reasoning",
-      "description": "Model allocated insufficient reasoning tokens for complex logic",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "over-retrieval",
-      "description": "Redundant retrieval operations performed after evidence saturation",
       "count": 0,
       "percentage": 0
     }
@@ -1941,14 +1941,13 @@
       "calibrated_confidence": 0.34662499999999996,
       "calibration_delta": -0.258375,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -1967,14 +1966,13 @@
       "calibrated_confidence": 0.35487499999999994,
       "calibration_delta": -0.25712500000000005,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2019,14 +2017,13 @@
       "calibrated_confidence": 0.35899999999999993,
       "calibration_delta": -0.2565,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2045,14 +2042,13 @@
       "calibrated_confidence": 0.3383749999999999,
       "calibration_delta": -0.25962500000000005,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2071,14 +2067,13 @@
       "calibrated_confidence": 0.35075,
       "calibration_delta": -0.25775000000000003,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2123,14 +2118,13 @@
       "calibrated_confidence": 0.363125,
       "calibration_delta": -0.255875,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2149,14 +2143,13 @@
       "calibrated_confidence": 0.34249999999999997,
       "calibration_delta": -0.25900000000000006,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2279,14 +2272,13 @@
       "calibrated_confidence": 0.35899999999999993,
       "calibration_delta": -0.2565,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2331,14 +2323,13 @@
       "calibrated_confidence": 0.35487499999999994,
       "calibration_delta": -0.25712500000000005,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2383,14 +2374,13 @@
       "calibrated_confidence": 0.33425,
       "calibration_delta": -0.26025000000000004,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2409,14 +2399,13 @@
       "calibrated_confidence": 0.33012499999999995,
       "calibration_delta": -0.260875,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2461,14 +2450,13 @@
       "calibrated_confidence": 0.3383749999999999,
       "calibration_delta": -0.25962500000000005,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2513,14 +2501,13 @@
       "calibrated_confidence": 0.32599999999999996,
       "calibration_delta": -0.26150000000000007,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2539,14 +2526,13 @@
       "calibrated_confidence": 0.35899999999999993,
       "calibration_delta": -0.2565,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2591,14 +2577,13 @@
       "calibrated_confidence": 0.35075,
       "calibration_delta": -0.25775000000000003,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -2669,14 +2654,13 @@
       "calibrated_confidence": 0.34249999999999997,
       "calibration_delta": -0.25900000000000006,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -3111,14 +3095,13 @@
       "calibrated_confidence": 0.173375,
       "calibration_delta": -0.340625,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,
@@ -3189,14 +3172,13 @@
       "calibrated_confidence": 0.16924999999999996,
       "calibration_delta": -0.34125,
       "actions_taken": [
-        "RETRIEVE",
-        "RETRIEVE_SYMBOLS",
-        "VERIFY"
+        "ESCALATE",
+        "VERIFY_AND_FINALIZE"
       ],
-      "stop_reason": "target_satisfied: fast retrieval + lightweight model",
-      "step_count": 3,
-      "total_reasoning_tokens": 2048,
-      "estimated_cost_usd": 0.0008144,
+      "stop_reason": "verified_clean",
+      "step_count": 2,
+      "total_reasoning_tokens": 0,
+      "estimated_cost_usd": 0.005,
       "task_succeeded": true,
       "overthinking_detected": false,
       "premature_stop_detected": false,

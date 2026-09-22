@@ -12,6 +12,7 @@ type ControllerState struct {
 	ContextTokens   int64 `json:"context_tokens"`
 	ReasoningTokens int64 `json:"reasoning_tokens"`
 	TurnCount       int   `json:"turn_count"`
+	Verified        bool  `json:"verified"`
 
 	RemainingBudget BudgetState `json:"remaining_budget"`
 	CacheState      CacheState  `json:"cache_state"`

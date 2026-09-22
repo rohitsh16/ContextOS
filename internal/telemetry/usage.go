@@ -23,6 +23,11 @@ type UsageMetrics struct {
 	EstimatedCostUSD        float64        `json:"estimated_cost_usd"`
 	ProviderReportedCostUSD float64        `json:"provider_reported_cost_usd,omitempty"`
 
+	// R16 Section 11: Requested vs Realized compute
+	RequestedEffort          string  `json:"requested_effort,omitempty"`
+	RequestedReasoningBudget int64   `json:"requested_reasoning_budget,omitempty"`
+	ReasoningUtilization     float64 `json:"reasoning_utilization,omitempty"`
+
 	UnknownFields       map[string]any `json:"unknown_fields,omitempty"`
 }
 
@@ -43,6 +48,15 @@ func (u *UsageMetrics) Add(other UsageMetrics) {
 	u.TotalLatencyMS += other.TotalLatencyMS
 	u.EstimatedCostUSD += other.EstimatedCostUSD
 	u.ProviderReportedCostUSD += other.ProviderReportedCostUSD
+	if other.RequestedEffort != "" {
+		u.RequestedEffort = other.RequestedEffort
+	}
+	if other.RequestedReasoningBudget > 0 {
+		u.RequestedReasoningBudget += other.RequestedReasoningBudget
+	}
+	if u.RequestedReasoningBudget > 0 {
+		u.ReasoningUtilization = float64(u.ReasoningTokens) / float64(u.RequestedReasoningBudget)
+	}
 	if other.UnknownFields != nil {
 		if u.UnknownFields == nil {
 			u.UnknownFields = make(map[string]any)

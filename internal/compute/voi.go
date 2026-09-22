@@ -49,6 +49,11 @@ func ComputeUtility(quality, costUSD, latencySec, risk float64, w UtilityWeights
 	return quality - (w.LambdaCost * costUSD) - (w.MuLatency * latencySec) - (w.RhoRisk * risk)
 }
 
+// ActionDelta computes the exact marginal utility difference between current and projected states (R16 Section 9).
+func ActionDelta(currentUtility, projectedUtility float64) float64 {
+	return projectedUtility - currentUtility
+}
+
 // CacheState tracks prompt cache persistence and invalidation penalty.
 type CacheState struct {
 	Active                 bool    `json:"active"`
@@ -111,7 +116,7 @@ func (v *VOIEngine) EvaluateActions(
 		}
 		projRisk := currentRisk * (1.0 - missingEvidence*0.6)
 		uAfter := ComputeUtility(projConf, budget.SpentCostUSD+cost, latency, projRisk, v.weights)
-		voi := uAfter - currentUtility - cost
+		voi := ActionDelta(currentUtility, uAfter)
 
 		candidates = append(candidates, CandidateActionScore{
 			Action:       ActionRetrieve,
@@ -135,7 +140,7 @@ func (v *VOIEngine) EvaluateActions(
 		}
 		projRisk := currentRisk * 0.7
 		uAfter := ComputeUtility(projConf, budget.SpentCostUSD+cost, latency, projRisk, v.weights)
-		voi := uAfter - currentUtility - cost
+		voi := ActionDelta(currentUtility, uAfter)
 
 		// Cache disruption check: If thinking effort alters prefix, apply cache penalty
 		var cachePenalty float64
@@ -164,7 +169,7 @@ func (v *VOIEngine) EvaluateActions(
 			projConf = 0.99
 		}
 		uAfter := ComputeUtility(projConf, budget.SpentCostUSD+cost, latency, projRisk, v.weights)
-		voi := uAfter - currentUtility - cost
+		voi := ActionDelta(currentUtility, uAfter)
 
 		candidates = append(candidates, CandidateActionScore{
 			Action:       ActionVerify,
@@ -186,7 +191,7 @@ func (v *VOIEngine) EvaluateActions(
 		}
 		projRisk := currentRisk * 0.4
 		uAfter := ComputeUtility(projConf, budget.SpentCostUSD+cost, latency, projRisk, v.weights)
-		voi := uAfter - currentUtility - cost
+		voi := ActionDelta(currentUtility, uAfter)
 
 		candidates = append(candidates, CandidateActionScore{
 			Action:       ActionEscalate,

@@ -13,6 +13,7 @@ import (
 	"contextos/internal/bench"
 	"contextos/internal/compute"
 	"contextos/internal/planning"
+	"contextos/internal/providers"
 	"contextos/internal/server"
 	"contextos/internal/store"
 	"contextos/internal/telemetry"
@@ -56,6 +57,11 @@ func main() {
 	mrEdges := flag.Int("edges", 50000, "number of scale-free power-law edges")
 	mrWorkers := flag.Int("workers", 8, "concurrent worker goroutines")
 	mrQueries := flag.Int("queries", 100, "total planning queries to execute")
+	r16 := flag.Bool("r16", false, "run Phase R16: Capability-Preserving Inference Controller Benchmark (R16_CAPABILITY_PRESERVING_IMPLEMENTATION.md)")
+	r16Mode := flag.String("r16-mode", "synthetic", "run mode for R16: synthetic, mock_provider, real_provider")
+	r16Stress := flag.Bool("r16-stress", false, "run R16 Stress & Benchmark Protocol (R16_STRESS_BENCHMARK_PROTOCOL.md)")
+	r16StressN := flag.Int("r16-stress-n", 1000, "number of synthetic tasks for R16 stress testing")
+	r16StressWorkers := flag.Int("r16-stress-workers", 8, "worker concurrency for R16 stress testing")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
 
@@ -137,6 +143,121 @@ func main() {
 			for class, p95 := range rep.ClassLatencies {
 				fmt.Printf("  • %-20s: %v\n", class, p95)
 			}
+		}
+		return
+	}
+
+	if *r16 {
+		resultsDir := "benchmarks/results/r16"
+		runType := providers.RunTypeSynthetic
+		switch *r16Mode {
+		case "mock_provider", "mock":
+			runType = providers.RunTypeMock
+		case "real_provider", "real":
+			runType = providers.RunTypeReal
+		}
+
+		fmt.Printf("=== ContextOS R16 Capability-Preserving Inference Benchmark ===\n")
+		fmt.Printf("RunType: %s | Pricing: 2026-03-v1 | Optimization: min E[C_E2E] s.t. Q_LCB >= Q_floor\n\n", runType)
+
+		report, err := compute_bench.RunR16CapabilityBenchmark(nil, runType, resultsDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error running R16 benchmark: %v\n", err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			_ = enc.Encode(report)
+		} else {
+			fmt.Printf("Evaluated Tasks: %d\n", report.TotalTasksEvaluated)
+			fmt.Printf("Cost Reduction vs Baseline Fixed-Max: %.1f%%\n", report.CostSavingsVsFixedMax)
+			fmt.Printf("Cost Reduction vs Baseline Default:   %.1f%%\n", report.CostSavingsVsDefault)
+			fmt.Printf("Avoidable Cost Reduction (ACR):       %.1f%%\n", report.Invariants.AvoidableCostReduction*100.0)
+			fmt.Printf("Invariant A (Quality Floor Preserved): %v (%d violations)\n",
+				report.Invariants.InvariantAHeld, report.Invariants.InvariantAViolations)
+			fmt.Printf("Invariant C (Hard Compute Preserved):  %v\n", report.Invariants.InvariantCHeld)
+			fmt.Printf("Invariant D (Avoidable Spend Reduced): %v\n\n", report.Invariants.InvariantDHeld)
+
+			fmt.Printf("%-26s %-14s %-12s %-12s %-14s %-14s\n",
+				"POLICY", "SUCCESS", "TOTAL USD", "AVG USD", "CPS ($/succ)", "REASONING TOKS")
+			for _, pol := range []compute_bench.R16PolicyType{
+				compute_bench.PolicyBaselineFixedMax,
+				compute_bench.PolicyBaselineDefault,
+				compute_bench.PolicyContextOSHeuristic,
+				compute_bench.PolicyContextOSOptimizer,
+				compute_bench.PolicyOfflineOracle,
+			} {
+				s := report.Policies[pol]
+				fmt.Printf("%-26s %-14s $%-11.4f $%-11.4f $%-13.4f %-14.0f\n",
+					pol,
+					fmt.Sprintf("%.1f%% (%d/%d)", s.SuccessRate*100, s.SuccessCount, s.TotalTasks),
+					s.TotalCostUSD, s.AverageCostUSD, s.CostPerSuccess, s.AverageReasoningTokens)
+			}
+			fmt.Printf("\nGenerated Markdown Report: %s\n", filepath.Join(resultsDir, "r16_report.md"))
+			fmt.Printf("Generated JSON Summary:    %s\n", filepath.Join(resultsDir, "r16_summary.json"))
+		}
+		return
+	}
+
+	if *r16Stress {
+		resultsDir := "benchmarks/results/r16"
+		fmt.Printf("=== ContextOS R16 Stress & Benchmark Protocol ===\n")
+		fmt.Printf("Tasks: %d | Concurrency: %d workers | Results: %s\n\n", *r16StressN, *r16StressWorkers, resultsDir)
+
+		report, err := compute_bench.RunR16StressBenchmark(*r16StressN, *r16StressWorkers, resultsDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error running R16 stress benchmark: %v\n", err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			_ = enc.Encode(report)
+		} else {
+			icon := "🟢"
+			if report.Verdict == compute_bench.VerdictYellow {
+				icon = "🟡"
+			} else if report.Verdict == compute_bench.VerdictRed {
+				icon = "🔴"
+			}
+			fmt.Printf("Final Research Verdict: %s %s\n", icon, report.Verdict)
+			for _, reason := range report.VerdictReasons {
+				fmt.Printf("  • %s\n", reason)
+			}
+			fmt.Printf("\nRing 0 Adversarial Traps:       %v (%d traps tested)\n", report.Ring0Passed, len(report.Ring0Traps))
+			fmt.Printf("Ring 1 Synthetic Tasks:         %d\n", report.Ring1TotalTasks)
+			fmt.Printf("Ring 1 Floor Violation Rate:    %.4f%% (Gate: 0.00%%)\n", report.Ring1ViolationRate*100.0)
+			fmt.Printf("Avoidable Cost Reduction (ACR): %.1f%%\n", report.AvoidableCostACR*100.0)
+			fmt.Printf("Controller Overhead Ratio:      %.2f%% (SLA: <= 5.0%%)\n", report.ControllerOverhead*100.0)
+			fmt.Printf("Floor Ablation Delta Q:         %+.1f%% (B8 vs B8-NoFloor)\n\n", report.FloorAblationDeltaQ*100.0)
+
+			fmt.Printf("%-26s %-12s %-12s %-12s %-14s %-10s\n",
+				"BASELINE", "SUCCESS", "TOTAL USD", "AVG USD", "CPS ($/succ)", "VIOLATIONS")
+			for _, b := range []compute_bench.StressBaselineType{
+				compute_bench.B0FixedStrongDefault,
+				compute_bench.B1FixedHighReasoning,
+				compute_bench.B2FixedMaximum,
+				compute_bench.B3ContextOnly,
+				compute_bench.B4ComputeOnly,
+				compute_bench.B5ModelRoutingOnly,
+				compute_bench.B6ContextPlusCompute,
+				compute_bench.B7ContextPlusRouting,
+				compute_bench.B8CapabilityFloor,
+				compute_bench.B8NoFloor,
+				compute_bench.B9OfflineOracle,
+			} {
+				s := report.Baselines[b]
+				fmt.Printf("%-26s %-12s $%-11.4f $%-11.4f $%-13.4f %-10d\n",
+					b,
+					fmt.Sprintf("%.1f%%", s.SuccessRate*100),
+					s.TotalCostUSD, s.AverageCostUSD, s.CostPerSuccess, s.FloorViolations)
+			}
+			fmt.Printf("\nGenerated Markdown Report: %s\n", filepath.Join(resultsDir, "r16_stress_report.md"))
+			fmt.Printf("Generated JSON Summary:    %s\n", filepath.Join(resultsDir, "r16_stress_summary.json"))
+			fmt.Printf("Generated JSONL Trace:     %s\n", report.TraceJSONLPath)
 		}
 		return
 	}
@@ -347,8 +468,6 @@ func main() {
 		}
 		return
 	}
-
-
 
 	cfg := bench.DefaultConfig()
 	cfg.Seed = *seed
