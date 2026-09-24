@@ -1,13 +1,13 @@
 {
-  "manifest_id": "r16-capability-1790080335",
+  "manifest_id": "r16-capability-1790260296",
   "version": "R16.0",
-  "timestamp": "2026-09-22T12:32:15.335394Z",
+  "timestamp": "2026-09-24T14:31:36.760076Z",
   "metadata": {
-    "execution_id": "exec_65366538366434313231623262633632",
+    "execution_id": "exec_62393232636563643238386236333632",
     "run_type": "synthetic",
     "provider_mode": "mock",
     "pricing_version": "2026-03-v1",
-    "timestamp": "2026-09-22T12:32:15.335393Z"
+    "timestamp": "2026-09-24T14:31:36.760076Z"
   },
   "total_tasks_evaluated": 30,
   "policies": {

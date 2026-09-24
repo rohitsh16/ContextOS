@@ -17,6 +17,17 @@ type TaskRunTelemetry struct {
 	ContextTokens   int64 `json:"context_tokens"`
 	RetrievalTokens int64 `json:"retrieval_tokens"`
 
+	TaskFamily         string             `json:"task_family,omitempty"`
+	TaskClass          string             `json:"task_class,omitempty"`
+	DifficultyBucket   string             `json:"difficulty_bucket,omitempty"`
+	Difficulty         float64            `json:"difficulty,omitempty"`
+	QualityScore       float64            `json:"quality_score,omitempty"`
+	QualityComponents  map[string]float64 `json:"quality_components,omitempty"`
+	RequestedEffort    string             `json:"requested_effort,omitempty"`
+	EstimatorSource    string             `json:"estimator_source,omitempty"`
+	EstimatorSamples   int                `json:"estimator_samples,omitempty"`
+	FallbackLevel      int                `json:"fallback_level,omitempty"`
+
 	Success            bool   `json:"success"`
 	TestsPassed        bool   `json:"tests_passed"`
 	DecisionPreserved  bool   `json:"decision_preserved"`

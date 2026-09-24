@@ -1,9 +1,15 @@
 package gemini
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"contextos/internal/providers"
 	"contextos/internal/telemetry"
@@ -168,11 +174,99 @@ func (p *Provider) NormalizeUsage(raw map[string]any, model string) telemetry.Us
 	return usage
 }
 
+func (p *Provider) generateReal(ctx context.Context, req providers.ProviderRequest, params NativeParams) (providers.ProviderResponse, error) {
+	apiKey := req.Execution.APIKey
+	if apiKey == "" {
+		apiKey = os.Getenv("GEMINI_API_KEY")
+	}
+	if apiKey == "" {
+		apiKey = os.Getenv("GOOGLE_API_KEY")
+	}
+	if apiKey == "" {
+		return providers.ProviderResponse{}, fmt.Errorf("GEMINI_API_KEY is required for ProviderModeReal")
+	}
+
+	endpoint := req.Execution.Endpoint
+	if endpoint == "" {
+		endpoint = fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", req.Model, apiKey)
+	}
+
+	bodyMap := map[string]any{
+		"contents": params.Contents,
+	}
+	if params.ThinkingConfig != nil {
+		bodyMap["generationConfig"] = map[string]any{
+			"thinkingConfig": params.ThinkingConfig,
+		}
+	}
+
+	bodyJSON, err := json.Marshal(bodyMap)
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(bodyJSON))
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	startTime := time.Now()
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Do(httpReq)
+	latency := time.Since(startTime)
+	if err != nil {
+		return providers.ProviderResponse{}, fmt.Errorf("gemini api error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return providers.ProviderResponse{}, fmt.Errorf("gemini api returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var respJSON struct {
+		Candidates []struct {
+			Content struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			} `json:"content"`
+			FinishReason string `json:"finishReason"`
+		} `json:"candidates"`
+		UsageMetadata map[string]any `json:"usageMetadata"`
+		ModelVersion  string         `json:"modelVersion"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&respJSON); err != nil {
+		return providers.ProviderResponse{}, fmt.Errorf("gemini decode response error: %w", err)
+	}
+
+	usage := p.NormalizeUsage(respJSON.UsageMetadata, req.Model)
+	usage.TotalLatencyMS = latency.Milliseconds()
+	usage.ModelLatencyMS = latency.Milliseconds()
+
+	var text string
+	if len(respJSON.Candidates) > 0 && len(respJSON.Candidates[0].Content.Parts) > 0 {
+		text = respJSON.Candidates[0].Content.Parts[0].Text
+	}
+
+	return providers.ProviderResponse{
+		Text:         text,
+		FinishReason: providers.FinishReasonStop,
+		Usage:        usage,
+	}, nil
+}
+
 // Generate implements providers.Provider. In offline/mock mode it synthesizes response with normalized metrics.
 func (p *Provider) Generate(ctx context.Context, req providers.ProviderRequest) (providers.ProviderResponse, error) {
 	params, err := p.TranslateRequest(req)
 	if err != nil {
 		return providers.ProviderResponse{}, err
+	}
+
+	if req.Execution.Mode == providers.ProviderModeReal {
+		return p.generateReal(ctx, req, params)
 	}
 
 	var reasoningTokens int64 = 0

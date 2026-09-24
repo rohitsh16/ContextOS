@@ -62,10 +62,12 @@ type Edge struct {
 
 // Graph represents the code dependency graph G = (V, E, W).
 type Graph struct {
-	nodes    map[string]*Node
-	outEdges map[string][]Edge // src -> out edges
-	inEdges  map[string][]Edge // dst -> in edges
-	cfg      Config
+	nodes             map[string]*Node
+	outEdges          map[string][]Edge // src -> out edges
+	inEdges           map[string][]Edge // dst -> in edges
+	cfg               Config
+	cachedMaxDeg      int
+	cachedMaxDegValid bool
 }
 
 func New(cfg Config) *Graph {
@@ -109,6 +111,7 @@ func (g *Graph) AddEdge(srcID, dstID, kind string) {
 	e := Edge{SrcID: srcID, DstID: dstID, Kind: kind, Weight: w}
 	g.outEdges[srcID] = append(g.outEdges[srcID], e)
 	g.inEdges[dstID] = append(g.inEdges[dstID], e)
+	g.cachedMaxDegValid = false
 }
 
 // HasEdge reports whether a directed edge exists from srcID to dstID.
@@ -131,6 +134,9 @@ func (g *Graph) NodeCount() int {
 
 // MaxDegree computes the maximum total degree (in + out) across all nodes.
 func (g *Graph) MaxDegree() int {
+	if g.cachedMaxDegValid {
+		return g.cachedMaxDeg
+	}
 	maxDeg := 0
 	for id := range g.nodes {
 		deg := len(g.outEdges[id]) + len(g.inEdges[id])
@@ -138,6 +144,8 @@ func (g *Graph) MaxDegree() int {
 			maxDeg = deg
 		}
 	}
+	g.cachedMaxDeg = maxDeg
+	g.cachedMaxDegValid = true
 	return maxDeg
 }
 

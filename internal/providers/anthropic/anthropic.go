@@ -1,9 +1,15 @@
 package anthropic
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"contextos/internal/providers"
 	"contextos/internal/telemetry"
@@ -207,6 +213,10 @@ func (p *Provider) Generate(ctx context.Context, req providers.ProviderRequest) 
 		return providers.ProviderResponse{}, err
 	}
 
+	if req.Execution.Mode == providers.ProviderModeReal {
+		return p.generateReal(ctx, req, params)
+	}
+
 	var reasoningTokens int64 = 0
 	if params.Thinking != nil && params.Thinking.BudgetTokens > 0 {
 		reasoningTokens = params.Thinking.BudgetTokens / 2
@@ -227,5 +237,108 @@ func (p *Provider) Generate(ctx context.Context, req providers.ProviderRequest) 
 		Text:         fmt.Sprintf("Executed task with Anthropic model %s with thinking config: %+v", req.Model, params.Thinking),
 		FinishReason: providers.FinishReasonStop,
 		Usage:        mockUsage,
+	}, nil
+}
+
+func (p *Provider) generateReal(ctx context.Context, req providers.ProviderRequest, params NativeParams) (providers.ProviderResponse, error) {
+	apiKey := req.Execution.APIKey
+	if apiKey == "" {
+		apiKey = os.Getenv("ANTHROPIC_API_KEY")
+	}
+	if apiKey == "" {
+		return providers.ProviderResponse{}, fmt.Errorf("ANTHROPIC_API_KEY is required for ProviderModeReal")
+	}
+
+	endpoint := req.Execution.Endpoint
+	if endpoint == "" {
+		endpoint = "https://api.anthropic.com/v1/messages"
+	}
+
+	bodyJSON, err := json.Marshal(params)
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyJSON))
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	httpReq.Header.Set("x-api-key", apiKey)
+	httpReq.Header.Set("anthropic-version", "2023-06-01")
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	startTime := time.Now()
+	client := req.Execution.HTTPClient
+	if client == nil {
+		client = &http.Client{Timeout: 60 * time.Second}
+	}
+	resp, err := client.Do(httpReq)
+	latency := time.Since(startTime)
+	if err != nil {
+		return providers.ProviderResponse{}, fmt.Errorf("anthropic api error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return providers.ProviderResponse{}, fmt.Errorf("anthropic api returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var respJSON struct {
+		ID      string `json:"id"`
+		Type    string `json:"type"`
+		Role    string `json:"role"`
+		Content []struct {
+			Type     string `json:"type"`
+			Text     string `json:"text,omitempty"`
+			Thinking string `json:"thinking,omitempty"`
+		} `json:"content"`
+		Model      string         `json:"model"`
+		StopReason string         `json:"stop_reason"`
+		Usage      map[string]any `json:"usage"`
+	}
+
+	if err := json.Unmarshal(respBody, &respJSON); err != nil {
+		return providers.ProviderResponse{}, fmt.Errorf("anthropic decode error: %w", err)
+	}
+
+	if respJSON.Usage == nil {
+		return providers.ProviderResponse{}, fmt.Errorf("anthropic real response omitted usage; refusing to invent billed telemetry")
+	}
+
+	usage := p.NormalizeUsage(respJSON.Usage, req.Model)
+	usage.TotalLatencyMS = latency.Milliseconds()
+	usage.ModelLatencyMS = latency.Milliseconds()
+	usage.RequestedEffort = req.Compute.Effort.String()
+	if req.Compute.MaxReasoningTokens != nil {
+		usage.RequestedReasoningBudget = *req.Compute.MaxReasoningTokens
+	}
+	if usage.RequestedReasoningBudget > 0 {
+		usage.ReasoningUtilization = float64(usage.ReasoningTokens) / float64(usage.RequestedReasoningBudget)
+	}
+
+	var textBuilder strings.Builder
+	for _, block := range respJSON.Content {
+		if block.Type == "text" {
+			textBuilder.WriteString(block.Text)
+		}
+	}
+
+	return providers.ProviderResponse{
+		Text:         textBuilder.String(),
+		FinishReason: providers.FinishReasonStop,
+		Usage:        usage,
+		ModelVersion: respJSON.Model,
+		ProviderState: providers.ProviderState{
+			RawResponseID: respJSON.ID,
+			Metadata: map[string]any{
+				"execution_mode": "real",
+				"stop_reason":    respJSON.StopReason,
+			},
+		},
 	}, nil
 }

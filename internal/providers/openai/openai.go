@@ -1,9 +1,15 @@
 package openai
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"contextos/internal/providers"
 	"contextos/internal/telemetry"
@@ -58,11 +64,11 @@ func (p *Provider) Capabilities(ctx context.Context, model string) (providers.Mo
 
 // NativeParams represents the translated OpenAI API request parameters.
 type NativeParams struct {
-	Model           string           `json:"model"`
-	Messages        []map[string]any `json:"messages"`
-	ReasoningEffort string           `json:"reasoning_effort,omitempty"`
-	MaxCompletionTokens *int64       `json:"max_completion_tokens,omitempty"`
-	Tools           []map[string]any `json:"tools,omitempty"`
+	Model               string           `json:"model"`
+	Messages            []map[string]any `json:"messages"`
+	ReasoningEffort     string           `json:"reasoning_effort,omitempty"`
+	MaxCompletionTokens *int64           `json:"max_completion_tokens,omitempty"`
+	Tools               []map[string]any `json:"tools,omitempty"`
 }
 
 // TranslateRequest maps a provider-neutral ProviderRequest into OpenAI-native parameters.
@@ -169,6 +175,9 @@ func (p *Provider) Generate(ctx context.Context, req providers.ProviderRequest) 
 	if err != nil {
 		return providers.ProviderResponse{}, err
 	}
+	if req.Execution.Mode == providers.ProviderModeReal {
+		return p.generateReal(ctx, req, params)
+	}
 
 	// If a synthetic execution or mock is needed:
 	mockUsage := telemetry.UsageMetrics{
@@ -187,4 +196,72 @@ func (p *Provider) Generate(ctx context.Context, req providers.ProviderRequest) 
 		FinishReason: providers.FinishReasonStop,
 		Usage:        mockUsage,
 	}, nil
+}
+
+// generateReal is deliberately narrow: it uses the Chat Completions-compatible
+// endpoint and rejects missing usage instead of fabricating telemetry.
+func (p *Provider) generateReal(ctx context.Context, req providers.ProviderRequest, params NativeParams) (providers.ProviderResponse, error) {
+	key := req.Execution.APIKey
+	if key == "" {
+		key = os.Getenv("OPENAI_API_KEY")
+	}
+	if key == "" {
+		return providers.ProviderResponse{}, fmt.Errorf("openai real mode requires OPENAI_API_KEY")
+	}
+	endpoint := req.Execution.Endpoint
+	if endpoint == "" {
+		endpoint = "https://api.openai.com/v1/chat/completions"
+	}
+	body, err := json.Marshal(params)
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	hreq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	hreq.Header.Set("Authorization", "Bearer "+key)
+	hreq.Header.Set("Content-Type", "application/json")
+	started := time.Now()
+	hresp, err := http.DefaultClient.Do(hreq)
+	if err != nil {
+		return providers.ProviderResponse{}, fmt.Errorf("openai real request: %w", err)
+	}
+	defer hresp.Body.Close()
+	rawBody, err := io.ReadAll(hresp.Body)
+	if err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	if hresp.StatusCode < 200 || hresp.StatusCode >= 300 {
+		return providers.ProviderResponse{}, fmt.Errorf("openai real request returned %s: %s", hresp.Status, string(rawBody))
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(rawBody, &raw); err != nil {
+		return providers.ProviderResponse{}, err
+	}
+	usageRaw, ok := raw["usage"].(map[string]any)
+	if !ok {
+		return providers.ProviderResponse{}, fmt.Errorf("openai real response omitted usage; refusing to invent billed telemetry")
+	}
+	usage := p.NormalizeUsage(usageRaw, req.Model)
+	usage.ModelLatencyMS = time.Since(started).Milliseconds()
+	usage.TotalLatencyMS = usage.ModelLatencyMS
+	usage.RequestedEffort = req.Compute.Effort.String()
+	if req.Compute.MaxReasoningTokens != nil {
+		usage.RequestedReasoningBudget = *req.Compute.MaxReasoningTokens
+	}
+	if usage.RequestedReasoningBudget > 0 {
+		usage.ReasoningUtilization = float64(usage.ReasoningTokens) / float64(usage.RequestedReasoningBudget)
+	}
+	text := ""
+	if choices, ok := raw["choices"].([]any); ok && len(choices) > 0 {
+		if c, ok := choices[0].(map[string]any); ok {
+			if msg, ok := c["message"].(map[string]any); ok {
+				text, _ = msg["content"].(string)
+			}
+		}
+	}
+	id, _ := raw["id"].(string)
+	fingerprint, _ := raw["system_fingerprint"].(string)
+	return providers.ProviderResponse{Text: text, Usage: usage, FinishReason: providers.FinishReasonStop, ModelVersion: req.Execution.ModelVersion, ProviderState: providers.ProviderState{RawResponseID: id, SystemFingerprint: fingerprint, Metadata: map[string]any{"execution_mode": "real"}}}, nil
 }

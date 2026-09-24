@@ -12,6 +12,9 @@ type RetrievalTrace struct {
 	RepoID   string `json:"repo_id"`
 	Revision string `json:"revision"`
 
+	// QueryClass is the R17 classification of the query (e.g. "FILE_BASENAME").
+	QueryClass string `json:"query_class,omitempty"`
+
 	TotalNodes         int   `json:"total_nodes"`
 	ScopedNodes        int   `json:"scoped_nodes"`
 	LexicalCandidates  int   `json:"lexical_candidates"`
@@ -34,6 +37,7 @@ type RetrievalTrace struct {
 	// TouchRatio = entities touched / entities indexed. Target < 1% for normal, < 0.1% localized.
 	TouchRatio float64 `json:"touch_ratio"`
 }
+
 
 // ComputeMetrics finalizes touch ratio and derived invariants on the trace.
 func (t *RetrievalTrace) ComputeMetrics() {

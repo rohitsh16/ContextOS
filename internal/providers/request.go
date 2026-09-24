@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"net/http"
 	"time"
 
 	"contextos/internal/model"
@@ -81,4 +82,15 @@ type ProviderRequest struct {
 	Compute      ComputePolicy     `json:"compute"`
 	Budget       BudgetPolicy      `json:"budget,omitempty"`
 	Continuation ContinuationState `json:"continuation,omitempty"`
+	Execution    ExecutionOptions  `json:"execution,omitempty"`
+}
+
+// ExecutionOptions makes mock versus billable execution explicit. APIKey is
+// intentionally request-scoped and omitted from JSON so telemetry cannot leak it.
+type ExecutionOptions struct {
+	Mode         ProviderMode `json:"mode,omitempty"`
+	Endpoint     string       `json:"endpoint,omitempty"`
+	ModelVersion string       `json:"model_version,omitempty"`
+	APIKey       string       `json:"-"`
+	HTTPClient   *http.Client `json:"-"`
 }

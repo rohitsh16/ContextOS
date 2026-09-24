@@ -301,7 +301,7 @@ $$
 
 The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
 
-See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation plan, [`docs/DASHBOARD_METRICS.md`](docs/DASHBOARD_METRICS.md) for the dashboard efficiency metrics glossary, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation framework and empirical benchmarks, [`docs/DASHBOARD.md`](docs/DASHBOARD.md) for the dashboard efficiency metrics glossary & deployment guide, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
 
 ---
 

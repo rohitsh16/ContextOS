@@ -76,7 +76,28 @@ type SWEThinkingReport struct {
 	Tasks                   []ThinkingComparisonResult `json:"tasks"`
 }
 
+func effortToTokens(eff compute.EffortLevel) int64 {
+	switch eff {
+	case compute.EffortMinimal:
+		return 0
+	case compute.EffortLow:
+		return 2048
+	case compute.EffortMedium:
+		return 8192
+	case compute.EffortHigh:
+		return 16384
+	case compute.EffortMaximum:
+		return 32768
+	default:
+		return 0
+	}
+}
+
 func main() {
+	runBenchmark()
+}
+
+func runBenchmark() {
 	// Standard Pricing pinned
 	reg := telemetry.DefaultPricingRegistry()
 	geminiFlashPricing, _ := reg.LookupLatest("gemini", "gemini-2.5-flash")
@@ -234,7 +255,7 @@ func main() {
 			EvidenceCoverage: 0.90,
 			ContextTokens:    500,
 		}
-		floor := compute.ResolveCapabilityFloor(taskProfile, "standard")
+		floor := compute.ResolveCapabilityFloor(taskProfile, 0.05)
 
 		candidate, ok := optimizer.SelectMinimumSufficient(ctrlState, taskProfile, floor)
 		if !ok {
@@ -242,7 +263,7 @@ func main() {
 			continue
 		}
 
-		ctxReasoning := candidate.Envelope.Usage.ReasoningTokens
+		ctxReasoning := effortToTokens(candidate.Effort)
 		var action string
 		if task.CanBypass {
 			action = "AST_DETERMINISTIC_BYPASS"
@@ -251,7 +272,7 @@ func main() {
 			action = fmt.Sprintf("%s:%s", candidate.Model.Model, candidate.Effort)
 		}
 
-		preserved := candidate.PredictedQualityLCB >= floor.MinQualityLCB
+		preserved := candidate.PredictedQualityLCB >= floor.RequiredQuality
 		if !preserved {
 			allFloorsPreserved = false
 		}
@@ -295,8 +316,8 @@ func main() {
 			ClaudeSonnetCtxCost:   cCtx,
 			ClaudeSonnetSavings:   cBase - cCtx,
 			QualityPreserved:      preserved,
-			ObservedLCB:           candidate.QualityLCB,
-			FloorQuality:          floor,
+			ObservedLCB:           candidate.PredictedQualityLCB,
+			FloorQuality:          floor.RequiredQuality,
 			ActionTaken:           action,
 		}
 		results = append(results, res)
@@ -312,7 +333,7 @@ func main() {
 			baseReasoning, ctxReasoning, reductionPct)
 		fmt.Printf("  Gemini Pro Thinking:  $%.5f  ->  $%.5f  (Saved $%.5f)\n", gpBase, gpCtx, gpBase-gpCtx)
 		fmt.Printf("  Claude 3.7 Thinking:  $%.5f  ->  $%.5f  (Saved $%.5f)\n", cBase, cCtx, cBase-cCtx)
-		fmt.Printf("  Capability Floor:     LCB: %.4f >= Floor: %.4f  [%s]\n\n", candidate.QualityLCB, floor, statusIcon)
+		fmt.Printf("  Capability Floor:     LCB: %.4f >= Floor: %.4f  [%s]\n\n", candidate.PredictedQualityLCB, floor.RequiredQuality, statusIcon)
 	}
 
 	netCompression := (1.0 - float64(totalCtxTokens)/float64(totalBaseTokens)) * 100.0

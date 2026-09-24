@@ -1,6 +1,10 @@
 package anthropic
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"contextos/internal/providers"
@@ -85,5 +89,71 @@ func TestAnthropicNormalizeUsage(t *testing.T) {
 	}
 	if usage.EstimatedCostUSD <= 0 {
 		t.Fatalf("expected positive estimated cost, got %f", usage.EstimatedCostUSD)
+	}
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
+}
+
+func TestAnthropicRealMode(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("x-api-key") != "test-key" {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, `{
+			"id": "msg_123",
+			"type": "message",
+			"role": "assistant",
+			"content": [{"type": "text", "text": "Anthropic response"}],
+			"model": "claude-3-7-sonnet-20250219",
+			"stop_reason": "end_turn",
+			"usage": {
+				"input_tokens": 100,
+				"output_tokens": 50,
+				"thinking_tokens": 20
+			}
+		}`)
+	})
+
+	httpClient := &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			return rec.Result(), nil
+		}),
+	}
+
+	p := New(nil)
+	req := providers.ProviderRequest{
+		Model: "claude-3-7-sonnet",
+		Execution: providers.ExecutionOptions{
+			Mode:       providers.ProviderModeReal,
+			APIKey:     "test-key",
+			Endpoint:   "http://in-memory/v1/messages",
+			HTTPClient: httpClient,
+		},
+		Messages: []providers.Message{
+			{Role: providers.RoleUser, Content: "Hello Claude"},
+		},
+	}
+
+	resp, err := p.Generate(context.Background(), req)
+	if err != nil {
+		t.Fatalf("generate failed: %v", err)
+	}
+
+	if resp.Text != "Anthropic response" {
+		t.Errorf("expected 'Anthropic response', got %q", resp.Text)
+	}
+	if resp.Usage.ReasoningTokens != 20 {
+		t.Errorf("expected 20 reasoning tokens, got %d", resp.Usage.ReasoningTokens)
+	}
+	if resp.ModelVersion != "claude-3-7-sonnet-20250219" {
+		t.Errorf("expected version claude-3-7-sonnet-20250219, got %q", resp.ModelVersion)
 	}
 }

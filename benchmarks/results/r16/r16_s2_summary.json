@@ -1,0 +1,4275 @@
+{
+  "manifest": {
+    "git_commit_sha": "r16-frontier-canary-prod",
+    "manifest_id": "r16-manifest-1790172234",
+    "benchmark_code_version": "ContextOS-R16-S2.v1",
+    "provider_mode": "mock",
+    "provider_names": [
+      "openai",
+      "gemini",
+      "anthropic"
+    ],
+    "model_versions": {
+      "anthropic": "claude-3-5-sonnet-20241022",
+      "gemini": "gemini-2.5-flash-001",
+      "openai": "o3-mini-2025-01-31"
+    },
+    "pricing_version": "2026-03-standard",
+    "pricing_source_urls": [
+      "https://openai.com/api/pricing",
+      "https://ai.google.dev/pricing",
+      "https://anthropic.com/pricing"
+    ],
+    "task_matrix_version": "12-task-300-run-matrix-v1",
+    "random_seed": 42,
+    "execution_date": "2026-09-23T14:03:54Z",
+    "platform": "darwin/arm64",
+    "go_version": "go1.23.0",
+    "configuration_flags": {
+      "mode": "mock",
+      "repeats": 5
+    }
+  },
+  "total_executions": 300,
+  "calibration_runs": 200,
+  "validation_runs": 50,
+  "holdout_runs": 50,
+  "policies": {
+    "baseline_default": {
+      "policy": "baseline_default",
+      "description": "Fixed medium reasoning effort for all tasks (standard default)",
+      "total_runs": 60,
+      "success_count": 45,
+      "success_rate": 0.75,
+      "mean_quality": 0.8332800975740415,
+      "quality_lcb": 0.7606013005846931,
+      "cost_per_success": 0.04596991666666666,
+      "mean_cost_usd": 0.03447743749999999,
+      "p95_cost_usd": 0.0434896,
+      "total_cost_usd": 2.0686462499999996,
+      "mean_reasoning_tokens": 6487,
+      "mean_latency_ms": 2367.633333333333,
+      "floor_violation_rate": 0.25,
+      "oracle_relative_regret": 0.09068914949633701
+    },
+    "baseline_fixed_max": {
+      "policy": "baseline_fixed_max",
+      "description": "Fixed maximum reasoning effort for all tasks (unconstrained budget)",
+      "total_runs": 60,
+      "success_count": 60,
+      "success_rate": 1,
+      "mean_quality": 0.9946766400731221,
+      "quality_lcb": 0.9928152539369943,
+      "cost_per_success": 0.040947124166666654,
+      "mean_cost_usd": 0.040947124166666654,
+      "p95_cost_usd": 0.0657756,
+      "total_cost_usd": 2.456827449999999,
+      "mean_reasoning_tokens": 7957.383333333333,
+      "mean_latency_ms": 2691.15,
+      "floor_violation_rate": 0,
+      "oracle_relative_regret": 0.29535682666852975
+    },
+    "baseline_heuristic": {
+      "policy": "baseline_heuristic",
+      "description": "Static rule-based effort selection by task complexity class",
+      "total_runs": 60,
+      "success_count": 60,
+      "success_rate": 1,
+      "mean_quality": 0.9944816071290823,
+      "quality_lcb": 0.9925439551655189,
+      "cost_per_success": 0.0332300375,
+      "mean_cost_usd": 0.0332300375,
+      "p95_cost_usd": 0.0657756,
+      "total_cost_usd": 1.9938022499999999,
+      "mean_reasoning_tokens": 6203.5,
+      "mean_latency_ms": 2305.3333333333335,
+      "floor_violation_rate": 0,
+      "oracle_relative_regret": 0.05122781641200539
+    },
+    "contextos": {
+      "policy": "contextos",
+      "description": "ContextOS empirical capability-preserving minimum-sufficient optimizer",
+      "total_runs": 60,
+      "success_count": 60,
+      "success_rate": 1,
+      "mean_quality": 0.9948643052876395,
+      "quality_lcb": 0.9929871167417108,
+      "cost_per_success": 0.04090979749999999,
+      "mean_cost_usd": 0.04090979749999999,
+      "p95_cost_usd": 0.0657756,
+      "total_cost_usd": 2.4545878499999993,
+      "mean_reasoning_tokens": 7948.9,
+      "mean_latency_ms": 2689.3333333333335,
+      "floor_violation_rate": 0,
+      "oracle_relative_regret": 0.2941760025333197
+    },
+    "offline_oracle": {
+      "policy": "offline_oracle",
+      "description": "Theoretical offline empirical oracle: lowest cost point on observed frontier satisfying capability floor",
+      "total_runs": 60,
+      "success_count": 60,
+      "success_rate": 1,
+      "mean_quality": 0.9941991782345337,
+      "quality_lcb": 0.9922238198712343,
+      "cost_per_success": 0.03161069083333334,
+      "mean_cost_usd": 0.03161069083333334,
+      "p95_cost_usd": 0.0657756,
+      "total_cost_usd": 1.8966414500000002,
+      "mean_reasoning_tokens": 5835.466666666666,
+      "mean_latency_ms": 2224.366666666667,
+      "floor_violation_rate": 0,
+      "oracle_relative_regret": 0
+    }
+  },
+  "class_breakdown": {
+    "T1": {
+      "class": "T1",
+      "total_runs": 15,
+      "success_rate": 1,
+      "mean_quality": 1,
+      "mean_cost_usd": 0.016656493333333335,
+      "mean_reasoning_tokens": 2768.4
+    },
+    "T2": {
+      "class": "T2",
+      "total_runs": 15,
+      "success_rate": 1,
+      "mean_quality": 0.998212231496227,
+      "mean_cost_usd": 0.03542781000000001,
+      "mean_reasoning_tokens": 6779.4
+    },
+    "T3": {
+      "class": "T3",
+      "total_runs": 15,
+      "success_rate": 1,
+      "mean_quality": 0.9973244829977336,
+      "mean_cost_usd": 0.04891194,
+      "mean_reasoning_tokens": 9657.933333333332
+    },
+    "T4": {
+      "class": "T4",
+      "total_runs": 15,
+      "success_rate": 1,
+      "mean_quality": 0.9839205066565984,
+      "mean_cost_usd": 0.06264294666666669,
+      "mean_reasoning_tokens": 12589.866666666667
+    }
+  },
+  "frontiers": [
+    {
+      "task_id": "task_01_nil_pointer_handling",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.006529599999999999,
+            "expected_latency_ms": 938,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.006529599999999999
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.013288,
+            "expected_latency_ms": 1276,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.013288
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.013367200000000001,
+            "expected_latency_ms": 1279.8,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.013367200000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.013457839999999999,
+            "expected_latency_ms": 1284.4,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.013457839999999999
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.01369368,
+            "expected_latency_ms": 1296,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.01369368
+        }
+      ]
+    },
+    {
+      "task_id": "task_02_bounds_checks",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.006729799999999999,
+            "expected_latency_ms": 952,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.006729799999999999
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.0134882,
+            "expected_latency_ms": 1290,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.0134882
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.016522440000000003,
+            "expected_latency_ms": 1441.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.016522440000000003
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.016630680000000002,
+            "expected_latency_ms": 1447.2,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.016630680000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.01695804,
+            "expected_latency_ms": 1463.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.01695804
+        }
+      ]
+    },
+    {
+      "task_id": "task_03_parameter_validation",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.006925600000000001,
+            "expected_latency_ms": 965,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.006925600000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.013683999999999998,
+            "expected_latency_ms": 1303,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.013683999999999998
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.0200508,
+            "expected_latency_ms": 1621.8,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.0200508
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.02009216,
+            "expected_latency_ms": 1623.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.02009216
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.020134400000000004,
+            "expected_latency_ms": 1625.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.020134400000000004
+        }
+      ]
+    },
+    {
+      "task_id": "task_04_context_propagation",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.325,
+            "quality_lcb": 0.325,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0075218,
+            "expected_latency_ms": 1007,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.325,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0075218
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.9986144647627736,
+            "quality_lcb": 0.9973601540860267,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.014280200000000002,
+            "expected_latency_ms": 1345,
+            "quality_std_err": 0.0006399544269116426,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0006399544269116426,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9973601540860267,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.014280200000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9980875679922752,
+            "quality_lcb": 0.996630944771486,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.029737400000000004,
+            "expected_latency_ms": 2117.6,
+            "quality_std_err": 0.0007431751126475678,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0007431751126475678,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.996630944771486,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.029737400000000004
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9976838209681951,
+            "quality_lcb": 0.9959969623544743,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.02978756,
+            "expected_latency_ms": 2120.4,
+            "quality_std_err": 0.000860642149857537,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.000860642149857537,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9959969623544743,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.02978756
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.9977684060289562,
+            "quality_lcb": 0.996745544333867,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.03006124,
+            "expected_latency_ms": 2134.2,
+            "quality_std_err": 0.0005218682117802227,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0005218682117802227,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.996745544333867,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.03006124
+        }
+      ]
+    },
+    {
+      "task_id": "task_05_cache_invalidation",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.325,
+            "quality_lcb": 0.325,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.007917800000000001,
+            "expected_latency_ms": 1035,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.325,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.007917800000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.9974229084386208,
+            "quality_lcb": 0.9958352724218675,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.0146762,
+            "expected_latency_ms": 1373,
+            "quality_std_err": 0.000810018375894552,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.000810018375894552,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9958352724218675,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.0146762
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9970033955036548,
+            "quality_lcb": 0.9960087767987846,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.0363814,
+            "expected_latency_ms": 2458,
+            "quality_std_err": 0.0005074585228929497,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0005074585228929497,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9960087767987846,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.0363814
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9986340369429303,
+            "quality_lcb": 0.9980938240330541,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.03641308,
+            "expected_latency_ms": 2459.6,
+            "quality_std_err": 0.00027561883156947055,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.00027561883156947055,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9980938240330541,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.03641308
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.997909097268821,
+            "quality_lcb": 0.9961101625892618,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.036547720000000006,
+            "expected_latency_ms": 2466.2,
+            "quality_std_err": 0.0009178238161016832,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0009178238161016832,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9961101625892618,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.036547720000000006
+        }
+      ]
+    },
+    {
+      "task_id": "task_06_atomic_index_swap",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.325,
+            "quality_lcb": 0.325,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.00811415,
+            "expected_latency_ms": 1048,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.325,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.00811415
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.9971418295693013,
+            "quality_lcb": 0.9957706774602034,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.014872550000000002,
+            "expected_latency_ms": 1386,
+            "quality_std_err": 0.0006995674026009679,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0006995674026009679,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9957706774602034,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.014872550000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9980686811049662,
+            "quality_lcb": 0.996644903794305,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.03974575,
+            "expected_latency_ms": 2629.4,
+            "quality_std_err": 0.0007264169952352544,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0007264169952352544,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.996644903794305,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.03974575
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.997697495442622,
+            "quality_lcb": 0.9961601790108201,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.03974575,
+            "expected_latency_ms": 2629.4,
+            "quality_std_err": 0.0007843451182662736,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0007843451182662736,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9961601790108201,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.03974575
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.9982342515167945,
+            "quality_lcb": 0.9968219004147847,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.03980911,
+            "expected_latency_ms": 2632.4,
+            "quality_std_err": 0.000720587296943743,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.000720587296943743,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9968219004147847,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.03980911
+        }
+      ]
+    },
+    {
+      "task_id": "task_07_cross_module_refactor",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.55,
+            "quality_lcb": 0.5499999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.008510150000000001,
+            "expected_latency_ms": 1075,
+            "quality_std_err": 3.510833468576701e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 3.510833468576701e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.5499999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.008510150000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.55,
+            "quality_lcb": 0.55,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.015268549999999997,
+            "expected_latency_ms": 1413,
+            "quality_std_err": 2.482534153247273e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.482534153247273e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.55,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.015268549999999997
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.04230215000000001,
+            "expected_latency_ms": 2765,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.04230215000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.046277990000000005,
+            "expected_latency_ms": 2963.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.046277990000000005
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.046412629999999996,
+            "expected_latency_ms": 2970.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.046412629999999996
+        }
+      ]
+    },
+    {
+      "task_id": "task_08_concurrency_issue",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.55,
+            "quality_lcb": 0.55,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.00871035,
+            "expected_latency_ms": 1090,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.55,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.00871035
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.55,
+            "quality_lcb": 0.55,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.01546875,
+            "expected_latency_ms": 1428,
+            "quality_std_err": 2.482534153247273e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.482534153247273e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.55,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.01546875
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.04250235000000001,
+            "expected_latency_ms": 2779,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.04250235000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.04949043000000001,
+            "expected_latency_ms": 3128.6,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.04949043000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 1,
+            "quality_lcb": 1,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.04958987,
+            "expected_latency_ms": 3133.8,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 1,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.04958987
+        }
+      ]
+    },
+    {
+      "task_id": "task_09_distributed_consistency",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.465,
+            "quality_lcb": 0.465,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.008789000000000002,
+            "expected_latency_ms": 1095,
+            "quality_std_err": 1.2412670766236365e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 1.2412670766236365e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.465,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.008789000000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.46499999999999997,
+            "quality_lcb": 0.4649999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0155474,
+            "expected_latency_ms": 1433,
+            "quality_std_err": 2.149937642474629e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.149937642474629e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.4649999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0155474
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.9854494160739184,
+            "quality_lcb": 0.9814119514858645,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.042581,
+            "expected_latency_ms": 2785,
+            "quality_std_err": 0.0020599309122724674,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0020599309122724674,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9814119514858645,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.042581
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9919734489932008,
+            "quality_lcb": 0.9879576709776366,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.05083276000000001,
+            "expected_latency_ms": 3197.2,
+            "quality_std_err": 0.0020488663344715163,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0020488663344715163,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9879576709776366,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.05083276000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9888385628085008,
+            "quality_lcb": 0.9827530691792732,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.0509498,
+            "expected_latency_ms": 3203.2,
+            "quality_std_err": 0.0031048436883814425,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0031048436883814425,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9827530691792732,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.0509498
+        }
+      ]
+    },
+    {
+      "task_id": "task_10_migration_architecture",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.33999999999999997,
+            "quality_lcb": 0.3399999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0093016,
+            "expected_latency_ms": 1130,
+            "quality_std_err": 2.149937642474629e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.149937642474629e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.3399999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0093016
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.34,
+            "quality_lcb": 0.34,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.01606,
+            "expected_latency_ms": 1468,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.34,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.01606
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.33999999999999997,
+            "quality_lcb": 0.3399999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0430936,
+            "expected_latency_ms": 2820,
+            "quality_std_err": 2.149937642474629e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.149937642474629e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.3399999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0430936
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9795026821788337,
+            "quality_lcb": 0.9742596362312288,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.059509120000000006,
+            "expected_latency_ms": 3640.8,
+            "quality_std_err": 0.002675023442655556,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.002675023442655556,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9742596362312288,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.059509120000000006
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9902396076221274,
+            "quality_lcb": 0.9863257471477624,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.05951352000000001,
+            "expected_latency_ms": 3640.8,
+            "quality_std_err": 0.0019968675889617026,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0019968675889617026,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9863257471477624,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.05951352000000001
+        }
+      ]
+    },
+    {
+      "task_id": "task_11_formal_invariant_reasoning",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.34,
+            "quality_lcb": 0.34,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.009501800000000001,
+            "expected_latency_ms": 1145,
+            "quality_std_err": 1.2412670766236365e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 1.2412670766236365e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.34,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.009501800000000001
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.33999999999999997,
+            "quality_lcb": 0.3399999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.016260200000000002,
+            "expected_latency_ms": 1483,
+            "quality_std_err": 1.7554167342883506e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 1.7554167342883506e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.3399999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.016260200000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.34,
+            "quality_lcb": 0.34,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0432938,
+            "expected_latency_ms": 2834,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.34,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0432938
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9841120029987444,
+            "quality_lcb": 0.981829615925207,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.06262476000000002,
+            "expected_latency_ms": 3800.8,
+            "quality_std_err": 0.0011644832007843716,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0011644832007843716,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.981829615925207,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.06262476000000002
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9836552990060039,
+            "quality_lcb": 0.9790382459876473,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.06263004,
+            "expected_latency_ms": 3801,
+            "quality_std_err": 0.0023556392950798894,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0023556392950798894,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9790382459876473,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.06263004
+        }
+      ]
+    },
+    {
+      "task_id": "task_12_security_boundary_design",
+      "configurations": [
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 0,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 0,
+            "mean_quality": 0.33999999999999997,
+            "quality_lcb": 0.3399999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0096976,
+            "expected_latency_ms": 1158,
+            "quality_std_err": 2.149937642474629e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.149937642474629e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.3399999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0096976
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 1,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 1,
+            "mean_quality": 0.33999999999999997,
+            "quality_lcb": 0.3399999999999999,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.016456,
+            "expected_latency_ms": 1496,
+            "quality_std_err": 2.149937642474629e-17,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 2.149937642474629e-17,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.3399999999999999,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.016456
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 2,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 2,
+            "mean_quality": 0.34,
+            "quality_lcb": 0.34,
+            "success_probability": 0,
+            "success_lcb": 0.01,
+            "expected_cost_usd": 0.0434896,
+            "expected_latency_ms": 2847,
+            "quality_std_err": 0,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.34,
+          "predicted_success_lcb": 0.01,
+          "expected_e2e_cost_usd": 0.0434896
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 4,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 4,
+            "mean_quality": 0.9881468347922165,
+            "quality_lcb": 0.9833281497115202,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.06579496,
+            "expected_latency_ms": 3962.8,
+            "quality_std_err": 0.0024585127962736516,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0024585127962736516,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9833281497115202,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.06579496
+        },
+        {
+          "model": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "tier": "",
+            "capabilities": {
+              "provider": "",
+              "model": "",
+              "context_window": 0,
+              "reasoning": {
+                "supported": false,
+                "supports_effort": false,
+                "supports_thinking_budget": false,
+                "supports_adaptive_thinking": false,
+                "supports_thinking_disable": false,
+                "supports_per_turn_effort": false,
+                "effort_levels": null,
+                "min_thinking_tokens": 0,
+                "max_thinking_tokens": 0
+              },
+              "caching": {
+                "supported": false,
+                "explicit_caching": false,
+                "automatic_caching": false,
+                "cache_ttl": 0,
+                "effort_changes_break_cache": false,
+                "per_turn_effort_preserves_cache": false
+              },
+              "tools": {
+                "supported": false,
+                "parallel_calls": false,
+                "structured_args": false
+              },
+              "usage": {
+                "reports_reasoning_tokens": false,
+                "reports_cached_tokens": false,
+                "reports_cache_write": false
+              }
+            },
+            "expected_input_cost": 0,
+            "expected_reasoning_cost": 0,
+            "expected_output_cost": 0,
+            "historical_success_rate": 0,
+            "historical_latency_ms": 0
+          },
+          "effort": 3,
+          "retrieve_budget": 0,
+          "verify_enabled": false,
+          "envelope": {
+            "provider": "openai",
+            "model": "o3-mini",
+            "effort": 3,
+            "mean_quality": 0.9881540485315942,
+            "quality_lcb": 0.9838075189666214,
+            "success_probability": 1,
+            "success_lcb": 1,
+            "expected_cost_usd": 0.06593224,
+            "expected_latency_ms": 3969.6,
+            "quality_std_err": 0.0022176171249860582,
+            "samples": 5,
+            "estimator_source": "empirical_aggregate",
+            "estimator_uncertainty": 0.0022176171249860582,
+            "model_version": "2026-03-frontier"
+          },
+          "predicted_quality_lcb": 0.9838075189666214,
+          "predicted_success_lcb": 1,
+          "expected_e2e_cost_usd": 0.06593224
+        }
+      ]
+    }
+  ],
+  "billing_reconciliation_diff": 0.0002986777351132624,
+  "capability_floor_violation_rate": 0,
+  "gates_passed": true
+}

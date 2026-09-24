@@ -36,7 +36,11 @@ type CapabilityEnvelope struct {
 	QualityStdErr float64 `json:"quality_std_err"`
 
 	// Number of empirical observations supporting this envelope.
-	Samples int `json:"samples"`
+	Samples              int     `json:"samples"`
+	EstimatorSource      string  `json:"estimator_source,omitempty"`
+	FallbackLevel        int     `json:"fallback_level,omitempty"`
+	EstimatorUncertainty float64 `json:"estimator_uncertainty,omitempty"`
+	ModelVersion         string  `json:"model_version,omitempty"`
 }
 
 // CapabilityEstimator abstracts estimation of capability envelopes across models and effort tiers.
@@ -168,21 +172,48 @@ func (s *SyntheticCapabilityEstimator) EstimateSurface(task TaskProfile, models 
 
 // EmpiricalObservation records a single observed task run outcome.
 type EmpiricalObservation struct {
-	Provider        string
-	Model           string
-	Effort          EffortLevel
-	TaskClass       TaskClass
-	Difficulty      float64
-	QualityScore    float64
-	Success         bool
-	ActualCostUSD   float64
-	ActualLatencyMS float64
+	TaskID                  string             `json:"task_id"`
+	TaskFamily              string             `json:"task_family"`
+	TaskClass               TaskClass          `json:"task_class"`
+	DifficultyBucket        string             `json:"difficulty_bucket"`
+	Difficulty              float64            `json:"difficulty"`
+	Query                   string             `json:"query,omitempty"`
+	RepoID                  string             `json:"repo_id,omitempty"`
+	RepoRevision            string             `json:"repo_revision,omitempty"`
+	TaskSeed                int64              `json:"task_seed,omitempty"`
+
+	Provider                string             `json:"provider"`
+	Model                   string             `json:"model"`
+	ModelVersion            string             `json:"model_version"`
+	RequestedEffort         EffortLevel        `json:"requested_effort"`
+	RequestedReasoningBudget int64             `json:"requested_reasoning_budget,omitempty"`
+	ExecutionMode           string             `json:"execution_mode,omitempty"`
+
+	InputTokens             int64              `json:"input_tokens,omitempty"`
+	CachedInputTokens       int64              `json:"cached_input_tokens,omitempty"`
+	CacheWriteTokens        int64              `json:"cache_write_tokens,omitempty"`
+	ReasoningTokens         int64              `json:"reasoning_tokens,omitempty"`
+	VisibleOutputTokens     int64              `json:"visible_output_tokens,omitempty"`
+	TotalTokens             int64              `json:"total_tokens,omitempty"`
+	ToolCalls               int                `json:"tool_calls,omitempty"`
+	Turns                   int                `json:"turns,omitempty"`
+	ActualLatencyMS         float64            `json:"actual_latency_ms"`
+	ActualCostUSD           float64            `json:"actual_cost_usd"`
+	ProviderReportedCostUSD float64            `json:"provider_reported_cost_usd,omitempty"`
+
+	Success                 bool               `json:"success"`
+	TestsPassed             bool               `json:"tests_passed,omitempty"`
+	QualityScore            float64            `json:"quality_score"`
+	QualityComponents       map[string]float64 `json:"quality_components,omitempty"`
+	VerificationResult      string             `json:"verification_result,omitempty"`
+
+	Effort                  EffortLevel        `json:"effort"` // backward-compat alias
 }
 
 // EmpiricalCapabilityEstimator aggregates actual measured benchmark observations.
 type EmpiricalCapabilityEstimator struct {
 	mu           sync.RWMutex
-	observations map[string][]EmpiricalObservation // Key: "provider:model:effort"
+	observations map[string][]EmpiricalObservation // task stratum + provider/model/version/effort
 	fallback     *SyntheticCapabilityEstimator
 }
 
@@ -199,8 +230,25 @@ func (e *EmpiricalCapabilityEstimator) RecordObservation(obs EmpiricalObservatio
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	key := fmt.Sprintf("%s:%s:%s", obs.Provider, obs.Model, obs.Effort)
+	key := empiricalKey(obs.TaskFamily, obs.DifficultyBucket, obs.TaskClass, obs.Provider, obs.Model, obs.ModelVersion, obs.Effort)
 	e.observations[key] = append(e.observations[key], obs)
+}
+
+func empiricalKey(family, bucket string, class TaskClass, provider, model, version string, effort EffortLevel) string {
+	return fmt.Sprintf("%s:%s:%d:%s:%s:%s:%s", family, bucket, class, provider, model, version, effort)
+}
+
+func empiricalBucket(d float64) string {
+	if d < .35 {
+		return "0.00-0.35"
+	}
+	if d < .60 {
+		return "0.35-0.60"
+	}
+	if d < .75 {
+		return "0.60-0.75"
+	}
+	return "0.75-1.00"
 }
 
 func (e *EmpiricalCapabilityEstimator) EstimateEnvelope(
@@ -208,18 +256,35 @@ func (e *EmpiricalCapabilityEstimator) EstimateEnvelope(
 	provider, model string,
 	effort EffortLevel,
 ) CapabilityEnvelope {
+	strata := []struct {
+		key, source string
+		level       int
+	}{
+		{empiricalKey(task.Family, empiricalBucket(task.Difficulty), task.Class, provider, model, "", effort), "exact", 0},
+		{empiricalKey(task.Family, "", task.Class, provider, model, "", effort), "family", 1},
+		{empiricalKey("", "", task.Class, provider, model, "", effort), "class", 2},
+		{empiricalKey("", "", 0, provider, model, "", effort), "global", 3},
+	}
+	var records []EmpiricalObservation
+	source, level := "prior", 4
 	e.mu.RLock()
-	key := fmt.Sprintf("%s:%s:%s", provider, model, effort)
-	records, ok := e.observations[key]
+	for _, stratum := range strata {
+		if rs := e.observations[stratum.key]; len(rs) > 0 {
+			records, source, level = rs, stratum.source, stratum.level
+			break
+		}
+	}
 	e.mu.RUnlock()
 
 	// If fewer than 3 empirical observations exist, fall back to conservative synthetic envelope
-	if !ok || len(records) < 3 {
+	if len(records) < 3 {
 		synth := e.fallback.EstimateEnvelope(task, provider, model, effort)
 		synth.Samples = len(records)
 		// Penalize LCB when empirical data is scarce (Invariant B)
 		synth.QualityLCB = math.Max(synth.QualityLCB-0.08, 0.01)
 		synth.SuccessLCB = math.Max(synth.SuccessLCB-0.08, 0.01)
+		synth.EstimatorSource, synth.FallbackLevel = source, level
+		synth.EstimatorUncertainty = synth.QualityStdErr + 0.08
 		return synth
 	}
 
@@ -254,18 +319,27 @@ func (e *EmpiricalCapabilityEstimator) EstimateEnvelope(
 	qualityLCB := math.Max(meanQ-(1.96*stdErr), 0.01)
 	successLCB := math.Max(successProb-(1.96*stdErr), 0.01)
 
+	var modelVer string
+	if len(records) > 0 {
+		modelVer = records[0].ModelVersion
+	}
+
 	return CapabilityEnvelope{
-		Provider:           provider,
-		Model:              model,
-		Effort:             effort,
-		MeanQuality:        meanQ,
-		QualityLCB:         qualityLCB,
-		SuccessProbability: successProb,
-		SuccessLCB:         successLCB,
-		ExpectedCostUSD:    meanCost,
-		ExpectedLatencyMS:  meanLat,
-		QualityStdErr:      stdErr,
-		Samples:            len(records),
+		Provider:             provider,
+		Model:                model,
+		ModelVersion:         modelVer,
+		Effort:               effort,
+		MeanQuality:          meanQ,
+		QualityLCB:           qualityLCB,
+		SuccessProbability:   successProb,
+		SuccessLCB:           successLCB,
+		ExpectedCostUSD:      meanCost,
+		ExpectedLatencyMS:    meanLat,
+		QualityStdErr:        stdErr,
+		EstimatorUncertainty: stdErr,
+		Samples:              len(records),
+		EstimatorSource:      source,
+		FallbackLevel:        level,
 	}
 }
 

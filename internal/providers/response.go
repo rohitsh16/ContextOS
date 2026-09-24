@@ -6,11 +6,11 @@ import "contextos/internal/telemetry"
 type FinishReason string
 
 const (
-	FinishReasonStop      FinishReason = "stop"
-	FinishReasonLength    FinishReason = "length"
-	FinishReasonToolCalls FinishReason = "tool_calls"
+	FinishReasonStop          FinishReason = "stop"
+	FinishReasonLength        FinishReason = "length"
+	FinishReasonToolCalls     FinishReason = "tool_calls"
 	FinishReasonContentFilter FinishReason = "content_filter"
-	FinishReasonError     FinishReason = "error"
+	FinishReasonError         FinishReason = "error"
 )
 
 // ToolCall represents an invocation of a tool by the model.
@@ -22,9 +22,9 @@ type ToolCall struct {
 
 // ProviderState holds opaque or continuation state returned by the provider.
 type ProviderState struct {
-	RawResponseID string         `json:"raw_response_id,omitempty"`
-	SystemFingerprint string     `json:"system_fingerprint,omitempty"`
-	Metadata      map[string]any `json:"metadata,omitempty"`
+	RawResponseID     string         `json:"raw_response_id,omitempty"`
+	SystemFingerprint string         `json:"system_fingerprint,omitempty"`
+	Metadata          map[string]any `json:"metadata,omitempty"`
 }
 
 // ProviderResponse is the standardized response returned by any provider adapter.
@@ -34,4 +34,5 @@ type ProviderResponse struct {
 	Usage         telemetry.UsageMetrics `json:"usage"`
 	FinishReason  FinishReason           `json:"finish_reason"`
 	ProviderState ProviderState          `json:"provider_state,omitempty"`
+	ModelVersion  string                 `json:"model_version,omitempty"`
 }

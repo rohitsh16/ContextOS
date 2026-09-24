@@ -62,6 +62,10 @@ func main() {
 	r16Stress := flag.Bool("r16-stress", false, "run R16 Stress & Benchmark Protocol (R16_STRESS_BENCHMARK_PROTOCOL.md)")
 	r16StressN := flag.Int("r16-stress-n", 1000, "number of synthetic tasks for R16 stress testing")
 	r16StressWorkers := flag.Int("r16-stress-workers", 8, "worker concurrency for R16 stress testing")
+	r16Frontier := flag.Bool("r16-frontier", false, "run R16-S2 Real-Provider Capability Frontier & Empirical Minimum-Sufficient Compute benchmark")
+	r16FrontierCanary := flag.Bool("r16-frontier-canary", false, "run R16-S2 300-run canary matrix (12 tasks × 5 effort levels × 5 repeats)")
+	r16FrontierMode := flag.String("r16-frontier-mode", "mock", "run mode for R16-S2: mock or real")
+	r16FrontierRepeats := flag.Int("r16-frontier-repeats", 5, "number of repeat executions per (task, effort) configuration")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
 
@@ -197,6 +201,55 @@ func main() {
 			}
 			fmt.Printf("\nGenerated Markdown Report: %s\n", filepath.Join(resultsDir, "r16_report.md"))
 			fmt.Printf("Generated JSON Summary:    %s\n", filepath.Join(resultsDir, "r16_summary.json"))
+		}
+		return
+	}
+
+	if *r16Frontier || *r16FrontierCanary {
+		resultsDir := "benchmarks/results/r16"
+		cfg := compute_bench.R16S2Config{
+			Mode:       *r16FrontierMode,
+			ResultsDir: resultsDir,
+			Seed:       *seed,
+			Repeats:    *r16FrontierRepeats,
+			Tasks:      compute_bench.DefaultR16S2Tasks(),
+		}
+		fmt.Printf("=== ContextOS R16-S2 Empirical Capability Frontier & Minimum-Sufficient Compute ===\n")
+		fmt.Printf("Mode: %s | Tasks: %d | Efforts: 5 | Repeats: %d | Matrix Runs: %d\n",
+			cfg.Mode, len(cfg.Tasks), cfg.Repeats, len(cfg.Tasks)*5*cfg.Repeats)
+		fmt.Printf("Results Directory: %s\n\n", resultsDir)
+
+		summary, err := compute_bench.RunR16S2Canary(cfg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error running R16-S2 frontier benchmark: %v\n", err)
+			os.Exit(1)
+		}
+
+		if *jsonOutput {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			_ = enc.Encode(summary)
+		} else {
+			fmt.Printf("Total Executions: %d (Calibration: %d, Validation: %d, Holdout: %d)\n",
+				summary.TotalExecutions, summary.CalibrationRuns, summary.ValidationRuns, summary.HoldoutRuns)
+			fmt.Printf("Capability Floor Violation Rate: %.2f%%\n", summary.CapabilityFloorViolationRate*100)
+			fmt.Printf("Billing Reconciliation Diff:    %.4f%%\n", summary.BillingReconciliationDiff*100)
+			fmt.Printf("Automated Gates:                %s\n\n", map[bool]string{true: "PASS", false: "FAIL"}[summary.GatesPassed])
+
+			fmt.Printf("%-24s %-12s %-12s %-12s %-14s %-14s\n",
+				"POLICY", "SUCCESS", "TOTAL USD", "AVG USD", "CPS ($/succ)", "REASONING TOKS")
+			for _, p := range []string{"baseline_fixed_max", "baseline_default", "baseline_heuristic", "contextos", "offline_oracle"} {
+				m := summary.Policies[p]
+				fmt.Printf("%-24s %-12s $%-11.4f $%-11.4f $%-13.4f %-14.0f\n",
+					m.Policy,
+					fmt.Sprintf("%.1f%%", m.SuccessRate*100),
+					m.TotalCostUSD, m.MeanCostUSD, m.CostPerSuccess, m.MeanReasoningTokens)
+			}
+			fmt.Printf("\nGenerated Manifest:    %s\n", filepath.Join(resultsDir, "r16_s2_manifest.json"))
+			fmt.Printf("Generated Observations:%s\n", filepath.Join(resultsDir, "r16_s2_observations.jsonl"))
+			fmt.Printf("Generated Frontiers:   %s\n", filepath.Join(resultsDir, "r16_s2_frontiers.json"))
+			fmt.Printf("Generated Summary:     %s\n", filepath.Join(resultsDir, "r16_s2_summary.json"))
+			fmt.Printf("Generated Report:      %s\n", filepath.Join(resultsDir, "r16_s2_report.md"))
 		}
 		return
 	}

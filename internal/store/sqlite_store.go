@@ -203,6 +203,14 @@ func (s *SQLiteStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return s.scanNodeRows(rows, repoID), nil
 }
 
+func (s *SQLiteStore) CountNodes(repoID string) (int, error) {
+	rows, err := s.DB.Query(`SELECT COUNT(*) FROM nodes WHERE repo_id=?`, repoID)
+	if err != nil || len(rows) == 0 {
+		return 0, err
+	}
+	return strconv.Atoi(rows[0][0])
+}
+
 func (s *SQLiteStore) LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error) {
 	if len(nodeIDs) == 0 {
 		return nil, nil
@@ -263,6 +271,41 @@ func (s *SQLiteStore) LookupQualifiedSymbol(repoID string, qualifiedName string)
 	return s.LookupSymbol(repoID, sym)
 }
 
+// LookupExactPath returns all nodes whose path exactly matches the given
+// canonical repository-relative path (R17 Phase 3, Theorem 2).
+// This is the primary deterministic lookup; approximate LookupPath remains
+// for backward compatibility but must not outrank an exact match.
+func (s *SQLiteStore) LookupExactPath(repoID string, path string) ([]NodeRecord, error) {
+	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND path=?`, repoID, path)
+	if err != nil {
+		return nil, err
+	}
+	return s.scanNodeRows(rows, repoID), nil
+}
+
+// LookupBasename returns all file nodes whose filename (last path component)
+// exactly matches the given basename (R17 Phase 3).
+// Uses the idx_nodes_repo_name index for O(log N) lookup.
+func (s *SQLiteStore) LookupBasename(repoID string, basename string) ([]NodeRecord, error) {
+	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE`, repoID, basename)
+	if err != nil {
+		return nil, err
+	}
+	// Further filter: name must match the file basename, not just any node name
+	all := s.scanNodeRows(rows, repoID)
+	out := all[:0]
+	for _, n := range all {
+		if n.Kind == "file" {
+			out = append(out, n)
+		}
+	}
+	// If no file nodes with exact name, return all (covers partial matches)
+	if len(out) == 0 {
+		return all, nil
+	}
+	return out, nil
+}
+
 func (s *SQLiteStore) LookupPath(repoID string, path string) ([]NodeRecord, error) {
 	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path=? OR path LIKE ?)`, repoID, path, "%"+path+"%")
 	if err != nil {
@@ -270,6 +313,7 @@ func (s *SQLiteStore) LookupPath(repoID string, path string) ([]NodeRecord, erro
 	}
 	return s.scanNodeRows(rows, repoID), nil
 }
+
 
 func (s *SQLiteStore) LookupPackage(repoID string, pkg string) ([]NodeRecord, error) {
 	pattern := "%" + pkg + "/%"

@@ -14,9 +14,9 @@ type TaskFeatures struct {
 	SymbolsMentioned     int     `json:"symbols_mentioned"`
 	DependencyDepth      int     `json:"dependency_depth"`
 	ScopeSize            int     `json:"scope_size"`
-	Ambiguity            float64 `json:"ambiguity"`             // 0.0 (crystal clear) to 1.0 (vague)
-	Novelty              float64 `json:"novelty"`               // 0.0 (seen repeatedly) to 1.0 (completely new)
-	Risk                 float64 `json:"risk"`                  // 0.0 (safe read-only) to 1.0 (production migration/security)
+	Ambiguity            float64 `json:"ambiguity"` // 0.0 (crystal clear) to 1.0 (vague)
+	Novelty              float64 `json:"novelty"`   // 0.0 (seen repeatedly) to 1.0 (completely new)
+	Risk                 float64 `json:"risk"`      // 0.0 (safe read-only) to 1.0 (production migration/security)
 	ExpectedToolCalls    int     `json:"expected_tool_calls"`
 	HistoricalDifficulty float64 `json:"historical_difficulty"` // 0.0 to 1.0
 }
@@ -26,7 +26,8 @@ type TaskProfile struct {
 	Features   TaskFeatures `json:"features"`
 	Difficulty float64      `json:"difficulty"` // Normalized 0.0 to 1.0
 	Class      TaskClass    `json:"class"`
-	CanBypass  bool         `json:"can_bypass"` // True if task can execute deterministically without LLM
+	CanBypass  bool         `json:"can_bypass"`       // True if task can execute deterministically without LLM
+	Family     string       `json:"family,omitempty"` // preregistered benchmark family
 }
 
 var (

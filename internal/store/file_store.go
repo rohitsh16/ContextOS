@@ -267,6 +267,12 @@ func (fs *FileStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return append([]NodeRecord(nil), fs.nodes[repoID]...), nil
 }
 
+func (fs *FileStore) CountNodes(repoID string) (int, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	return len(fs.nodes[repoID]), nil
+}
+
 func (fs *FileStore) LookupSymbol(repoID string, name string) ([]NodeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
@@ -300,6 +306,41 @@ func (fs *FileStore) LookupQualifiedSymbol(repoID string, qualifiedName string) 
 	return out, nil
 }
 
+// LookupExactPath returns nodes whose path exactly matches (R17 Phase 3).
+func (fs *FileStore) LookupExactPath(repoID string, path string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if n.Path == path {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+// LookupBasename returns file nodes whose name exactly matches the basename (R17 Phase 3).
+func (fs *FileStore) LookupBasename(repoID string, basename string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	basenameLow := strings.ToLower(basename)
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if n.Kind == "file" && strings.ToLower(n.Name) == basenameLow {
+			out = append(out, n)
+		}
+	}
+	if len(out) == 0 {
+		// Fallback: any node whose path ends with the basename
+		for _, n := range fs.nodes[repoID] {
+			if strings.ToLower(n.Name) == basenameLow {
+				out = append(out, n)
+			}
+		}
+	}
+	return out, nil
+}
+
 func (fs *FileStore) LookupPath(repoID string, path string) ([]NodeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
@@ -311,6 +352,7 @@ func (fs *FileStore) LookupPath(repoID string, path string) ([]NodeRecord, error
 	}
 	return out, nil
 }
+
 
 func (fs *FileStore) LookupPackage(repoID string, pkg string) ([]NodeRecord, error) {
 	fs.mu.RLock()

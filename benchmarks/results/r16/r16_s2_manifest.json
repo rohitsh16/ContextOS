@@ -1,0 +1,31 @@
+{
+  "git_commit_sha": "r16-frontier-canary-prod",
+  "manifest_id": "r16-manifest-1790172234",
+  "benchmark_code_version": "ContextOS-R16-S2.v1",
+  "provider_mode": "mock",
+  "provider_names": [
+    "openai",
+    "gemini",
+    "anthropic"
+  ],
+  "model_versions": {
+    "anthropic": "claude-3-5-sonnet-20241022",
+    "gemini": "gemini-2.5-flash-001",
+    "openai": "o3-mini-2025-01-31"
+  },
+  "pricing_version": "2026-03-standard",
+  "pricing_source_urls": [
+    "https://openai.com/api/pricing",
+    "https://ai.google.dev/pricing",
+    "https://anthropic.com/pricing"
+  ],
+  "task_matrix_version": "12-task-300-run-matrix-v1",
+  "random_seed": 42,
+  "execution_date": "2026-09-23T14:03:54Z",
+  "platform": "darwin/arm64",
+  "go_version": "go1.23.0",
+  "configuration_flags": {
+    "mode": "mock",
+    "repeats": 5
+  }
+}

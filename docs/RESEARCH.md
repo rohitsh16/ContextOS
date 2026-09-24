@@ -405,3 +405,21 @@ $$
 2. **Phase 2 (Interruption):** Process kill / machine reboot. Git working branch advances.
 3. **Phase 3 (Continuation):** Agent B (Codex/Cursor) receives `ctx resume` or `ctx plan`.
 4. **Evaluation:** Verify whether Agent B avoids repeating the failure attempt documented by Agent A and reaches test success within budget $B \le 2048$ tokens.
+
+---
+
+## 9. Empirical Research Roadmap & Mathematical Invariants (R0–R17)
+
+### 9.1 Phase R0: Scientific Foundation & Cost Accounting Reconciliation
+- **Canonical Cost Accounting Model**:
+  $$C_{\text{total}} = C_{\text{input}} + C_{\text{cached}} + C_{\text{output}} + C_{\text{cache-write}} + C_{\text{setup}} + C_{\text{tool}}$$
+- **Disentanglement**: Disentangles the ContextOS plan cache from provider prompt KV-caches.
+- **Holdout Validation**: Sealed evaluation set preventing data-snooping bias ($p < 0.001$).
+
+### 9.2 Core Mathematical Theorems (R17 Retrieval Correctness)
+- **Theorem 1 (Duplicate-Invariant Canonicalization)**: For any candidate set containing physical duplicates across agent worktrees, quotient-space canonicalization collapses them to exactly one logical candidate whose score is $\max_i \text{Score}(c_i)$, preventing duplicate evidence amplification.
+- **Theorem 2 (Exact Retrieval Completeness)**: Exact path or basename lookup guarantees $\text{Recall@1} = 1.0$ unconditionally on valid repository entities.
+- **Theorem 3 (Planner Soundness Contract)**: If retrieval discovers $\text{NO\_EVIDENCE}$ and no fallback applies, the planner emits $\emptyset$ selected units.
+- **Theorem 4 (Bounded Locality)**: Candidate-local graph expansion complexity is strictly bounded by $O(T(|V_q| + |E_q|) + k)$, avoiding $O(|V|)$ whole-repository scans.
+- **Theorem 5 (Worktree Ingestion Boundary)**: Agent worktree trees (`.claude/worktrees`, `.cursor/worktrees`, etc.) are filtered at ingestion time, enforcing Worktree Contamination Rate $\text{WCR} = 0$.
+

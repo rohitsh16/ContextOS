@@ -26,33 +26,29 @@ type SourceFile struct {
 	Lines int
 }
 
-// DefaultExclusions lists directory names that are excluded from worktree
-// fingerprinting and symbol scanning.
+// DefaultExclusions is retained for backward compatibility. New code should
+// use DefaultExclusionPolicy() from exclusions.go instead.
+//
+// Deprecated: use DefaultExclusionPolicy().
 var DefaultExclusions = map[string]bool{
-	".git":        true,
-	".contextos":  true,
+	".git":         true,
+	".contextos":   true,
 	"node_modules": true,
-	"vendor":      true,
-	"dist":        true,
-	"build":       true,
-	"target":      true,
+	"vendor":       true,
+	"dist":         true,
+	"build":        true,
+	"target":       true,
 }
 
+// defaultPolicy is the package-level ExclusionPolicy used by ListSourceFiles
+// and WalkSymbols. It includes all agent worktree roots (R17 Phase 1).
+var defaultPolicy = DefaultExclusionPolicy()
+
+// isExcludedPath reports whether a repository-relative path should be
+// excluded. Uses the authoritative ExclusionPolicy which covers both
+// directory-name exclusions and agent worktree path-prefix exclusions.
 func isExcludedPath(relPath string) bool {
-	clean := filepath.ToSlash(relPath)
-	parts := strings.Split(clean, "/")
-	for _, p := range parts {
-		if DefaultExclusions[p] {
-			return true
-		}
-	}
-	base := filepath.Base(clean)
-	ext := strings.ToLower(filepath.Ext(base))
-	switch ext {
-	case ".db", ".db-shm", ".db-wal", ".log", ".tmp":
-		return true
-	}
-	return false
+	return defaultPolicy.IsExcluded(relPath)
 }
 
 func run(dir string, args ...string) (string, error) {
@@ -279,16 +275,37 @@ func Supported(path string) bool {
 	return false
 }
 
+// ListSourceFiles walks the repository root and returns all authoritative
+// source files that satisfy the ExclusionPolicy (R17 Phase 1).
+// Directories that would be excluded are skipped entirely, preventing
+// agent-worktree subtrees from being admitted to the index.
 func ListSourceFiles(root string) ([]SourceFile, error) {
+	return ListSourceFilesWithPolicy(root, defaultPolicy)
+}
+
+// ListSourceFilesWithPolicy is like ListSourceFiles but accepts an explicit
+// policy, enabling testing with custom exclusion rules.
+func ListSourceFilesWithPolicy(root string, policy ExclusionPolicy) ([]SourceFile, error) {
 	var out []SourceFile
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return nil
+		}
+		relSlash := filepath.ToSlash(rel)
+
 		if info.IsDir() {
-			if isExcludedPath(info.Name()) {
+			if relSlash != "." && policy.IsExcluded(relSlash) {
 				return filepath.SkipDir
 			}
+			return nil
+		}
+		// Reject files inside excluded paths (catches worktree files whose
+		// parent directory wasn't SkipDir'd for any reason).
+		if policy.IsExcluded(relSlash) {
 			return nil
 		}
 		if info.Size() > 2*1024*1024 || !Supported(path) {
@@ -298,24 +315,39 @@ func ListSourceFiles(root string) ([]SourceFile, error) {
 		if e != nil {
 			return nil
 		}
-		rel, _ := filepath.Rel(root, path)
 		h := sha256.Sum256(b)
-		out = append(out, SourceFile{Path: filepath.ToSlash(rel), Hash: hex.EncodeToString(h[:]), Lines: len(strings.Split(string(b), "\n"))})
+		out = append(out, SourceFile{Path: relSlash, Hash: hex.EncodeToString(h[:]), Lines: len(strings.Split(string(b), "\n"))})
 		return nil
 	})
 	return out, err
 }
 
+// WalkSymbols walks the repository root and extracts symbols from all
+// authoritative source files. Uses the same ExclusionPolicy as ListSourceFiles.
 func WalkSymbols(root string) ([]Symbol, error) {
+	return WalkSymbolsWithPolicy(root, defaultPolicy)
+}
+
+// WalkSymbolsWithPolicy is like WalkSymbols but accepts an explicit policy.
+func WalkSymbolsWithPolicy(root string, policy ExclusionPolicy) ([]Symbol, error) {
 	var out []Symbol
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return nil
+		}
+		relSlash := filepath.ToSlash(rel)
+
 		if info.IsDir() {
-			if isExcludedPath(info.Name()) {
+			if relSlash != "." && policy.IsExcluded(relSlash) {
 				return filepath.SkipDir
 			}
+			return nil
+		}
+		if policy.IsExcluded(relSlash) {
 			return nil
 		}
 		if info.Size() > 2*1024*1024 || !Supported(path) {
@@ -326,13 +358,12 @@ func WalkSymbols(root string) ([]Symbol, error) {
 			return nil
 		}
 		lines := strings.Split(string(b), "\n")
-		rel, _ := filepath.Rel(root, path)
 		h := sha256.Sum256(b)
 		hs := hex.EncodeToString(h[:])
 		for i, line := range lines {
 			for _, p := range symbolPatterns {
 				if m := p.re.FindStringSubmatch(line); len(m) > 1 {
-					out = append(out, Symbol{Path: filepath.ToSlash(rel), Kind: p.kind, Name: m[1], Signature: strings.TrimSpace(line), Start: i + 1, End: i + 1, Hash: hs})
+					out = append(out, Symbol{Path: relSlash, Kind: p.kind, Name: m[1], Signature: strings.TrimSpace(line), Start: i + 1, End: i + 1, Hash: hs})
 					break
 				}
 			}

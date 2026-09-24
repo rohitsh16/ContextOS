@@ -63,7 +63,12 @@ func NewSubsystemPlanner(
 }
 
 // ExecutePlan orchestrates the full pipeline:
-// Localize -> Hierarchical Retrieve -> Prune -> Bounded Graph Expand -> Fuse -> Adaptive Stop -> Compile ContextUnits -> Optimize Context -> Cache Prefix.
+// Classify → Exact Retrieval → Canonicalize → Evidence Validation →
+// Bounded Graph Expand (from validated seeds only) → Fuse → Adaptive Stop →
+// Compile ContextUnits → Optimize Context → Cache Prefix.
+//
+// R17 Phase 6: The planner now enforces the soundness contract (Theorem 3):
+// if retrieval returns EvidenceNone, no candidates are selected.
 func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx LocalizerContext) (*PlannedContext, RetrievalTrace, error) {
 	startTotal := time.Now()
 	trace := RetrievalTrace{
@@ -80,11 +85,11 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 	// 2. Build Locality Hierarchy (PR-12)
 	hierarchy := BuildLocalityHierarchy(scope, lctx)
 
-	// 3. Multi-source Candidate Retrieval
+	// 3. Multi-source Candidate Retrieval (R17 Phase 3+4+5)
 	retStart := time.Now()
 	indexedRetriever := NewIndexedRetriever(p.Store)
 
-	// Retrieve candidates within scope
+	// Retrieve candidates — now uses query classification + exact indexes
 	rawCandidates, subTrace, err := indexedRetriever.Retrieve(ctx, q)
 	if err != nil {
 		return nil, trace, err
@@ -96,21 +101,49 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 	trace.PrunedCandidates = subTrace.PrunedCandidates
 	trace.PostingsVisited = subTrace.PostingsVisited
 	trace.BlocksSkipped = subTrace.BlocksSkipped
+	trace.QueryClass = subTrace.QueryClass
 
-	// Separate candidate sources for fusion
-	var exactCands, lexicalCands, trigramCands, recentCands, sparseCands []Candidate
+	// 4. Classify evidence (R17 Phase 6)
+	qc := ClassifyQuery(q.Task)
+	var exactCands, lexicalCands []Candidate
 	for _, c := range rawCandidates {
 		switch c.Stage {
-		case "exact":
+		case "exact_path", "exact_basename", "exact_qualified_symbol", "exact_symbol", "identifier_basename":
 			exactCands = append(exactCands, c)
-		case "trigram":
-			trigramCands = append(trigramCands, c)
 		default:
 			lexicalCands = append(lexicalCands, c)
 		}
 	}
+	evidenceStatus := ClassifyEvidenceStatus(qc, exactCands, lexicalCands, nil, 0.10)
+	evidencePkg := EvidencePackage{
+		Status:                      evidenceStatus,
+		QueryClass:                  qc.Primary,
+		Candidates:                  rawCandidates,
+		DuplicateAmplificationRatio: subTrace.TouchRatio,
+	}
 
-	// 4. Bounded Graph Expansion from top candidate seeds (PR-13, PR-15)
+	// 5. Enforce planner soundness (Theorem 3): if no evidence, return empty.
+	if evidenceStatus == EvidenceNone {
+		evidencePkg.FallbackRequired = true
+		evidencePkg.Confidence = 0.0
+		trace.FinalCandidates = 0
+		trace.LatencyTotal = time.Since(startTotal)
+		return &PlannedContext{
+			Scope:                scope,
+			TiersSearched:        []LocalityTierName{TierHOT},
+			Candidates:           nil,
+			SelectedUnits:        nil,
+			PromptText:           "",
+			TotalTokens:          0,
+			EstimatedCorrectness: 0.0,
+			ObjectiveScore:       0.0,
+			CacheHit:             false,
+			PrefixHash:           "",
+		}, trace, nil
+	}
+
+	// 6. Bounded Graph Expansion — seeded only from validated candidates (R17 Theorem 4).
+	// Graph expansion from an empty seed returns empty (Theorem 4).
 	graphStart := time.Now()
 	var seedIDs []string
 	for i := 0; i < len(rawCandidates) && i < 10; i++ {
@@ -129,7 +162,10 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 	trace.GraphExpanded = len(graphCands)
 	trace.LatencyGraph = time.Since(graphStart)
 
-	// 5. Learned Sparse Retrieval Expansion (PR-22)
+	// 7. Separate candidate sources for fusion
+	var sparseCands, recentCands, trigramCands []Candidate
+
+	// 8. Learned Sparse Retrieval Expansion (PR-22)
 	if p.Sparse.IsEnabled() {
 		sparseTerms := p.Sparse.Expand(q.Task)
 		for term, weight := range sparseTerms {
@@ -143,10 +179,10 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 		}
 	}
 
-	// 6. Multi-stage Candidate Fusion (PR-19)
+	// 9. Multi-stage Candidate Fusion (PR-19)
 	fused := FuseCandidates(exactCands, lexicalCands, trigramCands, graphCands, recentCands, sparseCands, p.FusionWeights)
 
-	// 7. Adaptive K & Adaptive Stopping (PR-20, PR-21)
+	// 10. Adaptive K & Adaptive Stopping (PR-20, PR-21)
 	scores := make([]float64, len(fused))
 	for i, c := range fused {
 		scores[i] = c.Score
@@ -161,17 +197,25 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 	stoppedCandidates := fusedTopK[:stopIdx]
 	trace.FinalCandidates = len(stoppedCandidates)
 
-	// 8. Compile candidates to ContextUnits (PR-25)
+	// 11. Final soundness assertion (defensive check)
+	if assertErr := AssertPlannerSoundness(evidencePkg, stoppedCandidates); assertErr != nil {
+		// This should never happen given the EvidenceNone guard above,
+		// but defense-in-depth requires we check here too.
+		stoppedCandidates = nil
+		trace.FinalCandidates = 0
+	}
+
+	// 12. Compile candidates to ContextUnits (PR-25)
 	var allUnits []ContextUnit
 	for _, c := range stoppedCandidates {
 		units := CompileCandidateToUnits(c)
 		allUnits = append(allUnits, units...)
 	}
 
-	// 9. Decision-Aware Context Optimization (PR-26)
+	// 13. Decision-Aware Context Optimization (PR-26)
 	optResult := OptimizeContext(allUnits, p.OptimizerCfg)
 
-	// 10. Cache-Aware Ordering and Prefix Caching (PR-27, PR-28)
+	// 14. Cache-Aware Ordering and Prefix Caching (PR-27, PR-28)
 	orderedUnits := SortUnitsForCache(optResult.SelectedUnits)
 	promptText := FormatContextUnits(orderedUnits)
 
@@ -184,6 +228,8 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 	if len(hierarchy.WARM.Paths) > 0 {
 		tiersSearched = append(tiersSearched, TierWARM)
 	}
+
+	_ = evidencePkg // available for future audit logging
 
 	return &PlannedContext{
 		Scope:                scope,
@@ -198,3 +244,4 @@ func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx Locali
 		PrefixHash:           cacheEntry.PrefixHash,
 	}, trace, nil
 }
+

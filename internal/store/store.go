@@ -108,12 +108,25 @@ type Store interface {
 	SaveNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, edges []EdgeRecord) error
 	UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error
 	ListNodes(repoID string) ([]NodeRecord, error)
+	CountNodes(repoID string) (int, error)
 	ListEdges(repoID string) ([]EdgeRecord, error)
 	LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error)
 
-	// Exact Indexes & Candidate Search (PR.md PR-02 & PR-04)
+	// Exact Indexes & Candidate Search (R17 Phase 3)
+	// LookupExactPath returns all nodes whose path exactly matches the given
+	// canonical repository-relative path. Implements Theorem 2 (Recall@1 = 1.0
+	// for exact path queries).
+	LookupExactPath(repoID string, path string) ([]NodeRecord, error)
+
+	// LookupBasename returns all file nodes whose filename (last path segment)
+	// exactly matches the given basename.
+	LookupBasename(repoID string, basename string) ([]NodeRecord, error)
+
+	// LookupSymbol returns nodes with exact symbol name match.
 	LookupSymbol(repoID string, name string) ([]NodeRecord, error)
 	LookupQualifiedSymbol(repoID string, qualifiedName string) ([]NodeRecord, error)
+
+	// LookupPath returns nodes matching a path pattern (original, approximate).
 	LookupPath(repoID string, path string) ([]NodeRecord, error)
 	LookupPackage(repoID string, pkg string) ([]NodeRecord, error)
 	SearchCodeCandidates(repoID string, query string, scope string, limit int) ([]NodeRecord, error)

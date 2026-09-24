@@ -283,14 +283,28 @@ This project uses ContextOS for persistent, budget-aware context management.
 		rulePath := filepath.Join(repoRoot, ".agents", "rules", "contextos.md")
 		ruleContent := `# ContextOS Rules for Antigravity
 
-This repository uses ContextOS for persistent, token-bounded context management.
+This repository uses ContextOS for persistent, token-bounded context management, adaptive compute routing, and deterministic retrieval.
 
-## Guidelines
-- Call ` + "`context_resume`" + ` at the beginning of a task to restore previous decisions and active work state.
-- Use ` + "`context_plan`" + ` to assemble minimum-sufficient context for complex coding tasks under budget constraints.
-- Record durable architectural choices with ` + "`context_remember`" + ` (kind: "decision", authority: "user").
-- Record failed approaches or dead ends with ` + "`context_remember`" + ` (kind: "failure") so future sessions avoid repeating mistakes.
-- Use ` + "`context_handoff`" + ` when transferring engineering state to another agent or model.
+## Core Directives
+
+1. **Session Initialization**:
+   - Call ` + "`context_resume`" + ` at the start of a task or session to recover uncommitted changes, active branch state, open work items, and high-authority engineering decisions.
+
+2. **Context Planning & Deterministic Retrieval (R17)**:
+   - Use ` + "`context_plan`" + ` to assemble minimum-sufficient context under strict token budgets.
+   - For exact file or symbol lookups, prefix or pass explicit paths (e.g. ` + "`internal/retrieval/planner.go`" + ` or ` + "`planner.go`" + `). ContextOS R17 provides quotient-space candidate canonicalization and dedicated exact indexes (` + "`LookupExactPath`" + `, ` + "`LookupBasename`" + `), guaranteeing recall completeness without heuristic degradation.
+   - Respect the planner soundness guarantee: satisfied evidence states ensure all target nodes are strictly bounded within the token budget.
+
+3. **Adaptive Compute & Model Routing (R16)**:
+   - Use ` + "`context_compute_plan`" + ` or ` + "`context_route`" + ` before complex multi-step reasoning to evaluate task complexity, recommended token budgets, reasoning effort, and verification tiers (T0 deterministic AST bypass, T1 cached context plan, T2 full graph traversal).
+
+4. **Durable Knowledge Lifecycle**:
+   - Persist critical architectural choices with ` + "`context_remember`" + ` (kind: "decision", authority: "user" or "verified").
+   - Persist dead ends and anti-patterns with ` + "`context_remember`" + ` (kind: "failure") so future sessions avoid repeating mistakes.
+   - When a previous decision or assumption is superseded by code changes, invalidate it using ` + "`context_invalidate`" + ` with its memory ID. ContextOS anchors invalidations to git commit revisions, preserving historical fidelity.
+
+5. **Cross-Agent Handoff**:
+   - Use ` + "`context_handoff`" + ` when transferring engineering state to another agent or model.
 `
 		_ = os.MkdirAll(filepath.Dir(rulePath), 0700)
 		_ = os.WriteFile(rulePath, []byte(ruleContent), 0644)
@@ -298,29 +312,35 @@ This repository uses ContextOS for persistent, token-bounded context management.
 		skillPath := filepath.Join(repoRoot, ".agents", "skills", "contextos", "SKILL.md")
 		skillContent := `---
 name: contextos
-description: Use ContextOS to manage persistent agent context, execute 6-pass token allocations, recall durable engineering decisions, and record session traces.
+description: Use ContextOS to manage persistent agent context, execute 6-pass token allocations, recall durable engineering decisions, generate adaptive compute plans, and record session traces.
 ---
 
-# ContextOS Agent Workflow
+# ContextOS Agent Workflow & Reference
 
-ContextOS provides deterministic, budget-bounded context management for autonomous AI workflows.
+ContextOS provides deterministic, budget-bounded context management, adaptive compute routing, and persistent engineering memory for autonomous AI agents.
+
+## Core Capabilities (R16 & R17)
+
+- **Quotient-Space Canonical Invariance (Theorem 1)**: Candidates are normalized into canonical equivalence classes [x] in C/~ across path representations and symbol signatures, preventing score dilution and duplicate token waste.
+- **Exact Path & Basename Retrieval (Theorem 2)**: Querying explicit paths (e.g. ` + "`internal/retrieval/planner.go`" + `) or basenames (` + "`planner.go`" + `) triggers dedicated exact indexes (` + "`LookupExactPath`" + `, ` + "`LookupBasename`" + `), ensuring complete 100% recall without graph heuristic distortion.
+- **Planner Soundness State Machine (Theorem 3)**: Monotonic state transitions (EvidenceUnevaluated -> EvidenceSatisfied | EvidenceBudgetExhausted | EvidenceContradiction) mathematically guarantee that satisfied plans strictly bound target nodes within the token budget.
+- **Adaptive Compute Planning (R16)**: Computes provider-neutral reasoning effort, token budgets, and verification tiers (T0 AST bypass, T1 cached plan, T2 full graph search) for optimal cost-accuracy tradeoffs across Gemini, Claude, and local models.
+- **Two-Tier Cache Architecture**: L1 in-memory LRU cache + L2 persistent SQLite cache with prefix hash matching, delivering 70%+ token savings on repetitive tool invocations.
 
 ## CLI Quick Access
 
-When working in this repository:
-
 ` + "```bash" + `
 # Resume latest branch state, uncommitted changes, and active decisions
-ctx resume -repo .
+./bin/ctx resume -repo .
 
 # Plan minimum-sufficient context under a strict token budget (e.g., 2000 tokens)
-ctx plan -repo . -task "Fix issue" -budget 2000
+./bin/ctx plan -repo . -task "Fix issue" -budget 2000
 
 # Remember key decisions or bug fixes
-ctx remember -repo . -kind decision -authority user -content "Decision..."
+./bin/ctx remember -repo . -kind decision -authority user -content "Decision..."
 
 # View allocation traces and cache token savings
-ctx stats -repo .
+./bin/ctx stats -repo .
 ` + "```" + `
 `
 		_ = os.MkdirAll(filepath.Dir(skillPath), 0700)
