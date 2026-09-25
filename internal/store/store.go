@@ -108,6 +108,7 @@ type Store interface {
 	SaveNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, edges []EdgeRecord) error
 	UpdateNodesAndEdges(repoID string, files []gitidx.SourceFile, syms []gitidx.Symbol, deletedPaths []string, edges []EdgeRecord) error
 	ListNodes(repoID string) ([]NodeRecord, error)
+	LookupNodesByIDs(repoID string, nodeIDs []string) ([]NodeRecord, error)
 	CountNodes(repoID string) (int, error)
 	ListEdges(repoID string) ([]EdgeRecord, error)
 	LookupAdjacentEdges(repoID string, nodeIDs []string) ([]EdgeRecord, error)

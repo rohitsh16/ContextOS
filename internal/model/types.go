@@ -85,6 +85,11 @@ type ContextPlan struct {
 	CacheHit        bool        `json:"cache_hit"`
 	StablePrefix    []Candidate `json:"stable_prefix,omitempty"`
 	VariableContext []Candidate `json:"variable_context,omitempty"`
+	RetrievalMode   string      `json:"retrieval_mode,omitempty"`
+	RetrievalStages []string    `json:"retrieval_stages,omitempty"`
+	CandidateCount  int         `json:"candidate_count,omitempty"`
+	TargetRank      int         `json:"target_rank,omitempty"`
+	TargetFound     bool        `json:"target_found,omitempty"`
 	Candidates      []Candidate `json:"candidates"`
 	Selected        []Candidate `json:"selected"`
 	CreatedAt       time.Time   `json:"created_at"`

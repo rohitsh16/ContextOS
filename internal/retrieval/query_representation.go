@@ -42,7 +42,7 @@ type QueryArtifactType struct {
 	Type string `json:"type"` // "policy", "workflow", "plan", "test", "config", "doc"
 }
 
-// QueryRepresentation provides a structured, multi-dimensional decomposition of a query (R18.1 §8).
+// QueryRepresentation provides a structured, multi-dimensional decomposition of a query (R18.1 §8 & §12).
 type QueryRepresentation struct {
 	Raw           string              `json:"raw"`
 	Entities      []QueryEntity       `json:"entities"`
@@ -51,7 +51,9 @@ type QueryRepresentation struct {
 	ArtifactTypes []QueryArtifactType `json:"artifact_types"`
 	Identifiers   []string            `json:"identifiers"`
 	Paths         []string            `json:"paths"`
+	Filenames     []string            `json:"filenames"`
 	Symbols       []string            `json:"symbols"`
+	Concepts      []string            `json:"concepts"`
 	Negations     []string            `json:"negations"`
 	Intent        QueryIntent         `json:"intent"`
 }
@@ -61,6 +63,7 @@ var (
 	reFileExtension    = regexp.MustCompile(`(?i)\b([a-zA-Z0-9_.-]+\.(?:go|py|ts|tsx|js|json|md|yaml|yml|proto|sh))\b`)
 	reDottedSymbol     = regexp.MustCompile(`\b([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+)\b`)
 	rePascalCase       = regexp.MustCompile(`\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+)\b`)
+	reCamelCase        = regexp.MustCompile(`\b([a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+)\b`)
 	reSnakeCase        = regexp.MustCompile(`\b([a-z0-9]+(?:_[a-z0-9]+)+)\b`)
 	reKebabCase        = regexp.MustCompile(`\b([a-z0-9]+(?:-[a-z0-9]+)+)\b`)
 	reAcronym          = regexp.MustCompile(`\b([A-Z]{2,6})\b`)
@@ -80,7 +83,9 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 		ArtifactTypes: make([]QueryArtifactType, 0),
 		Identifiers:   make([]string, 0),
 		Paths:         make([]string, 0),
+		Filenames:     make([]string, 0),
 		Symbols:       make([]string, 0),
+		Concepts:      make([]string, 0),
 		Negations:     make([]string, 0),
 		Intent:        QueryIntentLookup,
 	}
@@ -97,23 +102,40 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 		}
 	}
 
-	// 1. Extract file paths and basenames
+	// 1. Extract file paths and basenames (R18.1 §6)
 	for _, p := range rePathToken.FindAllString(raw, -1) {
 		rep.Paths = append(rep.Paths, p)
+		base := filepath.Base(p)
+		rep.Filenames = append(rep.Filenames, base)
 		addIdent(p)
-		addIdent(filepath.Base(p))
+		addIdent(base)
+		ext := filepath.Ext(base)
+		if ext != "" {
+			addIdent(strings.TrimSuffix(base, ext))
+		}
 	}
 	for _, f := range reFileExtension.FindAllString(raw, -1) {
 		rep.Paths = append(rep.Paths, f)
+		base := filepath.Base(f)
+		rep.Filenames = append(rep.Filenames, base)
 		addIdent(f)
+		addIdent(base)
+		ext := filepath.Ext(base)
+		if ext != "" {
+			addIdent(strings.TrimSuffix(base, ext))
+		}
 	}
 
-	// 2. Extract qualified and PascalCase symbols
+	// 2. Extract qualified, PascalCase, and camelCase symbols (R18.1 §6)
 	for _, s := range reDottedSymbol.FindAllString(raw, -1) {
 		rep.Symbols = append(rep.Symbols, s)
 		addIdent(s)
 	}
 	for _, s := range rePascalCase.FindAllString(raw, -1) {
+		rep.Symbols = append(rep.Symbols, s)
+		addIdent(s)
+	}
+	for _, s := range reCamelCase.FindAllString(raw, -1) {
 		rep.Symbols = append(rep.Symbols, s)
 		addIdent(s)
 	}

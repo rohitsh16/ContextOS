@@ -1,6 +1,6 @@
 # Phase R15.6 / R15.7 / R15.8 — Ablation Ladder, Baselines & Oracle Regret Report
 
-**Timestamp:** 2026-09-25T16:42:56Z  
+**Timestamp:** 2026-09-25T19:23:57Z  
 **Manifest:** `manifest-r15-freeze-42` | **Gate:** `R15.6-R15.8`  
 **Offline Oracle Cost:** $17.9190 | **Oracle CPS:** $0.1584 (Target Error: 12%)  
 

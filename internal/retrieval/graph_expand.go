@@ -13,6 +13,7 @@ import (
 type GraphExpansionConfig struct {
 	MaxDepth         int     `json:"max_depth"`          // Maximum traversal hops (default: 2)
 	MaxNodesPerHop   int     `json:"max_nodes_per_hop"`  // Maximum nodes expanded per step (default: 10)
+	MaxTotalNodes    int     `json:"max_total_nodes"`    // Maximum total nodes expanded (default: 15)
 	IncludeTests     bool    `json:"include_tests"`      // Expand test files
 	IncludeSiblings  bool    `json:"include_siblings"`   // Expand same-package siblings
 	IncludeCallers   bool    `json:"include_callers"`    // Expand callers & callees
@@ -22,7 +23,8 @@ type GraphExpansionConfig struct {
 // DefaultGraphExpansionConfig provides safe, bounded expansion defaults.
 var DefaultGraphExpansionConfig = GraphExpansionConfig{
 	MaxDepth:        2,
-	MaxNodesPerHop:  10,
+	MaxNodesPerHop:  8,
+	MaxTotalNodes:   15,
 	IncludeTests:    true,
 	IncludeSiblings: true,
 	IncludeCallers:  true,
@@ -38,15 +40,19 @@ func ExpandCandidateGraph(
 	policy gitidx.AdmissionPolicy,
 	cfg GraphExpansionConfig,
 ) ([]Candidate, []string) {
-	if cfg.MaxDepth <= 0 {
+	if cfg.MaxDepth <= 0 || cfg.MaxDepth > 2 {
 		cfg.MaxDepth = 2
 	}
 	if cfg.MaxNodesPerHop <= 0 {
-		cfg.MaxNodesPerHop = 10
+		cfg.MaxNodesPerHop = 8
+	}
+	if cfg.MaxTotalNodes <= 0 {
+		cfg.MaxTotalNodes = 15
 	}
 
 	visitedNodes := make(map[string]bool)
 	visitedPaths := make(map[string]bool)
+	visitedDirs := make(map[string]bool)
 	for _, s := range seeds {
 		if s.NodeID != "" {
 			visitedNodes[s.NodeID] = true
@@ -63,6 +69,9 @@ func ExpandCandidateGraph(
 	var expandedPaths []string
 
 	for depth := 1; depth <= cfg.MaxDepth; depth++ {
+		if len(expandedCands) >= cfg.MaxTotalNodes {
+			break
+		}
 		select {
 		case <-ctx.Done():
 			return expandedCands, expandedPaths
@@ -71,58 +80,61 @@ func ExpandCandidateGraph(
 
 		nextHop := make([]Candidate, 0)
 		for _, seed := range currentHop {
-			// 1. Same-package siblings expansion
-			if cfg.IncludeSiblings && seed.Path != "" {
+			// 1. Same-package siblings expansion (at depth 1 from seeds)
+			if cfg.IncludeSiblings && seed.Path != "" && depth == 1 {
 				pkgDir := filepath.Dir(seed.Path)
-				dirNodes, err := st.LookupPath(repoID, pkgDir)
-				if err == nil {
-					added := 0
-					for _, dn := range dirNodes {
-						if added >= cfg.MaxNodesPerHop {
-							break
+				if pkgDir != "." && pkgDir != "" && pkgDir != "/" && !visitedDirs[pkgDir] {
+					visitedDirs[pkgDir] = true
+					dirNodes, err := st.LookupPath(repoID, pkgDir)
+					if err == nil {
+						added := 0
+						for _, dn := range dirNodes {
+							if added >= cfg.MaxNodesPerHop {
+								break
+							}
+							if visitedPaths[dn.Path] {
+								continue
+							}
+							// Check admission
+							elig := gitidx.EvaluateAdmission(dn.Path, []byte(dn.Signature), true, false, policy)
+							if !elig.Eligible {
+								continue
+							}
+							visitedPaths[dn.Path] = true
+							c := Candidate{
+								ID:         "cand:" + dn.ID,
+								NodeID:     dn.ID,
+								Kind:       dn.Kind,
+								Name:       dn.Name,
+								Path:       dn.Path,
+								StartLine:  dn.StartLine,
+								EndLine:    dn.EndLine,
+								Signature:  dn.Signature,
+								Content:    dn.Signature,
+								GraphScore: 0.7 / float64(depth),
+								Score:      0.7 / float64(depth),
+								Stage:      string(StageExpansion),
+								Provenance: []string{"same_package_sibling", seed.Path},
+							}
+							c.Trace = &CandidateTrace{
+								ID:         c.ID,
+								Path:       c.Path,
+								Name:       c.Name,
+								Stages:     []RetrievalStage{StageExpansion},
+								GraphScore: c.GraphScore,
+								FinalScore: c.Score,
+								Admissible: true,
+							}
+							nextHop = append(nextHop, c)
+							expandedCands = append(expandedCands, c)
+							expandedPaths = append(expandedPaths, c.Path)
+							added++
 						}
-						if visitedPaths[dn.Path] {
-							continue
-						}
-						// Check admission
-						elig := gitidx.EvaluateAdmission(dn.Path, []byte(dn.Signature), true, false, policy)
-						if !elig.Eligible {
-							continue
-						}
-						visitedPaths[dn.Path] = true
-						c := Candidate{
-							ID:         "cand:" + dn.ID,
-							NodeID:     dn.ID,
-							Kind:       dn.Kind,
-							Name:       dn.Name,
-							Path:       dn.Path,
-							StartLine:  dn.StartLine,
-							EndLine:    dn.EndLine,
-							Signature:  dn.Signature,
-							Content:    dn.Signature,
-							GraphScore: 0.7 / float64(depth),
-							Score:      0.7 / float64(depth),
-							Stage:      string(StageExpansion),
-							Provenance: []string{"same_package_sibling", seed.Path},
-						}
-						c.Trace = &CandidateTrace{
-							ID:         c.ID,
-							Path:       c.Path,
-							Name:       c.Name,
-							Stages:     []RetrievalStage{StageExpansion},
-							GraphScore: c.GraphScore,
-							FinalScore: c.Score,
-							Admissible: true,
-						}
-						nextHop = append(nextHop, c)
-						expandedCands = append(expandedCands, c)
-						expandedPaths = append(expandedPaths, c.Path)
-						added++
 					}
 				}
 			}
 
-			// 2. Call-graph expansion (Callers and Callees via LookupAdjacentEdges)
+			// 2. Call-graph expansion (Callers and Callees via LookupAdjacentEdges + LookupNodesByIDs)
 			if cfg.IncludeCallers && seed.NodeID != "" {
 				edges, err := st.LookupAdjacentEdges(repoID, []string{seed.NodeID})
 				if err == nil {
@@ -143,41 +155,42 @@ func ExpandCandidateGraph(
 						}
 					}
 
-					for _, adjID := range adjacentNodeIDs {
-						adjNodes, err := st.LookupPath(repoID, adjID)
-						if err == nil && len(adjNodes) > 0 {
-							dn := adjNodes[0]
-							elig := gitidx.EvaluateAdmission(dn.Path, []byte(dn.Signature), true, false, policy)
-							if !elig.Eligible {
-								continue
+					if len(adjacentNodeIDs) > 0 {
+						adjNodes, err := st.LookupNodesByIDs(repoID, adjacentNodeIDs)
+						if err == nil {
+							for _, dn := range adjNodes {
+								elig := gitidx.EvaluateAdmission(dn.Path, []byte(dn.Signature), true, false, policy)
+								if !elig.Eligible {
+									continue
+								}
+								c := Candidate{
+									ID:         "cand:" + dn.ID,
+									NodeID:     dn.ID,
+									Kind:       dn.Kind,
+									Name:       dn.Name,
+									Path:       dn.Path,
+									StartLine:  dn.StartLine,
+									EndLine:    dn.EndLine,
+									Signature:  dn.Signature,
+									Content:    dn.Signature,
+									GraphScore: 0.85 / float64(depth),
+									Score:      0.85 / float64(depth),
+									Stage:      string(StageExpansion),
+									Provenance: []string{"call_graph_edge", seed.Path},
+								}
+								c.Trace = &CandidateTrace{
+									ID:         c.ID,
+									Path:       c.Path,
+									Name:       c.Name,
+									Stages:     []RetrievalStage{StageExpansion, StageGraph},
+									GraphScore: c.GraphScore,
+									FinalScore: c.Score,
+									Admissible: true,
+								}
+								nextHop = append(nextHop, c)
+								expandedCands = append(expandedCands, c)
+								expandedPaths = append(expandedPaths, c.Path)
 							}
-							c := Candidate{
-								ID:         "cand:" + dn.ID,
-								NodeID:     dn.ID,
-								Kind:       dn.Kind,
-								Name:       dn.Name,
-								Path:       dn.Path,
-								StartLine:  dn.StartLine,
-								EndLine:    dn.EndLine,
-								Signature:  dn.Signature,
-								Content:    dn.Signature,
-								GraphScore: 0.85 / float64(depth),
-								Score:      0.85 / float64(depth),
-								Stage:      string(StageExpansion),
-								Provenance: []string{"call_graph_edge", seed.Path},
-							}
-							c.Trace = &CandidateTrace{
-								ID:         c.ID,
-								Path:       c.Path,
-								Name:       c.Name,
-								Stages:     []RetrievalStage{StageExpansion, StageGraph},
-								GraphScore: c.GraphScore,
-								FinalScore: c.Score,
-								Admissible: true,
-							}
-							nextHop = append(nextHop, c)
-							expandedCands = append(expandedCands, c)
-							expandedPaths = append(expandedPaths, c.Path)
 						}
 					}
 				}

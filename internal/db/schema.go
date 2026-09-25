@@ -99,6 +99,8 @@ CREATE INDEX IF NOT EXISTS idx_edges_src ON edges(src_id);
 CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges(dst_id);
 CREATE INDEX IF NOT EXISTS idx_nodes_repo_name ON nodes(repo_id, name);
 CREATE INDEX IF NOT EXISTS idx_nodes_repo_path ON nodes(repo_id, path);
+CREATE INDEX IF NOT EXISTS idx_nodes_repo_name_nocase ON nodes(repo_id, name COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_nodes_repo_path_nocase ON nodes(repo_id, path COLLATE NOCASE);
 CREATE TABLE IF NOT EXISTS sessions(
  id TEXT PRIMARY KEY,
  repo_id INTEGER NOT NULL,

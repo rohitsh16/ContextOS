@@ -246,6 +246,25 @@ func (s *SQLiteStore) LookupAdjacentEdges(repoID string, nodeIDs []string) ([]Ed
 	return out, nil
 }
 
+func (s *SQLiteStore) LookupNodesByIDs(repoID string, nodeIDs []string) ([]NodeRecord, error) {
+	if len(nodeIDs) == 0 {
+		return nil, nil
+	}
+	placeholders := make([]string, len(nodeIDs))
+	args := make([]any, 0, len(nodeIDs)+1)
+	args = append(args, repoID)
+	for i, id := range nodeIDs {
+		placeholders[i] = "?"
+		args = append(args, id)
+	}
+	qSQL := `SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND id IN (` + strings.Join(placeholders, ",") + `)`
+	rows, err := s.DB.Query(qSQL, args...)
+	if err != nil {
+		return nil, err
+	}
+	return s.scanNodeRows(rows, repoID), nil
+}
+
 func (s *SQLiteStore) LookupSymbol(repoID string, name string) ([]NodeRecord, error) {
 	rows, err := s.DB.Query(`SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE`, repoID, name)
 	if err != nil {
@@ -307,7 +326,11 @@ func (s *SQLiteStore) LookupBasename(repoID string, basename string) ([]NodeReco
 }
 
 func (s *SQLiteStore) LookupPath(repoID string, path string) ([]NodeRecord, error) {
-	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path=? OR path LIKE ?)`, repoID, path, "%"+path+"%")
+	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path=? OR path LIKE ?)`, repoID, path, path+"/%")
+	if err == nil && len(rows) > 0 {
+		return s.scanNodeRows(rows, repoID), nil
+	}
+	rows, err = s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND path LIKE ?`, repoID, "%"+path+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -329,14 +352,12 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 	if limit <= 0 {
 		limit = 50
 	}
-	tokens := textutil.Tokens(query)
-	rawWords := strings.FieldsFunc(query, func(r rune) bool {
-		return !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_')
-	})
-	var rows []db.Row
-	var err error
+	classified := textutil.ClassifyQueryTokens(query)
+	prioritizedTokens := textutil.ExtractPrioritizedTokens(query)
 
-	if len(tokens) == 0 && len(rawWords) == 0 {
+	if len(prioritizedTokens) == 0 {
+		var rows []db.Row
+		var err error
 		if scope != "" {
 			rows, err = s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND path LIKE ? ORDER BY centrality DESC, in_degree DESC LIMIT ?`, repoID, "%"+scope+"%", limit)
 		} else {
@@ -351,21 +372,43 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 	seenIDs := make(map[string]bool)
 	var collected []NodeRecord
 
-	// 1. Exact symbol matches via single batched IN query
-	var queryTokens []string
-	seenTok := make(map[string]bool)
-	for _, tok := range append(tokens, rawWords...) {
-		if len(tok) >= 3 && !seenTok[tok] {
-			seenTok[tok] = true
-			queryTokens = append(queryTokens, tok)
+	// 0. High-Priority Direct Path/Basename Matching for exact file/path references (R18.1 §6 & §8)
+	for _, ct := range classified {
+		if ct.Class == textutil.ClassPathFilename {
+			base := filepath.Base(ct.Text)
+			pathRows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND (path=? OR name=? COLLATE NOCASE) ORDER BY centrality DESC LIMIT ?`, repoID, ct.Text, base, limit)
+			if err == nil {
+				for _, n := range s.scanNodeRows(pathRows, repoID) {
+					if !seenIDs[n.ID] {
+						seenIDs[n.ID] = true
+						collected = append(collected, n)
+						if len(collected) >= limit {
+							return collected, nil
+						}
+					}
+				}
+			}
 		}
 	}
 
-	if len(queryTokens) > 0 {
-		placeholders := make([]string, len(queryTokens))
-		args := make([]any, 0, len(queryTokens)+2)
+	// 1. Exact symbol / identifier / filename matches via batched IN query (R18.1 §8)
+	var exactBatch []string
+	seenExact := make(map[string]bool)
+	for _, tok := range prioritizedTokens {
+		if len(tok) >= 2 && !isStoreStopWord(tok) && !seenExact[strings.ToLower(tok)] {
+			seenExact[strings.ToLower(tok)] = true
+			exactBatch = append(exactBatch, tok)
+			if len(exactBatch) >= 16 {
+				break
+			}
+		}
+	}
+
+	if len(exactBatch) > 0 {
+		placeholders := make([]string, len(exactBatch))
+		args := make([]any, 0, len(exactBatch)+2)
 		args = append(args, repoID)
-		for i, tok := range queryTokens {
+		for i, tok := range exactBatch {
 			placeholders[i] = "?"
 			args = append(args, tok)
 		}
@@ -385,18 +428,18 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 	}
 
-	// 2. Prefix matching for tokens via batched OR query
-	if len(collected) < limit {
+	// 2. Prefix matching for tokens via batched OR query with priority budgeting (R18.1 §7 & §10)
+	if len(collected) < 3 {
 		var pfxClauses []string
 		var pfxArgs []any
 		pfxArgs = append(pfxArgs, repoID)
-		for _, tok := range queryTokens {
-			if len(tok) < 4 || isStoreStopWord(tok) {
+		for _, tok := range prioritizedTokens {
+			if len(tok) < 3 || isStoreStopWord(tok) {
 				continue
 			}
 			pfxClauses = append(pfxClauses, "name LIKE ?")
 			pfxArgs = append(pfxArgs, tok+"%")
-			if len(pfxClauses) >= 8 {
+			if len(pfxClauses) >= 4 {
 				break
 			}
 		}
@@ -418,11 +461,11 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 	}
 
-	// 3. Lexical substring match if more candidates needed (capped at 25)
-	if len(collected) < limit && len(collected) < 25 {
+	// 3. Lexical substring match if more candidates needed (R18.1 §10)
+	if len(collected) < limit && len(collected) < 10 {
 		subLimit := limit - len(collected)
-		if subLimit > 25 {
-			subLimit = 25
+		if subLimit > 10 {
+			subLimit = 10
 		}
 		var clauses []string
 		var args []any
@@ -433,13 +476,13 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 
 		var tokClauses []string
-		for _, tok := range queryTokens {
+		for _, tok := range prioritizedTokens {
 			if len(tok) < 3 || isStoreStopWord(tok) {
 				continue
 			}
-			tokClauses = append(tokClauses, "(name LIKE ? OR path LIKE ? OR signature LIKE ?)")
-			args = append(args, "%"+tok+"%", "%"+tok+"%", "%"+tok+"%")
-			if len(tokClauses) >= 8 {
+			tokClauses = append(tokClauses, "(signature LIKE ? OR path LIKE ?)")
+			args = append(args, "%"+tok+"%", "%"+tok+"%")
+			if len(tokClauses) >= 2 {
 				break
 			}
 		}
@@ -447,7 +490,7 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		if len(tokClauses) > 0 {
 			clauses = append(clauses, "("+strings.Join(tokClauses, " OR ")+")")
 			qSQL := `SELECT ` + nodeColumnsSQL + ` FROM nodes WHERE repo_id=? AND ` + strings.Join(clauses, " AND ") + ` ORDER BY centrality DESC, (in_degree + out_degree) DESC` + fmt.Sprintf(" LIMIT %d", subLimit)
-			rows, err = s.DB.Query(qSQL, args...)
+			rows, err := s.DB.Query(qSQL, args...)
 			if err == nil {
 				for _, n := range s.scanNodeRows(rows, repoID) {
 					if !seenIDs[n.ID] {
@@ -964,7 +1007,7 @@ func (s *SQLiteStore) Prune(opts PruneOptions) (PruneReport, error) {
 
 func isStoreStopWord(w string) bool {
 	switch strings.ToLower(w) {
-	case "where", "what", "which", "when", "why", "how", "the", "for", "with", "this", "that", "from", "into", "does", "done", "about", "is", "are", "was", "were", "in", "on", "at", "by", "an", "a":
+	case "where", "what", "which", "when", "why", "how", "the", "for", "with", "this", "that", "from", "into", "does", "done", "about", "is", "are", "was", "were", "in", "on", "at", "by", "an", "a", "find", "show", "tell", "logic", "code", "file", "project", "thing", "things":
 		return true
 	default:
 		return false

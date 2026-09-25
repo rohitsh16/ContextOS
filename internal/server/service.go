@@ -6,10 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -301,7 +299,7 @@ func (s *Service) expandGraphFromSeeds(task string, candidateMemories []model.Me
 				Centrality: 0.5,
 			})
 			seedScores[nodeID] = m.Confidence
-			if len(seeds) >= 25 {
+			if len(seeds) >= 5 {
 				break
 			}
 		}
@@ -496,58 +494,65 @@ func (s *Service) SearchCandidates(task string, limit int) ([]model.Memory, erro
 	return out, nil
 }
 
+// RetrieveEvidenceMemories executes hybrid multi-channel retrieval and converts candidates to model.Memory (R18.1 P0).
+func (s *Service) RetrieveEvidenceMemories(ctx context.Context, task string, topK int) ([]model.Memory, *retrieval.QueryRetrievalTrace, map[string]float64, map[string]float64, error) {
+	if topK <= 0 {
+		topK = 50
+	}
+	cands, trace, err := s.RetrieveEvidence(ctx, task, topK)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	mems := make([]model.Memory, 0, len(cands))
+	denseScores := make(map[string]float64, len(cands)*2)
+	graphScores := make(map[string]float64, len(cands)*2)
+	for _, c := range cands {
+		nodeID := c.NodeID
+		if nodeID == "" {
+			nodeID = strings.TrimPrefix(c.ID, "cand:")
+		}
+		memID := "node:" + nodeID
+		content := c.Content
+		if content == "" {
+			content = fmt.Sprintf("%s %s %s %s:%d", c.Kind, c.Name, c.Signature, c.Path, c.StartLine)
+		}
+		m := model.Memory{
+			ID:                memID,
+			Kind:              c.Kind,
+			Content:           content,
+			Scope:             "repo",
+			ValidFromRevision: s.Repo.Revision,
+			Authority:         "source",
+			Confidence:        1.0,
+			TokenCost:         textutil.EstimateTokens(content),
+			Source:            "repository",
+			Location:          c.Path,
+		}
+		mems = append(mems, m)
+
+		score := c.Score
+		if score <= 0 {
+			score = c.SemanticScore
+		}
+		denseScores[memID] = score
+		denseScores[c.Path] = score
+		if c.GraphScore > 0 {
+			graphScores[memID] = c.GraphScore
+			graphScores[c.Path] = c.GraphScore
+		}
+	}
+	return mems, trace, denseScores, graphScores, nil
+}
+
 func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	// PR-04 / O1: Use indexed candidate retrieval; NEVER fallback to full ListNodes()
-	nodes, err := s.Store.SearchCodeCandidates(s.RepoID, task, "", limit*2)
+	mems, _, _, _, err := s.RetrieveEvidenceMemories(context.Background(), task, limit)
 	if err != nil {
 		return nil, err
 	}
-	type scored struct {
-		m     model.Memory
-		score float64
-	}
-	tmp := make([]scored, 0, len(nodes))
-	for _, r := range nodes {
-		content := fmt.Sprintf("%s %s %s %s:%d", r.Kind, r.Name, r.Signature, r.Path, r.StartLine)
-		sc := 0.6*textutil.HashSemantic(task, content) + 0.4*textutil.Overlap(task, content)
-		if sc < 0.05 && task != "" {
-			continue
-		}
-		// O3: Incorporate static graph features precomputed at index time
-		if r.Centrality > 0 {
-			sc += 0.15 * r.Centrality
-		}
-		if (r.InDegree + r.OutDegree) > 0 {
-			sc += 0.05 * math.Min(float64(r.InDegree+r.OutDegree)/10.0, 1.0)
-		}
-		tmp = append(tmp, scored{
-			m: model.Memory{
-				ID:                "node:" + r.ID,
-				Kind:              "code",
-				Content:           content,
-				Scope:             "repo",
-				ValidFromRevision: s.Repo.Revision,
-				Authority:         "source",
-				Confidence:        1.0,
-				TokenCost:         textutil.EstimateTokens(content),
-				Source:            "repository",
-				Location:          r.Path,
-			},
-			score: sc,
-		})
-	}
-	sort.Slice(tmp, func(i, j int) bool { return tmp[i].score > tmp[j].score })
-	if len(tmp) > limit {
-		tmp = tmp[:limit]
-	}
-	out := make([]model.Memory, len(tmp))
-	for i, x := range tmp {
-		out[i] = x.m
-	}
-	return out, nil
+	return mems, nil
 }
 
 // RetrieveEvidence executes hybrid multi-channel retrieval for a task query (R18.1).
@@ -585,7 +590,7 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	if modelName == "" {
 		modelName = router.Recommend(task, budget).Name
 	}
-	key := hashID(fmt.Sprintf("%s|%s|%s|%s|%d", s.Repo.Revision, s.Repo.WorktreeHash, task, modelName, budget))
+	key := hashID(fmt.Sprintf("v3|%s|%s|%s|%s|%d", s.Repo.Revision, s.Repo.WorktreeHash, task, modelName, budget))
 
 	// Check context plan cache
 	cachedJSON, err := s.Store.GetCache(key, s.RepoID, s.Repo.Revision, s.Repo.WorktreeHash)
@@ -607,7 +612,7 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	if err != nil {
 		return model.ContextPlan{}, err
 	}
-	codes, err := s.CodeMemories(task, 25)
+	codes, trace, denseScores, graphScores, err := s.RetrieveEvidenceMemories(context.Background(), task, 25)
 	if err != nil {
 		return model.ContextPlan{}, err
 	}
@@ -628,13 +633,16 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		}
 	}
 
-	var graphScores map[string]float64
+	var tGraph time.Duration
 	var nodesExpanded, edgesTraversed int
-	tGraphStart := time.Now()
-	if !adaptiveThrottled {
-		graphScores, nodesExpanded, edgesTraversed = s.expandGraphFromSeeds(task, codes)
+	if trace != nil {
+		nodesExpanded = len(trace.ExpansionNodes)
 	}
-	tGraph := time.Since(tGraphStart)
+	if len(graphScores) == 0 && !adaptiveThrottled {
+		tGraphStart := time.Now()
+		graphScores, nodesExpanded, edgesTraversed = s.expandGraphFromSeeds(task, codes)
+		tGraph = time.Since(tGraphStart)
+	}
 
 	tSortStart := time.Now()
 	p := allocator.Plan(allocator.Request{
@@ -643,10 +651,26 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		Model:        modelName,
 		RepoRevision: s.Repo.Revision,
 		GraphScores:  graphScores,
+		DenseScores:  denseScores,
 	}, ms)
 	tSort := time.Since(tSortStart)
 	p.Model = modelName
 	p.CreatedAt = time.Now().UTC()
+
+	// Instrument R18.1 P0 Telemetry
+	p.RetrievalMode = "hybrid"
+	if trace != nil {
+		p.RetrievalStages = make([]string, 0, len(trace.RetrievalStages))
+		for _, st := range trace.RetrievalStages {
+			p.RetrievalStages = append(p.RetrievalStages, string(st))
+		}
+		p.CandidateCount = trace.CandidateCount
+		p.TargetRank = trace.TargetRank
+		p.TargetFound = trace.TargetPresent
+	} else {
+		p.RetrievalStages = []string{"exact_path", "lexical", "semantic", "symbol", "graph"}
+		p.CandidateCount = len(codes)
+	}
 
 	prof := profile(modelName)
 	p.EstimatedCost = float64(p.SelectedTokens) * prof.InputPerM / 1e6
@@ -875,7 +899,15 @@ func (s *Service) GC(opts store.PruneOptions) (store.PruneReport, error) {
 
 func (s *Service) RenderPlan(p model.ContextPlan) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "ContextOS Context Plan\nTask: %s\nModel: %s\nBudget: %d tokens\nSelected: %d tokens\nEstimated cost: $%.6f\nCache hit: %v\n\n", p.Task, p.Model, p.Budget, p.SelectedTokens, p.EstimatedCost, p.CacheHit)
+	fmt.Fprintf(&b, "ContextOS Context Plan\nTask: %s\nModel: %s\nBudget: %d tokens\nSelected: %d tokens\nEstimated cost: $%.6f\nCache hit: %v\n", p.Task, p.Model, p.Budget, p.SelectedTokens, p.EstimatedCost, p.CacheHit)
+	if p.RetrievalMode != "" {
+		stagesStr := strings.Join(p.RetrievalStages, ", ")
+		if stagesStr == "" {
+			stagesStr = "exact_path, lexical, semantic, symbol, graph"
+		}
+		fmt.Fprintf(&b, "Retrieval: %s (stages: %s; candidates: %d)\n", p.RetrievalMode, stagesStr, p.CandidateCount)
+	}
+	b.WriteString("\n")
 	if len(p.StablePrefix) > 0 {
 		b.WriteString("STABLE PREFIX\n")
 		for _, c := range p.StablePrefix {

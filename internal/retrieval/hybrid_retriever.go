@@ -128,11 +128,13 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 	// 3. Channel 2: Symbol Channel (R18.1 §10)
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageSymbol)
 	for _, sym := range rep.Symbols {
-		nodes, err := r.Store.LookupQualifiedSymbol(q.RepoID, sym)
-		if err == nil {
-			for _, n := range nodes {
-				c := nodeToCandidate(n, string(StageSymbol))
-				addRaw(c, StageSymbol, 0.90)
+		if strings.Contains(sym, ".") {
+			nodes, err := r.Store.LookupQualifiedSymbol(q.RepoID, sym)
+			if err == nil {
+				for _, n := range nodes {
+					c := nodeToCandidate(n, string(StageSymbol))
+					addRaw(c, StageSymbol, 0.90)
+				}
 			}
 		}
 		symNodes, err := r.Store.LookupSymbol(q.RepoID, sym)
@@ -146,21 +148,26 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 
 	// 4. Channel 3: Entity Channel (Domain acronyms, components e.g. DRMC, bunker, GCP, shared-vpc)
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageEntity)
-	for _, ent := range rep.Entities {
-		// Try entity as basename or directory
-		entNodes, err := r.Store.LookupPath(q.RepoID, ent.Name)
-		if err == nil {
+	maxEntities := 2
+	for i, ent := range rep.Entities {
+		if i >= maxEntities {
+			break
+		}
+		// Try entity as basename (indexed O(log N))
+		entNodes, err := r.Store.LookupBasename(q.RepoID, ent.Name)
+		if err == nil && len(entNodes) > 0 {
 			for _, n := range entNodes {
 				c := nodeToCandidate(n, string(StageEntity))
 				addRaw(c, StageEntity, 0.80*ent.Salience)
 			}
-		}
-		// Search code candidates specifically for the high-salience entity
-		entSearch, err := r.Store.SearchCodeCandidates(q.RepoID, ent.Name, q.Scope, 20)
-		if err == nil {
-			for _, n := range entSearch {
-				c := nodeToCandidate(n, string(StageEntity))
-				addRaw(c, StageEntity, 0.75*ent.Salience)
+		} else {
+			// Search code candidates specifically for the high-salience entity if not found by basename
+			entSearch, err := r.Store.SearchCodeCandidates(q.RepoID, ent.Name, q.Scope, 10)
+			if err == nil {
+				for _, n := range entSearch {
+					c := nodeToCandidate(n, string(StageEntity))
+					addRaw(c, StageEntity, 0.75*ent.Salience)
+				}
 			}
 		}
 	}
@@ -170,7 +177,7 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 	searchTokens := ext.AllSearchTokens
 	if len(searchTokens) > 0 {
 		joinedTokens := strings.Join(searchTokens, " ")
-		lexNodes, err := r.Store.SearchCodeCandidates(q.RepoID, joinedTokens, q.Scope, limit*2)
+		lexNodes, err := r.Store.SearchCodeCandidates(q.RepoID, joinedTokens, q.Scope, limit)
 		if err == nil {
 			for _, n := range lexNodes {
 				c := nodeToCandidate(n, string(StageLexical))

@@ -267,6 +267,25 @@ func (fs *FileStore) ListNodes(repoID string) ([]NodeRecord, error) {
 	return append([]NodeRecord(nil), fs.nodes[repoID]...), nil
 }
 
+func (fs *FileStore) LookupNodesByIDs(repoID string, nodeIDs []string) ([]NodeRecord, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+	if len(nodeIDs) == 0 {
+		return nil, nil
+	}
+	idSet := make(map[string]bool, len(nodeIDs))
+	for _, id := range nodeIDs {
+		idSet[id] = true
+	}
+	var out []NodeRecord
+	for _, n := range fs.nodes[repoID] {
+		if idSet[n.ID] {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
 func (fs *FileStore) CountNodes(repoID string) (int, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
@@ -377,8 +396,9 @@ func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope str
 	if len(nodes) == 0 {
 		return nil, nil
 	}
-	tokens := textutil.Tokens(query)
-	if len(tokens) == 0 {
+	classified := textutil.ClassifyQueryTokens(query)
+	prioritizedTokens := textutil.ExtractPrioritizedTokens(query)
+	if len(prioritizedTokens) == 0 {
 		if len(nodes) > limit {
 			return append([]NodeRecord(nil), nodes[:limit]...), nil
 		}
@@ -398,6 +418,26 @@ func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope str
 		}
 		content := fmt.Sprintf("%s %s %s %s", n.Kind, n.Name, n.Signature, n.Path)
 		sc := 0.6*textutil.HashSemantic(query, content) + 0.4*textutil.Overlap(query, content)
+
+		// R18.1 §8 Priority matching boosts
+		baseName := filepath.Base(n.Path)
+		for _, ct := range classified {
+			switch ct.Class {
+			case textutil.ClassPathFilename:
+				if strings.EqualFold(baseName, filepath.Base(ct.Text)) || strings.EqualFold(n.Path, ct.Text) {
+					sc += 1.5
+				}
+			case textutil.ClassSymbol:
+				if strings.EqualFold(n.Name, ct.Text) {
+					sc += 1.2
+				}
+			case textutil.ClassIdentifier, textutil.ClassEntity:
+				if strings.EqualFold(n.Name, ct.Text) {
+					sc += 0.8
+				}
+			}
+		}
+
 		if strings.Contains(strings.ToLower(query), strings.ToLower(n.Name)) {
 			sc += 0.35
 		}

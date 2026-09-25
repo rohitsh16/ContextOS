@@ -1,6 +1,6 @@
 # Phase R15.9 — Statistical Evaluation & Bootstrap Significance Report
 
-**Timestamp:** 2026-09-25T16:42:56Z  
+**Timestamp:** 2026-09-25T19:23:57Z  
 **Manifest:** `manifest-r15-freeze-42` | **Gate:** `R15.9`  
 **Bootstrap Replicates:** 10000 | **Random Seed:** 42  
 
