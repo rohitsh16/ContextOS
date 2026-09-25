@@ -1,0 +1,50 @@
+[
+  {
+    "task_id": "ABLATION-DRMC-001",
+    "target_evidence": "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+    "steps": [
+      {
+        "step": 1,
+        "name": "full_query_with_filename",
+        "query": "Find where GCP shared-VPC attachment logic excludes the DRMC bunker project in gcp_attach_service_project_policy.go",
+        "identifiers_present": ["filename", "DRMC", "bunker", "GCP", "shared-VPC"]
+      },
+      {
+        "step": 2,
+        "name": "remove_filename",
+        "query": "Find where GCP shared-VPC attachment logic excludes the DRMC bunker project",
+        "identifiers_present": ["DRMC", "bunker", "GCP", "shared-VPC"]
+      },
+      {
+        "step": 3,
+        "name": "remove_drmc",
+        "query": "Find where GCP shared-VPC attachment logic excludes the bunker project",
+        "identifiers_present": ["bunker", "GCP", "shared-VPC"]
+      },
+      {
+        "step": 4,
+        "name": "remove_bunker",
+        "query": "Find where GCP shared-VPC attachment logic excludes isolated service projects",
+        "identifiers_present": ["GCP", "shared-VPC"]
+      },
+      {
+        "step": 5,
+        "name": "remove_gcp",
+        "query": "Find where shared-VPC attachment logic excludes isolated service projects",
+        "identifiers_present": ["shared-VPC"]
+      },
+      {
+        "step": 6,
+        "name": "remove_shared_vpc",
+        "query": "Find where network attachment logic excludes isolated service projects",
+        "identifiers_present": []
+      },
+      {
+        "step": 7,
+        "name": "generic_conceptual",
+        "query": "Find policy code responsible for blocking service project network connection",
+        "identifiers_present": []
+      }
+    ]
+  }
+]

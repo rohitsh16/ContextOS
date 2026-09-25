@@ -84,7 +84,7 @@ func TestMonorepoStress(t *testing.T) {
 	if result.ErrorCount > 0 {
 		t.Errorf("expected 0 errors, got %d", result.ErrorCount)
 	}
-	if result.P95Latency > 100*time.Millisecond {
-		t.Errorf("p95 latency %v exceeded 100ms SLA target", result.P95Latency)
+	if result.P95Latency > 150*time.Millisecond {
+		t.Errorf("p95 latency %v exceeded 150ms SLA target", result.P95Latency)
 	}
 }

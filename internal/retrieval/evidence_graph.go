@@ -18,6 +18,7 @@ const (
 	Calls       EvidenceRelation = "calls"
 	Implements  EvidenceRelation = "implements"
 	Tests       EvidenceRelation = "tests"
+	Documents   EvidenceRelation = "documents"
 	Contradicts EvidenceRelation = "contradicts"
 	Supersedes  EvidenceRelation = "supersedes"
 	Invalidates EvidenceRelation = "invalidates"
@@ -42,6 +43,8 @@ type EvidenceEdge struct {
 	To          string           `json:"to"`
 	Relation    EvidenceRelation `json:"relation"`
 	Weight      float64          `json:"weight"`
+	Confidence  float64          `json:"confidence,omitempty"`
+	Source      string           `json:"source,omitempty"` // "ast-derived", "index-derived", "text-derived", "heuristic"
 	Description string           `json:"description,omitempty"`
 }
 

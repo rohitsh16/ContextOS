@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ADV-MISSPELLING-001",
+    "type": "misspelling",
+    "query": "Where is the DRMC share-vpc buncar exlusion implemented in GCP polcy?",
+    "target_evidence": "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+    "expected_action": "ANSWER"
+  },
+  {
+    "id": "ADV-SYNONYMS-001",
+    "type": "synonym",
+    "query": "Find the GCP provider rule that prohibits bunker networks from connecting to shared virtual private clouds.",
+    "target_evidence": "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+    "expected_action": "ANSWER"
+  },
+  {
+    "id": "ADV-VERBOSE-001",
+    "type": "verbose",
+    "query": "Hello team, as discussed during our security architecture sync yesterday regarding cloud networking restrictions, could someone please point me to where in the repository we actually stop and exclude those isolated DRMC bunker projects from attaching to the Google Cloud Platform shared VPC infrastructure?",
+    "target_evidence": "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+    "expected_action": "ANSWER"
+  },
+  {
+    "id": "ADV-NEGATIVE-QUERY-001",
+    "type": "negative_retrieval",
+    "query": "Why does ContextOS use Raft consensus for symbol indexing?",
+    "target_evidence": "",
+    "expected_action": "ABSTAIN",
+    "expected_status": "insufficient_evidence"
+  },
+  {
+    "id": "ADV-NEGATIVE-QUERY-002",
+    "type": "negative_retrieval",
+    "query": "Where is the Kubernetes DaemonSet controller implemented in internal/store?",
+    "target_evidence": "",
+    "expected_action": "ABSTAIN",
+    "expected_status": "insufficient_evidence"
+  },
+  {
+    "id": "ADV-CONTRADICTION-001",
+    "type": "contradiction",
+    "query": "Is bunker routing unconditionally active in production?",
+    "target_evidence": "pkg/override.go",
+    "expected_action": "INVESTIGATE_CONFLICT",
+    "expected_status": "contradicted"
+  }
+]

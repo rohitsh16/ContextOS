@@ -1,0 +1,348 @@
+[
+  {
+    "family_id": "FAMILY-01-GCP-BUNKER-POLICY",
+    "description": "GCP shared-VPC bunker exclusion policy implementation",
+    "required_evidence": ["plan/policy/provider/gcp/gcp_attach_service_project_policy.go"],
+    "paraphrases": [
+      {"id": "F01-Q01", "query": "Find where GCP shared-VPC attachment logic excludes the DRMC bunker project."},
+      {"id": "F01-Q02", "query": "Locate the GCP policy that prevents DRMC bunker projects from shared-VPC attachment."},
+      {"id": "F01-Q03", "query": "Where is the DRMC shared-VPC exclusion implemented?"},
+      {"id": "F01-Q04", "query": "Find the code responsible for excluding bunker projects from GCP shared VPC attachment."},
+      {"id": "F01-Q05", "query": "gcp_attach_service_project_policy DRMC bunker shared VPC exclusion"},
+      {"id": "F01-Q06", "query": "Trace how the system prevents a DRMC bunker project from being attached to a GCP shared VPC."},
+      {"id": "F01-Q07", "query": "Trace the implementation of the GCP bunker exclusion policy."},
+      {"id": "F01-Q08", "query": "Why don't those DRMC projects get attached to the shared VPC?"},
+      {"id": "F01-Q09", "query": "Which policy stops bunker projects from attaching in GCP provider?"},
+      {"id": "F01-Q10", "query": "GCP provider bunker network exclusion code path"}
+    ]
+  },
+  {
+    "family_id": "FAMILY-02-BUNKER-DEEP-CHAIN",
+    "description": "GCP shared-VPC bunker exclusion deep call-chain",
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+      "workflow/hydration/workflow.go",
+      "plan/plan.go",
+      "workflow/shared/fd_plan.go",
+      "plan/policyadd/policyadd.go"
+    ],
+    "paraphrases": [
+      {"id": "F02-Q01", "query": "Trace the complete execution call chain for bunker exclusion in GCP policy attachment."},
+      {"id": "F02-Q02", "query": "How does the workflow call into the GCP bunker policy plan?"},
+      {"id": "F02-Q03", "query": "Follow the function calls from HydrateWorkflow down to AddPolicy and bunker checks."},
+      {"id": "F02-Q04", "query": "Trace call path from workflow hydration to GCP attach service project policy."},
+      {"id": "F02-Q05", "query": "What is the full dependency path between shared FD plan and GCP policy attachment?"},
+      {"id": "F02-Q06", "query": "Show call sequence for shared-VPC service project bunker attachment."},
+      {"id": "F02-Q07", "query": "Trace callers and callees connecting HydrateWorkflow and AttachServiceProjectPolicy."},
+      {"id": "F02-Q08", "query": "Trace step-by-step how bunker exclusion is evaluated during workflow planning."},
+      {"id": "F02-Q09", "query": "Inspect call graph connecting workflow, plan, shared FD plan, and GCP policy."},
+      {"id": "F02-Q10", "query": "Call hierarchy for GCP bunker exclusion policy execution."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-03-SQLITE-STORE",
+    "description": "SQLite Store implementation and WAL mode configuration",
+    "required_evidence": ["internal/store/sqlite_store.go"],
+    "paraphrases": [
+      {"id": "F03-Q01", "query": "How is SQLite initialized with WAL mode in ContextOS?"},
+      {"id": "F03-Q02", "query": "Where is the SQLite storage engine implementation located?"},
+      {"id": "F03-Q03", "query": "Find the code that opens the SQLite database and executes migrations."},
+      {"id": "F03-Q04", "query": "Show SQLite connection setup, pragma configuration, and query handlers."},
+      {"id": "F03-Q05", "query": "internal/store/sqlite_store.go database queries and schema"},
+      {"id": "F03-Q06", "query": "Locate the SQLiteStore struct and its store interface methods."},
+      {"id": "F03-Q07", "query": "How does ContextOS query nodes and edges in SQLite?"},
+      {"id": "F03-Q08", "query": "Where are SQLite candidate searches and FTS queries defined?"},
+      {"id": "F03-Q09", "query": "Find the SQLite implementation of store.Store."},
+      {"id": "F03-Q10", "query": "SQLite database driver initialization and transaction management."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-04-FILE-STORE",
+    "description": "FileStore zero-database JSON persistence",
+    "required_evidence": ["internal/store/file_store.go"],
+    "paraphrases": [
+      {"id": "F04-Q01", "query": "Where is the zero-dependency file-based storage engine implemented?"},
+      {"id": "F04-Q02", "query": "Find the FileStore implementation that persists data to JSON files."},
+      {"id": "F04-Q03", "query": "How does ContextOS store memories without SQLite?"},
+      {"id": "F04-Q04", "query": "Inspect file_store.go memory and node serialization logic."},
+      {"id": "F04-Q05", "query": "Show FileStore read and write operations for disk persistence."},
+      {"id": "F04-Q06", "query": "Where is the pure Go JSON storage engine defined in store package?"},
+      {"id": "F04-Q07", "query": "FileStore candidate search and memory import implementation."},
+      {"id": "F04-Q08", "query": "Find the disk storage driver that operates without CGO or SQLite."},
+      {"id": "F04-Q09", "query": "How does FileStore compact and flush data to disk?"},
+      {"id": "F04-Q10", "query": "Locate internal/store/file_store.go."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-05-STORE-MIGRATION",
+    "description": "Storage migration between SQLite and FileStore",
+    "required_evidence": ["internal/store/migrate.go"],
+    "paraphrases": [
+      {"id": "F05-Q01", "query": "How to migrate data from SQLite to FileStore in ContextOS?"},
+      {"id": "F05-Q02", "query": "Where is the database migration utility implemented between storage engines?"},
+      {"id": "F05-Q03", "query": "Find the code that transfers nodes, edges, and memories between stores."},
+      {"id": "F05-Q04", "query": "Inspect store.Migrate function and migration report generator."},
+      {"id": "F05-Q05", "query": "internal/store/migrate.go data conversion logic"},
+      {"id": "F05-Q06", "query": "How does ContextOS copy records from one store interface to another?"},
+      {"id": "F05-Q07", "query": "Where is the CLI migrate subcommand handled in store package?"},
+      {"id": "F05-Q08", "query": "Show cross-store migration logic for repository data."},
+      {"id": "F05-Q09", "query": "Find the implementation of Migrate(src, dst, repo)."},
+      {"id": "F05-Q10", "query": "Storage engine data exporter and importer pipeline."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-06-ADMISSION-POLICY",
+    "description": "Evidence admission policy and classification rules",
+    "required_evidence": ["internal/gitidx/admission.go"],
+    "paraphrases": [
+      {"id": "F06-Q01", "query": "Where is the evidence admission policy evaluated in ContextOS?"},
+      {"id": "F06-Q02", "query": "Find the admission engine that rejects vendor and build artifacts."},
+      {"id": "F06-Q03", "query": "How does ContextOS decide whether a file is eligible for indexing?"},
+      {"id": "F06-Q04", "query": "Inspect EvaluateAdmission and DefaultAdmissionPolicy implementation."},
+      {"id": "F06-Q05", "query": "internal/gitidx/admission.go classification and filtering"},
+      {"id": "F06-Q06", "query": "Where are explicit allow and deny patterns checked for candidate files?"},
+      {"id": "F06-Q07", "query": "Show the code enforcing Invariant I1: no ineligible retrieval."},
+      {"id": "F06-Q08", "query": "How are build outputs and agent worktrees excluded from indexing?"},
+      {"id": "F06-Q09", "query": "Find the admission policy version and file eligibility logic."},
+      {"id": "F06-Q10", "query": "Admission gate rules for authoritative source code."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-07-EVIDENCE-PROVENANCE",
+    "description": "Content hash, commit SHA, and provenance tracking",
+    "required_evidence": ["internal/gitidx/provenance.go"],
+    "paraphrases": [
+      {"id": "F07-Q01", "query": "Where is evidence provenance and SHA-256 content hashing implemented?"},
+      {"id": "F07-Q02", "query": "Find the EvidenceProvenance struct and constructor."},
+      {"id": "F07-Q03", "query": "How does ContextOS record commit revision and content hashes for files?"},
+      {"id": "F07-Q04", "query": "Inspect internal/gitidx/provenance.go lineage tracking."},
+      {"id": "F07-Q05", "query": "Show how authority and source class are attached to indexed items."},
+      {"id": "F07-Q06", "query": "Where is ComputeContentHash defined in gitidx package?"},
+      {"id": "F07-Q07", "query": "Find the provenance audit record attached to evidence nodes."},
+      {"id": "F07-Q08", "query": "How are git revisions tied to retrieved code chunks?"},
+      {"id": "F07-Q09", "query": "Locate the file responsible for provenance metadata generation."},
+      {"id": "F07-Q10", "query": "Immutable file lineage and authority calculation."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-08-HYBRID-RETRIEVER",
+    "description": "Multi-channel candidate generation and hybrid retrieval",
+    "required_evidence": ["internal/retrieval/hybrid_retriever.go"],
+    "paraphrases": [
+      {"id": "F08-Q01", "query": "Where is the hybrid multi-channel retriever implemented?"},
+      {"id": "F08-Q02", "query": "Find the retriever that combines lexical, semantic, symbol, and path channels."},
+      {"id": "F08-Q03", "query": "How does ContextOS execute 5-channel candidate generation?"},
+      {"id": "F08-Q04", "query": "Inspect HybridRetriever.RetrieveWithDetailedTrace logic."},
+      {"id": "F08-Q05", "query": "internal/retrieval/hybrid_retriever.go pipeline"},
+      {"id": "F08-Q06", "query": "Where are multi-stage retrieval traces emitted for query diagnostics?"},
+      {"id": "F08-Q07", "query": "Show candidate generation across exact, symbol, entity, and lexical channels."},
+      {"id": "F08-Q08", "query": "How are raw candidates filtered by admission policy during retrieval?"},
+      {"id": "F08-Q09", "query": "Find the coordinator for candidate fusion and graph expansion."},
+      {"id": "F08-Q10", "query": "Multi-channel code search engine implementation in ContextOS."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-09-GRAPH-EXPANSION",
+    "description": "Repository-aware structural call graph expansion",
+    "required_evidence": ["internal/retrieval/graph_expand.go"],
+    "paraphrases": [
+      {"id": "F09-Q01", "query": "How does ContextOS expand retrieval candidates using the call graph?"},
+      {"id": "F09-Q02", "query": "Where is repository-aware graph expansion implemented?"},
+      {"id": "F09-Q03", "query": "Find ExpandCandidateGraph function and its traversal config."},
+      {"id": "F09-Q04", "query": "Show how callers, callees, and same-package siblings are expanded."},
+      {"id": "F09-Q05", "query": "internal/retrieval/graph_expand.go bounded traversal logic"},
+      {"id": "F09-Q06", "query": "How are associated test files discovered from seed candidate nodes?"},
+      {"id": "F09-Q07", "query": "Inspect multi-hop neighbor expansion from initial retrieval hits."},
+      {"id": "F09-Q08", "query": "Where is the 2-hop bounded call chain expansion defined?"},
+      {"id": "F09-Q09", "query": "Find the code that traverses adjacent edges for candidate enrichment."},
+      {"id": "F09-Q10", "query": "Structural code graph expansion and sibling node discovery."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-10-TASK-ROUTER",
+    "description": "Query intent classification and task routing profiles",
+    "required_evidence": ["internal/retrieval/task_router.go"],
+    "paraphrases": [
+      {"id": "F10-Q01", "query": "Where are task routing profiles and intent-conditioned weights defined?"},
+      {"id": "F10-Q02", "query": "Find the routing logic that chooses channel weights based on query intent."},
+      {"id": "F10-Q03", "query": "How does ContextOS route trace versus policy versus lookup queries?"},
+      {"id": "F10-Q04", "query": "Inspect GetRoutingProfile function in retrieval package."},
+      {"id": "F10-Q05", "query": "internal/retrieval/task_router.go weights configuration"},
+      {"id": "F10-Q06", "query": "Show how graph depth is chosen for call chain trace tasks."},
+      {"id": "F10-Q07", "query": "Where is the routing profile for debugging and policy queries located?"},
+      {"id": "F10-Q08", "query": "Find the intent-based weight mapping for candidate fusion."},
+      {"id": "F10-Q09", "query": "How does query classification alter retrieval channel prioritization?"},
+      {"id": "F10-Q10", "query": "Task routing configuration for multi-objective retrieval."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-11-RERANKER",
+    "description": "Task-aware candidate reranking and scoring",
+    "required_evidence": ["internal/retrieval/reranker.go"],
+    "paraphrases": [
+      {"id": "F11-Q01", "query": "Where is task-aware candidate reranking implemented?"},
+      {"id": "F11-Q02", "query": "Find TaskAwareRerank function and scoring adjustments."},
+      {"id": "F11-Q03", "query": "How does ContextOS rerank code candidates using entity and identifier matches?"},
+      {"id": "F11-Q04", "query": "Inspect reranker.go scoring bonuses and test file adjustments."},
+      {"id": "F11-Q05", "query": "Show how authority and artifact type align in candidate reranking."},
+      {"id": "F11-Q06", "query": "internal/retrieval/reranker.go composite scoring"},
+      {"id": "F11-Q07", "query": "Where are final ranks assigned to fused candidates?"},
+      {"id": "F11-Q08", "query": "How are test files penalized or boosted during candidate reranking?"},
+      {"id": "F11-Q09", "query": "Find the final sorting pass that produces top-K retrieval results."},
+      {"id": "F11-Q10", "query": "Task-conditioned reranking heuristics and entity boosting."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-12-LAYERED-SUFFICIENCY",
+    "description": "6-layer sufficiency model and verification",
+    "required_evidence": ["internal/retrieval/layered_sufficiency.go"],
+    "paraphrases": [
+      {"id": "F12-Q01", "query": "Where is the 6-layer evidence sufficiency model implemented?"},
+      {"id": "F12-Q02", "query": "Find EvaluateLayeredSufficiency function and layer definitions."},
+      {"id": "F12-Q03", "query": "How does ContextOS check existence, semantic coverage, and dependency completeness?"},
+      {"id": "F12-Q04", "query": "Inspect LayeredSufficiency struct and composite score calculation."},
+      {"id": "F12-Q05", "query": "internal/retrieval/layered_sufficiency.go validation logic"},
+      {"id": "F12-Q06", "query": "Where are contradiction safety and evidence freshness evaluated in sufficiency?"},
+      {"id": "F12-Q07", "query": "Show how answer readiness is determined from evidence coverage."},
+      {"id": "F12-Q08", "query": "Find the multi-layer gate that decides if evidence is sufficient to answer."},
+      {"id": "F12-Q09", "query": "How does layered sufficiency distinguish relevant from sufficient evidence?"},
+      {"id": "F12-Q10", "query": "Six-layer sufficiency scoring and failure layer diagnostics."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-13-CONTEXT-LADDER",
+    "description": "Nested context ladder and empirical MSE evaluation",
+    "required_evidence": ["internal/retrieval/context_ladder.go"],
+    "paraphrases": [
+      {"id": "F13-Q01", "query": "Where is the context ladder C1 subset of C2 evaluated in ContextOS?"},
+      {"id": "F13-Q02", "query": "Find BuildContextLadder and empirical MSE calculation."},
+      {"id": "F13-Q03", "query": "How does ContextOS compute the leave-one-out minimality rate?"},
+      {"id": "F13-Q04", "query": "Inspect CompareMSEBaselines across B0 through B7 baselines."},
+      {"id": "F13-Q05", "query": "internal/retrieval/context_ladder.go nested evaluation"},
+      {"id": "F13-Q06", "query": "Where is empirical minimum sufficient context defined and benchmarked?"},
+      {"id": "F13-Q07", "query": "Show token compression and savings calculation across context rungs."},
+      {"id": "F13-Q08", "query": "How does leave-one-out pruning verify that context is strictly minimal?"},
+      {"id": "F13-Q09", "query": "Find the baseline comparison comparing full context against greedy and oracle MSE."},
+      {"id": "F13-Q10", "query": "Context ladder step progression and minimality verification."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-14-MSE-OPTIMIZER",
+    "description": "Minimum Sufficient Evidence submodular optimizer",
+    "required_evidence": ["internal/retrieval/mse_optimizer.go"],
+    "paraphrases": [
+      {"id": "F14-Q01", "query": "Where is the submodular MSE context optimizer implemented?"},
+      {"id": "F14-Q02", "query": "Find OptimizeMSE function and density sorting algorithm."},
+      {"id": "F14-Q03", "query": "How does ContextOS select minimum sufficient evidence under a token budget?"},
+      {"id": "F14-Q04", "query": "Inspect marginal utility density delta over cost in mse_optimizer.go."},
+      {"id": "F14-Q05", "query": "internal/retrieval/mse_optimizer.go pruning and synergy scoring"},
+      {"id": "F14-Q06", "query": "Where is redundancy pruning performed during context selection?"},
+      {"id": "F14-Q07", "query": "Show how pairwise synergy and redundancy affect candidate selection."},
+      {"id": "F14-Q08", "query": "How does the optimizer enforce evidence closure and sufficiency threshold?"},
+      {"id": "F14-Q09", "query": "Find the greedy context optimization pass for token minimization."},
+      {"id": "F14-Q10", "query": "Submodular token budget packing and minimum evidence extraction."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-15-EVIDENCE-GRAPH",
+    "description": "Typed evidence graph schema and cycle-safe traversal",
+    "required_evidence": ["internal/retrieval/evidence_graph.go"],
+    "paraphrases": [
+      {"id": "F15-Q01", "query": "Where is the typed evidence graph data structure defined?"},
+      {"id": "F15-Q02", "query": "Find EvidenceGraph struct and typed edge relations."},
+      {"id": "F15-Q03", "query": "How does ContextOS represent Supports, Calls, and DependsOn edges between evidence?"},
+      {"id": "F15-Q04", "query": "Inspect FindChains and dependency closure in evidence_graph.go."},
+      {"id": "F15-Q05", "query": "internal/retrieval/evidence_graph.go graph traversal"},
+      {"id": "F15-Q06", "query": "Where are cycle-safe path traversals implemented for evidence chains?"},
+      {"id": "F15-Q07", "query": "Show how EvidenceNode and EvidenceEdge maintain provenance and confidence."},
+      {"id": "F15-Q08", "query": "Find the method that hydrates candidate records into evidence graph nodes."},
+      {"id": "F15-Q09", "query": "How does EvidenceGraph distinguish code dependencies from semantic support?"},
+      {"id": "F15-Q10", "query": "Evidence graph edge provenance and dependency closure calculation."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-16-ANSWER-GATE",
+    "description": "Answer gate decision engine and safe abstention",
+    "required_evidence": ["internal/verification/answer_gate.go"],
+    "paraphrases": [
+      {"id": "F16-Q01", "query": "Where is the answer gate decision logic implemented in ContextOS?"},
+      {"id": "F16-Q02", "query": "Find EvaluateAnswerGate function and GateAction enum."},
+      {"id": "F16-Q03", "query": "How does ContextOS choose between ANSWER, RETRIEVE_MORE, and ABSTAIN?"},
+      {"id": "F16-Q04", "query": "Inspect answer_gate.go contradiction and sufficiency threshold checks."},
+      {"id": "F16-Q05", "query": "internal/verification/answer_gate.go decision engine"},
+      {"id": "F16-Q06", "query": "Where is INVESTIGATE_CONFLICT returned when evidence contradicts?"},
+      {"id": "F16-Q07", "query": "Show the failure code assignment for R0 through R9 taxonomy."},
+      {"id": "F16-Q08", "query": "How does the gate prevent hallucinated answers on unsupported queries?"},
+      {"id": "F16-Q09", "query": "Find the rule requiring full evidence coverage before answering."},
+      {"id": "F16-Q10", "query": "Safe failure, abstention, and gating actions in ContextOS."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-17-CLAIM-VERIFIER",
+    "description": "Atomic claim extraction and semantic verification",
+    "required_evidence": ["internal/verification/claim_verifier.go"],
+    "paraphrases": [
+      {"id": "F17-Q01", "query": "Where is atomic claim extraction and verification implemented?"},
+      {"id": "F17-Q02", "query": "Find ExtractAtomicClaims and SemanticVerifyClaims functions."},
+      {"id": "F17-Q03", "query": "How does ContextOS verify answer propositions against selected evidence?"},
+      {"id": "F17-Q04", "query": "Inspect claim_verifier.go polarity matching and lexical overlap."},
+      {"id": "F17-Q05", "query": "internal/verification/claim_verifier.go validation pipeline"},
+      {"id": "F17-Q06", "query": "Where are claims categorized into SUPPORTED, CONTRADICTED, or UNSUPPORTED?"},
+      {"id": "F17-Q07", "query": "Show how answer sentences are decomposed into individual verifiable claims."},
+      {"id": "F17-Q08", "query": "Find the verifier that checks bidirectional semantic grounding for claims."},
+      {"id": "F17-Q09", "query": "How does ContextOS detect unsupported claims in generated text?"},
+      {"id": "F17-Q10", "query": "Claim-level correctness evaluation and evidence attribution."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-18-CONTRADICTION-DETECTOR",
+    "description": "Contradiction detection and feature flag conflicts",
+    "required_evidence": ["internal/verification/contradiction.go"],
+    "paraphrases": [
+      {"id": "F18-Q01", "query": "Where is semantic contradiction detection implemented in ContextOS?"},
+      {"id": "F18-Q02", "query": "Find DetectContradictions function and conflict detection rules."},
+      {"id": "F18-Q03", "query": "How does ContextOS detect contradictory feature flags across evidence?"},
+      {"id": "F18-Q04", "query": "Inspect contradiction.go negation and polarity conflict checks."},
+      {"id": "F18-Q05", "query": "internal/verification/contradiction.go conflict analyzer"},
+      {"id": "F18-Q06", "query": "Where are enabled versus disabled configuration reversals flagged?"},
+      {"id": "F18-Q07", "query": "Show how superseded revisions and conflicting statements are caught."},
+      {"id": "F18-Q08", "query": "Find the detector that distinguishes true contradictions from scope differences."},
+      {"id": "F18-Q09", "query": "How does ContextOS identify conflicting evidence before answering?"},
+      {"id": "F18-Q10", "query": "Contradiction analysis for evidence safety and consistency."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-19-INDEX-AUDIT",
+    "description": "Admission audit manifest and repository indexing statistics",
+    "required_evidence": ["internal/gitidx/manifest.go"],
+    "paraphrases": [
+      {"id": "F19-Q01", "query": "Where is the index admission audit manifest generated?"},
+      {"id": "F19-Q02", "query": "Find GenerateAdmissionAuditManifest and FormatAuditManifest functions."},
+      {"id": "F19-Q03", "query": "How does ContextOS count admitted versus excluded files during indexing?"},
+      {"id": "F19-Q04", "query": "Inspect AdmissionAuditManifest struct and class count tracking."},
+      {"id": "F19-Q05", "query": "internal/gitidx/manifest.go formatting logic"},
+      {"id": "F19-Q06", "query": "Where are top rejection reasons summarized for index audits?"},
+      {"id": "F19-Q07", "query": "Show how the CLI ctx audit command formats the acceptance report."},
+      {"id": "F19-Q08", "query": "Find the audit manifest that records authoritative, generated, and vendor counts."},
+      {"id": "F19-Q09", "query": "How does ContextOS audit the admissible retrieval universe?"},
+      {"id": "F19-Q10", "query": "Index audit manifest formatting and rejection reason accounting."}
+    ]
+  },
+  {
+    "family_id": "FAMILY-20-CALIBRATION-SELECTIVE",
+    "description": "Brier score, ECE calibration, and selective risk evaluation",
+    "required_evidence": ["internal/verification/calibration.go"],
+    "paraphrases": [
+      {"id": "F20-Q01", "query": "Where are Brier score and Expected Calibration Error (ECE) computed?"},
+      {"id": "F20-Q02", "query": "Find ComputeCalibration and 10-bin ECE calculation."},
+      {"id": "F20-Q03", "query": "How does ContextOS calculate selective prediction risk versus coverage?"},
+      {"id": "F20-Q04", "query": "Inspect EvaluateSelectiveAnswering function in verification package."},
+      {"id": "F20-Q05", "query": "internal/verification/calibration.go statistical calibration"},
+      {"id": "F20-Q06", "query": "Where is confidence binning performed for selective abstention?"},
+      {"id": "F20-Q07", "query": "Show how risk curve is plotted as coverage is reduced."},
+      {"id": "F20-Q08", "query": "Find the calibration evaluator that scores answer gate certainty."},
+      {"id": "F20-Q09", "query": "How does ContextOS quantify uncertainty in selective answering?"},
+      {"id": "F20-Q10", "query": "Statistical calibration and selective risk metrics in ContextOS."}
+    ]
+  }
+]

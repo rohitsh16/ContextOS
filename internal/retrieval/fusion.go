@@ -141,3 +141,141 @@ func FuseCandidates(
 
 	return results
 }
+
+// MultiChannelWeights specifies weights for multi-channel candidate fusion (R18.1 §11 & §14).
+type MultiChannelWeights struct {
+	Lexical  float64 `json:"lexical"`
+	Semantic float64 `json:"semantic"`
+	Symbol   float64 `json:"symbol"`
+	Path     float64 `json:"path"`
+	Entity   float64 `json:"entity"`
+	Graph    float64 `json:"graph"`
+}
+
+// DefaultMultiChannelWeights provides balanced baseline channel weights.
+var DefaultMultiChannelWeights = MultiChannelWeights{
+	Lexical:  0.20,
+	Semantic: 0.20,
+	Symbol:   0.20,
+	Path:     0.20,
+	Entity:   0.15,
+	Graph:    0.05,
+}
+
+// FuseMultiChannels fuses candidates across the 5 retrieval channels and updates candidate traces.
+// S(c) = wL*lexical + wS*semantic + wY*symbol + wP*path + wE*entity + wG*graph
+func FuseMultiChannels(candidates []Candidate, weights MultiChannelWeights) []Candidate {
+	merged := make(map[string]*Candidate)
+
+	for _, c := range candidates {
+		key := c.Path
+		if key == "" {
+			key = c.NodeID
+		}
+		if key == "" {
+			key = c.ID
+		}
+
+		existing, exists := merged[key]
+		if !exists {
+			clone := c
+			if clone.Trace == nil {
+				clone.Trace = &CandidateTrace{
+					ID:         clone.ID,
+					Path:       clone.Path,
+					Name:       clone.Name,
+					Stages:     []RetrievalStage{},
+					Admissible: true,
+				}
+			}
+			merged[key] = &clone
+			existing = &clone
+		}
+
+		// Merge stage provenance
+		if c.Stage != "" {
+			existing.Trace.AddStage(RetrievalStage(c.Stage))
+		}
+		if c.Trace != nil {
+			for _, st := range c.Trace.Stages {
+				existing.Trace.AddStage(st)
+			}
+			if c.Trace.LexicalScore > existing.Trace.LexicalScore {
+				existing.Trace.LexicalScore = c.Trace.LexicalScore
+				existing.LexicalScore = c.Trace.LexicalScore
+			}
+			if c.Trace.SemanticScore > existing.Trace.SemanticScore {
+				existing.Trace.SemanticScore = c.Trace.SemanticScore
+				existing.SemanticScore = c.Trace.SemanticScore
+			}
+			if c.Trace.SymbolScore > existing.Trace.SymbolScore {
+				existing.Trace.SymbolScore = c.Trace.SymbolScore
+			}
+			if c.Trace.PathScore > existing.Trace.PathScore {
+				existing.Trace.PathScore = c.Trace.PathScore
+				existing.PathScore = c.Trace.PathScore
+			}
+			if c.Trace.EntityScore > existing.Trace.EntityScore {
+				existing.Trace.EntityScore = c.Trace.EntityScore
+				existing.EntityScore = c.Trace.EntityScore
+			}
+			if c.Trace.GraphScore > existing.Trace.GraphScore {
+				existing.Trace.GraphScore = c.Trace.GraphScore
+				existing.GraphScore = c.Trace.GraphScore
+			}
+		}
+
+		if c.LexicalScore > existing.LexicalScore {
+			existing.LexicalScore = c.LexicalScore
+			existing.Trace.LexicalScore = c.LexicalScore
+		}
+		if c.SemanticScore > existing.SemanticScore {
+			existing.SemanticScore = c.SemanticScore
+			existing.Trace.SemanticScore = c.SemanticScore
+		}
+		if c.EntityScore > existing.EntityScore {
+			existing.EntityScore = c.EntityScore
+			existing.Trace.EntityScore = c.EntityScore
+		}
+		if c.PathScore > existing.PathScore {
+			existing.PathScore = c.PathScore
+			existing.Trace.PathScore = c.PathScore
+		}
+		if c.GraphScore > existing.GraphScore {
+			existing.GraphScore = c.GraphScore
+			existing.Trace.GraphScore = c.GraphScore
+		}
+	}
+
+	results := make([]Candidate, 0, len(merged))
+	for _, c := range merged {
+		tr := c.Trace
+		// Compute fused score
+		fused := weights.Lexical*tr.LexicalScore +
+			weights.Semantic*tr.SemanticScore +
+			weights.Symbol*tr.SymbolScore +
+			weights.Path*tr.PathScore +
+			weights.Entity*tr.EntityScore +
+			weights.Graph*tr.GraphScore
+
+		// Tier-0 bonus for exact path/symbol match
+		if tr.HasStage(StageExactPath) || tr.HasStage(StageBasename) || tr.HasStage(StageSymbol) {
+			fused += 0.5
+		}
+
+		c.Score = fused
+		tr.FinalScore = fused
+		results = append(results, *c)
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score > results[j].Score
+	})
+
+	for i := range results {
+		results[i].Trace.Rank = i + 1
+	}
+
+	return results
+}
+

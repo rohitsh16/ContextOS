@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"contextos/internal/hook"
 	"contextos/internal/integrations"
 	"contextos/internal/report"
+	"contextos/internal/retrieval"
 	"contextos/internal/router"
 	"contextos/internal/server"
 	"contextos/internal/store"
@@ -57,14 +59,25 @@ func main() {
 	dryRun := fs.Bool("dry-run", false, "dry-run for ctx gc")
 	format := fs.String("format", "markdown", "output format for report: markdown or json")
 	outputFile := fs.String("output", "", "output file path for report/publish")
-	suite := fs.String("suite", "all", "benchmark suite: all, admission, retrieval, sufficiency, verification, abstention")
+	topK := fs.Int("top", 20, "maximum number of evidence candidates to retrieve")
+	showTrace := fs.Bool("trace", false, "display retrieval stage provenance and scores")
+	suite := fs.String("suite", "all", "benchmark suite: all, paraphrase, identifier-ablation, adversarial, mse, admission, retrieval, sufficiency, verification, abstention")
 	manifest := fs.String("manifest", "", "path to benchmark manifest JSON")
 	runID := fs.String("run-id", "R18-MSE-CORRECTNESS-001", "benchmark run ID")
 	reportFormat := fs.String("report", "", "report format: markdown or json (alias for -format)")
 
 	args := os.Args[2:]
-	if sub == "bench" && len(args) > 0 && args[0] == "correctness" {
-		args = args[1:]
+	if sub == "bench" && len(args) > 0 {
+		switch args[0] {
+		case "correctness":
+			args = args[1:]
+		case "retrieval":
+			args = args[1:]
+			*suite = "retrieval"
+		case "mse":
+			args = args[1:]
+			*suite = "mse"
+		}
 	}
 	_ = fs.Parse(args)
 	if *reportFormat != "" {
@@ -502,6 +515,62 @@ func main() {
 		} else {
 			fmt.Println(content)
 		}
+	case "retrieve":
+		if *task == "" {
+			die(fmt.Errorf("-task is required"))
+		}
+		cands, trace, err := s.RetrieveEvidence(context.Background(), *task, *topK)
+		if err != nil {
+			die(err)
+		}
+		if strings.ToLower(*format) == "json" {
+			type retrieveJSON struct {
+				Task       string                         `json:"task"`
+				Count      int                            `json:"count"`
+				Candidates []retrieval.Candidate          `json:"candidates"`
+				Trace      *retrieval.QueryRetrievalTrace `json:"trace,omitempty"`
+			}
+			res := retrieveJSON{
+				Task:       *task,
+				Count:      len(cands),
+				Candidates: cands,
+			}
+			if *showTrace {
+				res.Trace = trace
+			}
+			b, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			var sb strings.Builder
+			sb.WriteString(fmt.Sprintf("# Retrieved Evidence (%d candidates)\n\n", len(cands)))
+			sb.WriteString(fmt.Sprintf("**Task:** %s\n\n", *task))
+			if len(cands) == 0 {
+				sb.WriteString("_No admissible evidence candidates found._\n")
+			} else {
+				sb.WriteString("| Rank | Score | File Path | Kind | Name |\n| :--- | :--- | :--- | :--- | :--- |\n")
+				for i, c := range cands {
+					sb.WriteString(fmt.Sprintf("| %d | %.3f | `%s` | %s | `%s` |\n", i+1, c.Score, c.Path, c.Kind, c.Name))
+				}
+			}
+			if *showTrace && trace != nil {
+				sb.WriteString("\n## Retrieval Trace & Diagnostics\n\n")
+				sb.WriteString(fmt.Sprintf("- Total Evaluated Candidates: %d\n", trace.CandidateCount))
+				sb.WriteString(fmt.Sprintf("- Admission Rejections: %d\n", len(trace.AdmissionRejections)))
+				sb.WriteString(fmt.Sprintf("- Graph Expansion Nodes: %d\n", len(trace.ExpansionNodes)))
+				if len(trace.FinalRankedResults) > 0 {
+					sb.WriteString("### Stage Provenance\n\n")
+					sb.WriteString("| Rank | Path | Lexical | Semantic | Symbol | Path | Entity | Graph | Final |\n| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n")
+					for i, tr := range trace.FinalRankedResults {
+						if i >= *topK {
+							break
+						}
+						sb.WriteString(fmt.Sprintf("| %d | `%s` | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.3f |\n",
+							i+1, tr.Path, tr.LexicalScore, tr.SemanticScore, tr.SymbolScore, tr.PathScore, tr.EntityScore, tr.GraphScore, tr.FinalScore))
+					}
+				}
+			}
+			fmt.Print(sb.String())
+		}
 	default:
 		usage()
 	}
@@ -517,6 +586,7 @@ Commands:
   ctx init|index -repo PATH                             Index repository symbols
   ctx remember   -repo PATH -kind K -content '...'      Persist a memory
   ctx plan       -repo PATH -task '...' -budget 4000    Build context plan
+  ctx retrieve   -repo PATH -task '...' [-top 20] [-trace] [-format md|json] Retrieve hybrid evidence candidates
   ctx resume     -repo PATH                             Recover active work state
   ctx handoff    -repo PATH -task '...' -target AGENT   Cross-agent context handoff
   ctx invalidate -repo PATH -id MEMORY_ID               Invalidate stale memory
@@ -534,7 +604,7 @@ Commands:
   ctx report     -repo PATH [-format md|json] [-output] Generate evaluation/benchmark report
   ctx publish    -repo PATH [-output FILE]              Publish empirical test results to markdown
   ctx audit      -repo PATH [-format md|json]           Audit admission and exclusion universe
-  ctx bench      [correctness] [-suite S] [-format F]   Run Minimum Sufficient Evidence correctness benchmark
+  ctx bench      [correctness|retrieval|mse] [-suite S] [-format F] Run correctness benchmark
   ctx ui         -repo PATH [-port 8765]                Launch real-time web UI dashboard
 
 Storage & Feature Flags:
@@ -555,6 +625,7 @@ _ctx() {
         'index:Index repository symbols'
         'remember:Persist a memory'
         'plan:Build context plan'
+        'retrieve:Retrieve hybrid evidence candidates'
         'resume:Recover active work state'
         'handoff:Cross-agent context handoff'
         'invalidate:Invalidate stale memory'
@@ -585,7 +656,7 @@ _ctx "$@"`)
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="init index remember plan resume handoff invalidate gc migrate work session event stats route install setup uninstall doctor completion report publish audit bench ui dashboard"
+    opts="init index remember plan retrieve resume handoff invalidate gc migrate work session event stats route install setup uninstall doctor completion report publish audit bench ui dashboard"
 
     if [[ ${COMP_CWORD} -eq 1 ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

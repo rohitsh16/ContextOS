@@ -68,7 +68,7 @@ func main() {
 	r16FrontierMode := flag.String("r16-frontier-mode", "mock", "run mode for R16-S2: mock or real")
 	r16FrontierRepeats := flag.Int("r16-frontier-repeats", 5, "number of repeat executions per (task, effort) configuration")
 	correctness := flag.Bool("correctness", false, "run R18 Minimum Sufficient Evidence & Correctness Benchmark Suite")
-	correctnessSuite := flag.String("correctness-suite", "all", "correctness suite: all, admission, retrieval, sufficiency, verification, abstention")
+	correctnessSuite := flag.String("correctness-suite", "all", "correctness suite: all, paraphrase, identifier-ablation, adversarial, mse, admission, retrieval, sufficiency, verification, abstention")
 	correctnessReport := flag.String("correctness-report", "markdown", "report format: markdown or json")
 	correctnessManifest := flag.String("correctness-manifest", "", "path to manifest JSON")
 	correctnessRunID := flag.String("correctness-run-id", "R18-MSE-CORRECTNESS-001", "benchmark run ID")

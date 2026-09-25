@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -23,6 +24,7 @@ import (
 	"contextos/internal/indexer"
 	"contextos/internal/model"
 	"contextos/internal/planning"
+	"contextos/internal/retrieval"
 	"contextos/internal/router"
 	"contextos/internal/state"
 	"contextos/internal/store"
@@ -546,6 +548,29 @@ func (s *Service) CodeMemories(task string, limit int) ([]model.Memory, error) {
 		out[i] = x.m
 	}
 	return out, nil
+}
+
+// RetrieveEvidence executes hybrid multi-channel retrieval for a task query (R18.1).
+func (s *Service) RetrieveEvidence(ctx context.Context, task string, topK int) ([]retrieval.Candidate, *retrieval.QueryRetrievalTrace, error) {
+	if topK <= 0 {
+		topK = 20
+	}
+	policy := gitidx.DefaultAdmissionPolicy()
+	ret := retrieval.NewHybridRetriever(s.Store, s.RepoID, policy)
+	q := retrieval.Query{
+		Task:       task,
+		RepoID:     s.RepoID,
+		Revision:   s.Repo.Revision,
+		MaxResults: topK,
+	}
+	cands, trace, err := ret.RetrieveWithDetailedTrace(ctx, q, policy)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(cands) > topK {
+		cands = cands[:topK]
+	}
+	return cands, trace, nil
 }
 
 func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, error) {

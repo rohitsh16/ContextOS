@@ -390,12 +390,15 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		var pfxClauses []string
 		var pfxArgs []any
 		pfxArgs = append(pfxArgs, repoID)
-		for i, tok := range tokens {
-			if i >= 3 || len(tok) < 4 {
+		for _, tok := range queryTokens {
+			if len(tok) < 4 || isStoreStopWord(tok) {
 				continue
 			}
 			pfxClauses = append(pfxClauses, "name LIKE ?")
 			pfxArgs = append(pfxArgs, tok+"%")
+			if len(pfxClauses) >= 8 {
+				break
+			}
 		}
 		if len(pfxClauses) > 0 {
 			pfxArgs = append(pfxArgs, limit-len(collected))
@@ -415,11 +418,11 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 	}
 
-	// 3. Lexical substring match if more candidates needed (capped at 15)
-	if len(collected) < limit && len(collected) < 15 {
+	// 3. Lexical substring match if more candidates needed (capped at 25)
+	if len(collected) < limit && len(collected) < 25 {
 		subLimit := limit - len(collected)
-		if subLimit > 15 {
-			subLimit = 15
+		if subLimit > 25 {
+			subLimit = 25
 		}
 		var clauses []string
 		var args []any
@@ -430,12 +433,15 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 
 		var tokClauses []string
-		for i, tok := range tokens {
-			if i >= 3 || len(tok) < 3 {
+		for _, tok := range queryTokens {
+			if len(tok) < 3 || isStoreStopWord(tok) {
 				continue
 			}
 			tokClauses = append(tokClauses, "(name LIKE ? OR path LIKE ? OR signature LIKE ?)")
 			args = append(args, "%"+tok+"%", "%"+tok+"%", "%"+tok+"%")
+			if len(tokClauses) >= 8 {
+				break
+			}
 		}
 
 		if len(tokClauses) > 0 {
@@ -955,3 +961,13 @@ func (s *SQLiteStore) Prune(opts PruneOptions) (PruneReport, error) {
 
 	return rep, nil
 }
+
+func isStoreStopWord(w string) bool {
+	switch strings.ToLower(w) {
+	case "where", "what", "which", "when", "why", "how", "the", "for", "with", "this", "that", "from", "into", "does", "done", "about", "is", "are", "was", "were", "in", "on", "at", "by", "an", "a":
+		return true
+	default:
+		return false
+	}
+}
+
