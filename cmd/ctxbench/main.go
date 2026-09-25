@@ -10,6 +10,7 @@ import (
 	"time"
 
 	compute_bench "contextos/benchmarks/compute"
+	correctness_bench "contextos/benchmarks/correctness"
 	"contextos/internal/bench"
 	"contextos/internal/compute"
 	"contextos/internal/planning"
@@ -66,8 +67,36 @@ func main() {
 	r16FrontierCanary := flag.Bool("r16-frontier-canary", false, "run R16-S2 300-run canary matrix (12 tasks × 5 effort levels × 5 repeats)")
 	r16FrontierMode := flag.String("r16-frontier-mode", "mock", "run mode for R16-S2: mock or real")
 	r16FrontierRepeats := flag.Int("r16-frontier-repeats", 5, "number of repeat executions per (task, effort) configuration")
+	correctness := flag.Bool("correctness", false, "run R18 Minimum Sufficient Evidence & Correctness Benchmark Suite")
+	correctnessSuite := flag.String("correctness-suite", "all", "correctness suite: all, admission, retrieval, sufficiency, verification, abstention")
+	correctnessReport := flag.String("correctness-report", "markdown", "report format: markdown or json")
+	correctnessManifest := flag.String("correctness-manifest", "", "path to manifest JSON")
+	correctnessRunID := flag.String("correctness-run-id", "R18-MSE-CORRECTNESS-001", "benchmark run ID")
+	correctnessRepo := flag.String("correctness-repo", ".", "repository root path")
 	jsonOutput := flag.Bool("json", true, "output structured JSON report")
 	flag.Parse()
+
+	if *correctness {
+		manifestPath := *correctnessManifest
+		if manifestPath == "" {
+			manifestPath = filepath.Join("benchmarks", "correctness", "manifests", "golden_manifests.json")
+		}
+		rep, err := correctness_bench.RunCorrectnessSuiteFiltered(*correctnessRepo, manifestPath, *correctnessRunID, *correctnessSuite)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to run correctness benchmarks: %v\n", err)
+			os.Exit(1)
+		}
+		if strings.ToLower(*correctnessReport) == "json" {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Print(rep.FormatMarkdownReport())
+		}
+		if rep.Verdict != "GREEN" {
+			os.Exit(1)
+		}
+		return
+	}
 
 	if *monorepoStress {
 		fmt.Printf("=== ContextOS Monorepo Scale-Free Stress Benchmark ===\n")

@@ -26,6 +26,18 @@ type SourceFile struct {
 	Lines int
 }
 
+// EvidenceFile represents an admitted source file carrying evidence classification and provenance.
+type EvidenceFile struct {
+	Path        string              `json:"path"`
+	Hash        string              `json:"hash"`
+	Lines       int                 `json:"lines"`
+	Class       EvidenceClass       `json:"class"`
+	Authority   float64             `json:"authority"`
+	Eligible    bool                `json:"eligible"`
+	Provenance  EvidenceProvenance  `json:"provenance"`
+	Eligibility EvidenceEligibility `json:"eligibility"`
+}
+
 // DefaultExclusions is retained for backward compatibility. New code should
 // use DefaultExclusionPolicy() from exclusions.go instead.
 //
@@ -275,10 +287,74 @@ func Supported(path string) bool {
 	return false
 }
 
+// ListEvidenceFiles enumerates repository files and evaluates evidence admission (R17.5).
+func ListEvidenceFiles(root string, policy AdmissionPolicy, repoID, revision string) ([]EvidenceFile, *AdmissionAuditManifest, error) {
+	manifest := NewAdmissionAuditManifest(policy.Version)
+	var out []EvidenceFile
+
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return nil
+		}
+		relSlash := filepath.ToSlash(rel)
+
+		if info.IsDir() {
+			if relSlash == ".git" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if info.Size() > 2*1024*1024 || (!Supported(path) && !policyMatchesAllow(policy, relSlash)) {
+			return nil
+		}
+		b, e := os.ReadFile(path)
+		if e != nil {
+			return nil
+		}
+
+		eligibility := EvaluateAdmission(relSlash, b, true, false, policy)
+		manifest.Record(eligibility)
+
+		if !eligibility.Eligible {
+			return nil
+		}
+
+		h := sha256.Sum256(b)
+		hashStr := hex.EncodeToString(h[:])
+		lines := len(strings.Split(string(b), "\n"))
+		prov := NewEvidenceProvenance(repoID, revision, relSlash, 1, lines, hashStr, eligibility, policy.Version)
+
+		out = append(out, EvidenceFile{
+			Path:        relSlash,
+			Hash:        hashStr,
+			Lines:       lines,
+			Class:       eligibility.Class,
+			Authority:   eligibility.Authority,
+			Eligible:    eligibility.Eligible,
+			Provenance:  prov,
+			Eligibility: eligibility,
+		})
+		return nil
+	})
+
+	return out, manifest, err
+}
+
+func policyMatchesAllow(policy AdmissionPolicy, relSlash string) bool {
+	for _, p := range policy.AllowPatterns {
+		if matchGlobOrPrefix(p, relSlash) {
+			return true
+		}
+	}
+	return false
+}
+
 // ListSourceFiles walks the repository root and returns all authoritative
-// source files that satisfy the ExclusionPolicy (R17 Phase 1).
-// Directories that would be excluded are skipped entirely, preventing
-// agent-worktree subtrees from being admitted to the index.
+// source files that satisfy admission and exclusion policies (R17.5).
 func ListSourceFiles(root string) ([]SourceFile, error) {
 	return ListSourceFilesWithPolicy(root, defaultPolicy)
 }
@@ -287,6 +363,7 @@ func ListSourceFiles(root string) ([]SourceFile, error) {
 // policy, enabling testing with custom exclusion rules.
 func ListSourceFilesWithPolicy(root string, policy ExclusionPolicy) ([]SourceFile, error) {
 	var out []SourceFile
+	admPolicy := DefaultAdmissionPolicy()
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -303,8 +380,7 @@ func ListSourceFilesWithPolicy(root string, policy ExclusionPolicy) ([]SourceFil
 			}
 			return nil
 		}
-		// Reject files inside excluded paths (catches worktree files whose
-		// parent directory wasn't SkipDir'd for any reason).
+		// Reject files inside excluded paths
 		if policy.IsExcluded(relSlash) {
 			return nil
 		}
@@ -315,6 +391,13 @@ func ListSourceFilesWithPolicy(root string, policy ExclusionPolicy) ([]SourceFil
 		if e != nil {
 			return nil
 		}
+
+		// R17.5: Evidence admission check
+		elig := EvaluateAdmission(relSlash, b, true, false, admPolicy)
+		if !elig.Eligible {
+			return nil
+		}
+
 		h := sha256.Sum256(b)
 		out = append(out, SourceFile{Path: relSlash, Hash: hex.EncodeToString(h[:]), Lines: len(strings.Split(string(b), "\n"))})
 		return nil
@@ -331,6 +414,7 @@ func WalkSymbols(root string) ([]Symbol, error) {
 // WalkSymbolsWithPolicy is like WalkSymbols but accepts an explicit policy.
 func WalkSymbolsWithPolicy(root string, policy ExclusionPolicy) ([]Symbol, error) {
 	var out []Symbol
+	admPolicy := DefaultAdmissionPolicy()
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -357,6 +441,13 @@ func WalkSymbolsWithPolicy(root string, policy ExclusionPolicy) ([]Symbol, error
 		if e != nil {
 			return nil
 		}
+
+		// R17.5: Evidence admission check
+		elig := EvaluateAdmission(relSlash, b, true, false, admPolicy)
+		if !elig.Eligible {
+			return nil
+		}
+
 		lines := strings.Split(string(b), "\n")
 		h := sha256.Sum256(b)
 		hs := hex.EncodeToString(h[:])

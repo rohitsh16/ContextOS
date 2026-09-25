@@ -7,8 +7,11 @@ description: Use ContextOS to manage persistent agent context, execute 6-pass to
 
 ContextOS provides deterministic, budget-bounded context management, adaptive compute routing, and persistent engineering memory for autonomous AI agents.
 
-## Core Capabilities (R16 & R17)
+## Core Capabilities (R16, R17, R17.5 & R18)
 
+- **Evidence Admission & Provenance (R17.5)**: Strictly bounds retrieval to an admissible source universe ($A = \text{Authoritative} \cup \text{AllowedGenerated}$). Enforces Invariant I1 (no ineligible retrieval from build artifacts, caches, vendor trees, or agent worktrees) and produces deterministic index audit manifests (`ctx audit`).
+- **Evidence Graph & Minimum Sufficient Evidence (R18)**: Models typed semantic and call-graph relations (Supports, DependsOn, Calls, Implements, Contradicts). Solves token budget optimization using submodular greedy density with redundancy pruning to extract the Minimum Sufficient Evidence (MSE) context.
+- **Claim Verification, Contradiction Detection & Answer Gating (R18)**: Extracts atomic claims, checks bidirectional semantic grounding, flags polarity contradictions, and routes through a 4-action answer gate (`ANSWER`, `RETRIEVE_MORE`, `INVESTIGATE_CONFLICT`, `ABSTAIN`) with selective risk calibration.
 - **Quotient-Space Canonical Invariance (Theorem 1)**: Candidates are normalized into canonical equivalence classes $[x] \in \mathcal{C}/\sim$ across path representations and symbol signatures, preventing score dilution and duplicate token waste.
 - **Exact Path & Basename Retrieval (Theorem 2)**: Querying explicit paths (e.g. `internal/retrieval/planner.go`) or basenames (`planner.go`) triggers dedicated exact indexes (`LookupExactPath`, `LookupBasename`), ensuring complete 100% recall without graph heuristic distortion.
 - **Planner Soundness State Machine (Theorem 3)**: Monotonic state transitions (`EvidenceUnevaluated` $\to$ `EvidenceSatisfied` | `EvidenceBudgetExhausted` | `EvidenceContradiction`) mathematically guarantee that satisfied plans strictly bound target nodes within the token budget.
@@ -142,7 +145,13 @@ All ContextOS operations are accessible via the command line:
 # 7. Check runtime statistics and cache efficiency
 ./bin/ctx stats -repo .
 
-# 8. Launch real-time web UI dashboard (default port 8765)
+# 8. Audit admissible evidence universe vs excluded artifacts (R17.5)
+./bin/ctx audit -repo .
+
+# 9. Run empirical Minimum Sufficient Evidence correctness benchmark (R18)
+./bin/ctx bench correctness -suite all
+
+# 10. Launch real-time web UI dashboard (default port 8765)
 ./bin/ctx ui -repo . -port 8765
 ```
 

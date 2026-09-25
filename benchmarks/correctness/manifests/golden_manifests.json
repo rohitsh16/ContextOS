@@ -1,0 +1,184 @@
+[
+  {
+    "id": "GUMBEROO-DRMC-001",
+    "query": "Trace GCP shared-VPC bunker exclusion",
+    "task_type": "trace",
+    "required_claims": [
+      "bunker projects are excluded",
+      "the exclusion is performed by the GCP policy",
+      "the workflow reaches the policy"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+      "workflow/hydration/workflow.go",
+      "plan/plan.go",
+      "workflow/shared/fd_plan.go",
+      "plan/policyadd/policyadd.go"
+    ],
+    "optional_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy_test.go",
+      "docs/bunker_architecture.md",
+      "workflow/shared/helpers.go"
+    ],
+    "distractors": [
+      "out/docker.bundle/vendor/aws-sdk-core/client.go",
+      "vendor/rspec-core/runner.go",
+      ".claude/worktrees/agent-1/plan/policy.go"
+    ],
+    "expected_status": "supported"
+  },
+  {
+    "id": "GUMBEROO-DRMC-002",
+    "query": "Trace GCP shared-VPC bunker exclusion deep call-chain",
+    "task_type": "trace",
+    "required_claims": [
+      "AttachServiceProjectPolicy calls HydrateWorkflow",
+      "HydrateWorkflow calls BuildPlan",
+      "BuildPlan calls SharedFDPlan",
+      "SharedFDPlan calls AddPolicy"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+      "workflow/hydration/workflow.go",
+      "plan/plan.go",
+      "workflow/shared/fd_plan.go",
+      "plan/policyadd/policyadd.go"
+    ],
+    "optional_evidence": [
+      "tests/workflow_test.go",
+      "docs/gcp_guide.md",
+      "pkg/plan_helpers.go"
+    ],
+    "distractors": [
+      "out/docker.bundle/vendor/deep_call.go"
+    ],
+    "expected_status": "supported"
+  },
+  {
+    "id": "GUMBEROO-DRMC-003",
+    "query": "Shared VPC exclusion policy and hydration",
+    "task_type": "lookup",
+    "required_claims": [
+      "GCP attach service project policy implements bunker exclusion",
+      "Workflow hydration executes policy attachment"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go",
+      "workflow/hydration/workflow.go"
+    ],
+    "optional_evidence": [
+      "tests/hydration_test.go",
+      "pkg/helpers.go",
+      "docs/vpc_spec.md"
+    ],
+    "distractors": [
+      "vendor/gcp/vpc.go"
+    ],
+    "expected_status": "supported"
+  },
+  {
+    "id": "CORRECTNESS-VENDOR-POLLUTION-001",
+    "query": "What does AttachPolicy() do in GCP provider?",
+    "task_type": "lookup",
+    "required_claims": [
+      "AttachPolicy attaches service project and excludes bunker networks"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go"
+    ],
+    "optional_evidence": [
+      "tests/attach_test.go",
+      "docs/provider.md"
+    ],
+    "distractors": [
+      "vendor/third_party/fake_gcp_policy.go"
+    ],
+    "expected_status": "supported"
+  },
+  {
+    "id": "CORRECTNESS-OUT-POLLUTION-001",
+    "query": "Trace GCP attach service project policy docker bundle exclusion",
+    "task_type": "trace",
+    "required_claims": [
+      "GCP attach policy excludes bunker networks"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go"
+    ],
+    "optional_evidence": [
+      "docs/docker_bundle_notes.md",
+      "tests/policy_bundle_test.go"
+    ],
+    "distractors": [
+      "out/docker.bundle/vendor/aws-sdk-core/policy.go",
+      "out/docker.bundle/rspec-core/policy.go"
+    ],
+    "expected_status": "supported"
+  },
+  {
+    "id": "CORRECTNESS-OUT-LEGIT-001",
+    "query": "Inspect allowed out source configuration",
+    "task_type": "lookup",
+    "required_claims": [
+      "out/important/source.go is legitimate source when explicitly allowed by policy"
+    ],
+    "required_evidence": [
+      "out/important/source.go"
+    ],
+    "optional_evidence": [
+      "docs/configuration.md",
+      "tests/config_test.go"
+    ],
+    "distractors": [
+      "out/build.log"
+    ],
+    "expected_status": "supported",
+    "allow_patterns": ["out/important/**"]
+  },
+  {
+    "id": "CORRECTNESS-CONTRADICTION-001",
+    "query": "Is bunker routing enabled in production configuration?",
+    "task_type": "lookup",
+    "required_claims": [
+      "Bunker routing is unconditionally active"
+    ],
+    "required_evidence": [
+      "pkg/feature.go",
+      "pkg/override.go"
+    ],
+    "optional_evidence": [
+      "docs/flags.md"
+    ],
+    "distractors": [],
+    "expected_status": "contradicted"
+  },
+  {
+    "id": "CORRECTNESS-STALENESS-001",
+    "query": "Check revision consistency for bunker policy",
+    "task_type": "lookup",
+    "required_claims": [
+      "Revision matches active head commit"
+    ],
+    "required_evidence": [
+      "plan/policy/provider/gcp/gcp_attach_service_project_policy.go"
+    ],
+    "optional_evidence": [
+      "docs/revision.md"
+    ],
+    "distractors": [],
+    "expected_status": "stale_evidence"
+  },
+  {
+    "id": "CORRECTNESS-UNSUPPORTED-001",
+    "query": "Why does ContextOS use Raft consensus for symbol indexing?",
+    "task_type": "lookup",
+    "required_claims": [
+      "ContextOS uses Raft consensus"
+    ],
+    "required_evidence": [],
+    "distractors": [
+      "README.md"
+    ],
+    "expected_status": "abstain"
+  }
+]

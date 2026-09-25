@@ -11,6 +11,7 @@ import (
 	"time"
 
 	agentpkg "contextos/internal/agent"
+	correctness_bench "contextos/benchmarks/correctness"
 	"contextos/internal/doctor"
 	"contextos/internal/gitidx"
 	"contextos/internal/hook"
@@ -56,8 +57,19 @@ func main() {
 	dryRun := fs.Bool("dry-run", false, "dry-run for ctx gc")
 	format := fs.String("format", "markdown", "output format for report: markdown or json")
 	outputFile := fs.String("output", "", "output file path for report/publish")
+	suite := fs.String("suite", "all", "benchmark suite: all, admission, retrieval, sufficiency, verification, abstention")
+	manifest := fs.String("manifest", "", "path to benchmark manifest JSON")
+	runID := fs.String("run-id", "R18-MSE-CORRECTNESS-001", "benchmark run ID")
+	reportFormat := fs.String("report", "", "report format: markdown or json (alias for -format)")
 
-	_ = fs.Parse(os.Args[2:])
+	args := os.Args[2:]
+	if sub == "bench" && len(args) > 0 && args[0] == "correctness" {
+		args = args[1:]
+	}
+	_ = fs.Parse(args)
+	if *reportFormat != "" {
+		*format = *reportFormat
+	}
 	dp := *dbPath
 	if dp == "" && os.Getenv("CONTEXTOS_DB") != "" {
 		dp = os.Getenv("CONTEXTOS_DB")
@@ -111,6 +123,45 @@ func main() {
 			fmt.Print(doctor.Format(rep))
 		}
 		if !rep.Healthy {
+			os.Exit(1)
+		}
+		return
+	}
+	if sub == "audit" || sub == "audit-admission" {
+		rp, _ := filepath.Abs(*repo)
+		policy := gitidx.DefaultAdmissionPolicy()
+		auditRep, err := gitidx.GenerateAdmissionAuditManifest(rp, policy)
+		if err != nil {
+			die(err)
+		}
+		if strings.ToLower(*format) == "json" {
+			b, _ := json.MarshalIndent(auditRep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Println(gitidx.FormatAuditManifest(auditRep))
+		}
+		return
+	}
+	if sub == "bench" {
+		rp, _ := filepath.Abs(*repo)
+		manifestPath := *manifest
+		if manifestPath == "" {
+			manifestPath = filepath.Join(rp, "benchmarks", "correctness", "manifests", "golden_manifests.json")
+			if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
+				manifestPath = filepath.Join("benchmarks", "correctness", "manifests", "golden_manifests.json")
+			}
+		}
+		rep, err := correctness_bench.RunCorrectnessSuiteFiltered(rp, manifestPath, *runID, *suite)
+		if err != nil {
+			die(err)
+		}
+		if strings.ToLower(*format) == "json" {
+			b, _ := json.MarshalIndent(rep, "", "  ")
+			fmt.Println(string(b))
+		} else {
+			fmt.Print(rep.FormatMarkdownReport())
+		}
+		if rep.Verdict != "GREEN" {
 			os.Exit(1)
 		}
 		return
@@ -482,6 +533,8 @@ Commands:
   ctx completion [bash|zsh]                             Generate shell completion script
   ctx report     -repo PATH [-format md|json] [-output] Generate evaluation/benchmark report
   ctx publish    -repo PATH [-output FILE]              Publish empirical test results to markdown
+  ctx audit      -repo PATH [-format md|json]           Audit admission and exclusion universe
+  ctx bench      [correctness] [-suite S] [-format F]   Run Minimum Sufficient Evidence correctness benchmark
   ctx ui         -repo PATH [-port 8765]                Launch real-time web UI dashboard
 
 Storage & Feature Flags:
@@ -519,6 +572,8 @@ _ctx() {
         'completion:Generate shell autocompletion script'
         'report:Generate evaluation/benchmark report'
         'publish:Publish empirical test results to markdown'
+        'audit:Audit admission and exclusion universe'
+        'bench:Run correctness benchmark'
         'ui:Launch real-time web UI dashboard'
     )
     _describe -t commands 'ctx command' commands
@@ -530,7 +585,7 @@ _ctx "$@"`)
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="init index remember plan resume handoff invalidate gc migrate work session event stats route install setup uninstall doctor completion report publish ui dashboard"
+    opts="init index remember plan resume handoff invalidate gc migrate work session event stats route install setup uninstall doctor completion report publish audit bench ui dashboard"
 
     if [[ ${COMP_CWORD} -eq 1 ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

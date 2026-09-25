@@ -1,12 +1,12 @@
 {
-  "run_id": "r16-stress-ee0ad5cafc63508c",
-  "timestamp": "2026-09-24T14:31:36.767568Z",
+  "run_id": "r16-stress-0cf28f98add5d324",
+  "timestamp": "2026-09-25T10:49:25.118458Z",
   "metadata": {
-    "execution_id": "exec_62643930393735623637633936313132",
+    "execution_id": "exec_31346331343866336131613230333763",
     "run_type": "synthetic",
     "provider_mode": "mock",
     "pricing_version": "2026-03-v1",
-    "timestamp": "2026-09-24T14:31:36.767568Z"
+    "timestamp": "2026-09-25T10:49:25.118458Z"
   },
   "verdict": "GREEN",
   "verdict_reasons": [
@@ -77,7 +77,7 @@
   "ring0_passed": true,
   "ring1_total_tasks": 500,
   "ring1_violation_rate": 0,
-  "ring1_cost_regret": 1.1539054064627698,
+  "ring1_cost_regret": 1.1539054064627696,
   "same_task_compute_curves": [
     {
       "task_id": "T1-01",
