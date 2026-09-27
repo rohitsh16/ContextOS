@@ -1,7 +1,0 @@
-{
-  "candidate_algorithm": "ContextOS-R12-Validated",
-  "decision": "APPROVED FOR PRODUCTION",
-  "passed_gates": 12,
-  "status": "GREEN",
-  "total_gates": 12
-}
