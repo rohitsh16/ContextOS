@@ -679,86 +679,7 @@ func TestRetrievalTelemetryContract(t *testing.T) {
 	}
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Helper Functions
-// ═══════════════════════════════════════════════════════════════════════════════
 
-func buildProductionCorpus(t *testing.T, nodeCount int, seed int64) (*server.Service, string) {
-	t.Helper()
-	root := t.TempDir()
-	dbPath := filepath.Join(root, ".contextos", "bench.db")
-	os.MkdirAll(filepath.Dir(dbPath), 0755)
-
-	runGitInit(t, root)
-
-	r := rand.New(rand.NewSource(seed))
-	packages := []string{"api", "core", "storage", "auth", "graph", "cache", "config", "handler", "transport", "util", "middleware", "worker", "scheduler", "monitor", "gateway"}
-	types := []string{
-		"Handler", "Service", "Store", "Manager", "Worker",
-		"Router", "Controller", "Resolver", "Provider", "Adapter",
-		"Factory", "Builder", "Validator", "Processor", "Pipeline",
-		"Gateway", "Monitor", "Scheduler", "Dispatcher", "Aggregator",
-	}
-	verbs := []string{"Get", "Set", "Create", "Delete", "Update", "Validate", "Process", "Handle", "Execute", "Transform", "Verify", "Schedule", "Monitor", "Dispatch", "Aggregate"}
-
-	// Deterministically plant Type0 for all 20 benchmark types (R18.1 §9)
-	for i, typeName := range types {
-		pkg := packages[i%len(packages)]
-		dir := filepath.Join(root, "pkg", pkg)
-		os.MkdirAll(dir, 0755)
-		targetName := typeName + "0"
-		var b strings.Builder
-		b.WriteString(fmt.Sprintf("package %s\n\nimport \"context\"\n\n", pkg))
-		b.WriteString(fmt.Sprintf("// %s manages %s operations.\ntype %s struct {\n\tID string\n\tData []byte\n\tConfig map[string]string\n}\n\n", targetName, pkg, targetName))
-		for m := 0; m < 5; m++ {
-			method := verbs[m%len(verbs)] + types[m%len(types)]
-			b.WriteString(fmt.Sprintf("// %s performs a %s operation.\nfunc (s *%s) %s(ctx context.Context, input []byte) ([]byte, error) {\n\t// Implementation for %s.%s\n\treturn input, nil\n}\n\n", method, pkg, targetName, method, targetName, method))
-		}
-		fname := fmt.Sprintf("%s_0.go", strings.ToLower(targetName))
-		os.WriteFile(filepath.Join(dir, fname), []byte(b.String()), 0644)
-	}
-
-	filesPerPkg := nodeCount / (len(packages) * 5)
-	if filesPerPkg < 1 {
-		filesPerPkg = 1
-	}
-
-	for _, pkg := range packages {
-		dir := filepath.Join(root, "pkg", pkg)
-		os.MkdirAll(dir, 0755)
-		for f := 0; f < filesPerPkg; f++ {
-			typeName := types[r.Intn(len(types))] + fmt.Sprintf("%d", f)
-			var b strings.Builder
-			b.WriteString(fmt.Sprintf("package %s\n\nimport \"context\"\n\n", pkg))
-			b.WriteString(fmt.Sprintf("// %s manages %s operations.\ntype %s struct {\n\tID string\n\tData []byte\n\tConfig map[string]string\n}\n\n", typeName, pkg, typeName))
-			for m := 0; m < 5; m++ {
-				method := verbs[r.Intn(len(verbs))] + types[r.Intn(len(types))]
-				b.WriteString(fmt.Sprintf("// %s performs a %s operation.\nfunc (s *%s) %s(ctx context.Context, input []byte) ([]byte, error) {\n\t// Implementation for %s.%s\n\treturn input, nil\n}\n\n", method, pkg, typeName, method, typeName, method))
-			}
-			fname := fmt.Sprintf("%s_%d.go", strings.ToLower(typeName), f)
-			os.WriteFile(filepath.Join(dir, fname), []byte(b.String()), 0644)
-		}
-	}
-
-	// Vendor pollutants
-	vendorDir := filepath.Join(root, "vendor", "github.com", "external")
-	os.MkdirAll(vendorDir, 0755)
-	for i := 0; i < 10; i++ {
-		os.WriteFile(filepath.Join(vendorDir, fmt.Sprintf("v%d.go", i)),
-			[]byte(fmt.Sprintf("package external\nfunc Vendor%d() {}\n", i)), 0644)
-	}
-
-	runGitAdd(t, root)
-
-	svc, err := server.New(dbPath, root)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := svc.Index(); err != nil {
-		t.Fatal(err)
-	}
-	return svc, root
-}
 
 func generateDiverseQueryCorpus(seed int64, n int) []string {
 	r := rand.New(rand.NewSource(seed))
@@ -895,19 +816,7 @@ func truncate(s string, n int) string {
 	return s[:n-3] + "..."
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
 
 // Ensure math import is used
 var _ = math.Abs

@@ -454,11 +454,3 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		Candidates: cands, Selected: selected,
 	}
 }
-
-// max returns the greater of two integers; guards against zero-division in token density calculations.
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

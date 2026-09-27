@@ -1,0 +1,141 @@
+package gates
+
+import (
+	"fmt"
+	"math/rand"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"contextos/internal/server"
+)
+
+// runGitInit initializes a temporary git repository for testing.
+func runGitInit(t *testing.T, dir string) {
+	t.Helper()
+	cmd := exec.Command("git", "init", "-q")
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git init failed: %v: %s", err, out)
+	}
+	for _, args := range [][]string{
+		{"config", "user.name", "Bench"},
+		{"config", "user.email", "bench@test.local"},
+		{"config", "commit.gpgsign", "false"},
+	} {
+		c := exec.Command("git", args...)
+		c.Dir = dir
+		_ = c.Run()
+	}
+}
+
+// runGitAdd stages and commits all files in the test git repository.
+func runGitAdd(t *testing.T, dir string) error {
+	t.Helper()
+	cmd := exec.Command("git", "add", ".")
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git add failed: %v: %s", err, out)
+	}
+	cmd = exec.Command("git", "commit", "-m", "initial commit", "--no-gpg-sign")
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git commit failed: %v: %s", err, out)
+	}
+	return nil
+}
+
+// buildProductionCorpus creates a deterministic synthetic production corpus
+// with structured packages, deterministic types, and vendor/generated pollutants.
+func buildProductionCorpus(t *testing.T, nodeCount int, seed int64) (*server.Service, string) {
+	t.Helper()
+	root := t.TempDir()
+	dbPath := filepath.Join(root, ".contextos", "bench.db")
+	_ = os.MkdirAll(filepath.Dir(dbPath), 0755)
+
+	runGitInit(t, root)
+
+	r := rand.New(rand.NewSource(seed))
+	packages := []string{"api", "core", "storage", "auth", "graph", "cache", "config", "handler", "transport", "util", "middleware", "worker", "scheduler", "monitor", "gateway"}
+	types := []string{
+		"Handler", "Service", "Store", "Manager", "Worker",
+		"Router", "Controller", "Resolver", "Provider", "Adapter",
+		"Factory", "Builder", "Validator", "Processor", "Pipeline",
+		"Gateway", "Monitor", "Scheduler", "Dispatcher", "Aggregator",
+	}
+	verbs := []string{"Get", "Set", "Create", "Delete", "Update", "Validate", "Process", "Handle", "Execute", "Transform", "Verify", "Schedule", "Monitor", "Dispatch", "Aggregate"}
+
+	// Deterministically plant Type0 for all 20 benchmark types (R18.1 §9)
+	for i, typeName := range types {
+		pkg := packages[i%len(packages)]
+		dir := filepath.Join(root, "pkg", pkg)
+		_ = os.MkdirAll(dir, 0755)
+		targetName := typeName + "0"
+		var b strings.Builder
+		b.WriteString(fmt.Sprintf("package %s\n\nimport \"context\"\n\n", pkg))
+		b.WriteString(fmt.Sprintf("// %s manages %s operations.\ntype %s struct {\n\tID string\n\tData []byte\n\tConfig map[string]string\n}\n\n", targetName, pkg, targetName))
+		for m := 0; m < 5; m++ {
+			method := verbs[m%len(verbs)] + types[m%len(types)]
+			b.WriteString(fmt.Sprintf("// %s performs a %s operation.\nfunc (s *%s) %s(ctx context.Context, input []byte) ([]byte, error) {\n\t// Implementation for %s.%s\n\treturn input, nil\n}\n\n", method, pkg, targetName, method, targetName, method))
+		}
+		fname := fmt.Sprintf("%s_0.go", strings.ToLower(targetName))
+		_ = os.WriteFile(filepath.Join(dir, fname), []byte(b.String()), 0644)
+	}
+
+	filesPerPkg := nodeCount / (len(packages) * 5)
+	if filesPerPkg < 1 {
+		filesPerPkg = 1
+	}
+
+	for _, pkg := range packages {
+		dir := filepath.Join(root, "pkg", pkg)
+		_ = os.MkdirAll(dir, 0755)
+		for f := 0; f < filesPerPkg; f++ {
+			typeName := types[r.Intn(len(types))] + fmt.Sprintf("%d", f)
+			var b strings.Builder
+			b.WriteString(fmt.Sprintf("package %s\n\nimport \"context\"\n\n", pkg))
+			b.WriteString(fmt.Sprintf("// %s manages %s operations.\ntype %s struct {\n\tID string\n\tData []byte\n\tConfig map[string]string\n}\n\n", typeName, pkg, typeName))
+			for m := 0; m < 5; m++ {
+				method := verbs[r.Intn(len(verbs))] + types[r.Intn(len(types))]
+				b.WriteString(fmt.Sprintf("// %s performs a %s operation.\nfunc (s *%s) %s(ctx context.Context, input []byte) ([]byte, error) {\n\t// Implementation for %s.%s\n\treturn input, nil\n}\n\n", method, pkg, typeName, method, typeName, method))
+			}
+			fname := fmt.Sprintf("%s_%d.go", strings.ToLower(typeName), f)
+			_ = os.WriteFile(filepath.Join(dir, fname), []byte(b.String()), 0644)
+		}
+	}
+
+	// Vendor pollutants (external library distractor code)
+	vendorDir := filepath.Join(root, "vendor", "github.com", "third-party", "lib")
+	_ = os.MkdirAll(vendorDir, 0755)
+	for i := 0; i < 10; i++ {
+		content := fmt.Sprintf("package lib\n\n// Vendored library code - should NEVER appear in evidence.\nfunc VendorFunc%d() {}\nfunc Vendor%d() {}\n", i, i)
+		_ = os.WriteFile(filepath.Join(vendorDir, fmt.Sprintf("vendor_%d.go", i)), []byte(content), 0644)
+	}
+
+	// Generated file pollutant
+	genDir := filepath.Join(root, "generated")
+	_ = os.MkdirAll(genDir, 0755)
+	genContent := "// Code generated by protoc-gen-go. DO NOT EDIT.\npackage generated\n\nfunc GeneratedFunc() {}\n"
+	_ = os.WriteFile(filepath.Join(genDir, "gen.pb.go"), []byte(genContent), 0644)
+
+	if err := runGitAdd(t, root); err != nil {
+		t.Fatal(err)
+	}
+
+	svc, err := server.New(dbPath, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.Index(); err != nil {
+		t.Fatal(err)
+	}
+	return svc, root
+}
+
+// buildSyntheticRepo is an alias to buildProductionCorpus for backwards compatibility in benchmark tests.
+func buildSyntheticRepo(t *testing.T, nodeCount int, seed int64) (*server.Service, string) {
+	return buildProductionCorpus(t, nodeCount, seed)
+}
