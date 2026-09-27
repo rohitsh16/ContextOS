@@ -52,19 +52,21 @@ func (ct *CandidateTrace) AddStage(stage RetrievalStage) {
 
 // QueryRetrievalTrace records the comprehensive trace of an individual query retrieval (R18.1 §6 & §38).
 type QueryRetrievalTrace struct {
-	QueryID                   string           `json:"query_id"`
-	Query                     string           `json:"query"`
-	CandidateCount            int              `json:"candidate_count"`
-	CandidateGenerationRecall float64          `json:"candidate_generation_recall"`
-	TargetPresent             bool             `json:"target_present"`
-	TargetRank                int              `json:"target_rank"`
-	TargetScore               float64          `json:"target_score"`
-	TopCandidates             []CandidateTrace `json:"top_candidates"`
-	RetrievalStages           []RetrievalStage `json:"retrieval_stages"`
-	AdmissionRejections       []string         `json:"admission_rejections"`
-	ExpansionNodes            []string         `json:"expansion_nodes"`
-	FinalRankedResults        []CandidateTrace `json:"final_ranked_results"`
-	FailureDiagnosis          string           `json:"failure_diagnosis,omitempty"`
+	QueryID                   string                    `json:"query_id"`
+	Query                     string                    `json:"query"`
+	CandidateCount            int                       `json:"candidate_count"`
+	CandidateGenerationRecall float64                   `json:"candidate_generation_recall"`
+	TargetPresent             bool                      `json:"target_present"`
+	TargetRank                int                       `json:"target_rank"`
+	TargetScore               float64                   `json:"target_score"`
+	TopCandidates             []CandidateTrace          `json:"top_candidates"`
+	RetrievalStages           []RetrievalStage          `json:"retrieval_stages"`
+	AdmissionRejections       []string                  `json:"admission_rejections"`
+	ExpansionNodes            []string                  `json:"expansion_nodes"`
+	FinalRankedResults        []CandidateTrace          `json:"final_ranked_results"`
+	FailureDiagnosis          string                    `json:"failure_diagnosis,omitempty"`
+	StageDurations            map[RetrievalStage]string `json:"stage_durations,omitempty"`
+	TotalDuration             string                    `json:"total_duration,omitempty"`
 }
 
 // DiagnoseFailure determines whether a failed query was due to candidate generation or ranking.

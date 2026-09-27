@@ -67,6 +67,8 @@ var (
 	reSnakeCase        = regexp.MustCompile(`\b([a-z0-9]+(?:_[a-z0-9]+)+)\b`)
 	reKebabCase        = regexp.MustCompile(`\b([a-z0-9]+(?:-[a-z0-9]+)+)\b`)
 	reAcronym          = regexp.MustCompile(`\b([A-Z]{2,6})\b`)
+	reSymbolWithDigit  = regexp.MustCompile(`\b([A-Za-z_][a-zA-Z0-9_]*[0-9]+[a-zA-Z0-9_]*)\b`)
+	reCapitalizedIdent = regexp.MustCompile(`\b([A-Z][a-zA-Z0-9_]*)\b`)
 	reNegations        = regexp.MustCompile(`(?i)\b(not|never|no|stop|stops|prevent|prevents|exclude|excludes|excluding|block|blocks|blocking|without|disabled?|deny|denies)\b`)
 	reArtifactKeywords = regexp.MustCompile(`(?i)\b(policy|policies|workflow|workflows|provider|providers|plan|plans|test|tests|testing|config|configs|configuration|spec|specs|doc|docs|documentation|script|scripts|handler|handlers|helper|helpers)\b`)
 	reActionVerbs      = regexp.MustCompile(`(?i)\b(attach|attaches|attachment|attaching|exclude|excludes|exclusion|excluding|hydrate|hydrates|hydration|build|builds|building|create|delete|remove|filter|find|trace|tracing|debug|fix|route|routing|inspect|verify|call|calls)\b`)
@@ -126,7 +128,7 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 		}
 	}
 
-	// 2. Extract qualified, PascalCase, and camelCase symbols (R18.1 §6)
+	// 2. Extract qualified, PascalCase, symbols with digits, and camelCase symbols (R18.1 §6 & §8)
 	for _, s := range reDottedSymbol.FindAllString(raw, -1) {
 		rep.Symbols = append(rep.Symbols, s)
 		addIdent(s)
@@ -138,6 +140,21 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 	for _, s := range reCamelCase.FindAllString(raw, -1) {
 		rep.Symbols = append(rep.Symbols, s)
 		addIdent(s)
+	}
+	for _, s := range reSymbolWithDigit.FindAllString(raw, -1) {
+		rep.Symbols = append(rep.Symbols, s)
+		addIdent(s)
+		trimmed := strings.TrimRight(s, "0123456789")
+		if len(trimmed) >= 2 {
+			addIdent(trimmed)
+		}
+	}
+	for _, s := range reCapitalizedIdent.FindAllString(raw, -1) {
+		low := strings.ToLower(s)
+		if len(s) >= 2 && !isCommonStopWord(low) && !isGenericBoilerplateWord(low) && !reActionVerbs.MatchString(low) && !reNegations.MatchString(low) {
+			rep.Symbols = append(rep.Symbols, s)
+			addIdent(s)
+		}
 	}
 
 	// 3. Extract snake_case and kebab-case identifiers
@@ -239,4 +256,16 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 	}
 
 	return rep
+}
+
+func isGenericBoilerplateWord(w string) bool {
+	switch w {
+	case "find", "show", "tell", "where", "what", "how", "why", "who", "which",
+		"when", "does", "code", "file", "files", "project", "projects", "thing",
+		"explain", "implementation", "details", "example", "about", "work", "system",
+		"operations", "pattern", "related", "handled", "handles":
+		return true
+	default:
+		return false
+	}
 }

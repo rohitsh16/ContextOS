@@ -60,8 +60,9 @@ var (
 	reClassifierPascal     = regexp.MustCompile(`\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+)\b`)
 	reClassifierCamel      = regexp.MustCompile(`\b([a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+)\b`)
 	reClassifierAcronym    = regexp.MustCompile(`\b([A-Z]{2,6})\b`)
-	reClassifierSnake      = regexp.MustCompile(`\b([a-z0-9]+(?:_[a-z0-9]+)+)\b`)
-	reClassifierKebab      = regexp.MustCompile(`\b([a-z0-9]+(?:-[a-z0-9]+)+)\b`)
+	reClassifierSnake           = regexp.MustCompile(`\b([a-z0-9]+(?:_[a-z0-9]+)+)\b`)
+	reClassifierKebab           = regexp.MustCompile(`\b([a-z0-9]+(?:-[a-z0-9]+)+)\b`)
+	reClassifierSymbolWithDigit = regexp.MustCompile(`\b([A-Za-z_][a-zA-Z0-9_]*[0-9]+[a-zA-Z0-9_]*)\b`)
 )
 
 var technicalTerms = map[string]bool{
@@ -88,7 +89,8 @@ var genericBoilerplate = map[string]bool{
 	"projects": true, "thing": true, "things": true, "why": true, "which": true, "when": true,
 	"who": true, "look": true, "explain": true, "about": true, "implement": true,
 	"implementation": true, "details": true, "example": true, "give": true, "want": true,
-	"need": true, "check": false, // check can be action or technical
+	"need": true, "work": true, "system": true, "operations": true, "pattern": true,
+	"related": true, "handled": true, "handles": true,
 }
 
 var commonStopwords = map[string]bool{
@@ -111,32 +113,37 @@ func ClassifyToken(token string) (TokenClass, int) {
 		return ClassPathFilename, 1
 	}
 
-	// 2. Go symbol: camelCase, PascalCase, or dotted
-	if reClassifierDotted.MatchString(token) || reClassifierCamel.MatchString(token) || reClassifierPascal.MatchString(token) {
+	// 2. Go symbol: camelCase, PascalCase, dotted, or symbol with digit
+	if reClassifierDotted.MatchString(token) || reClassifierCamel.MatchString(token) || reClassifierPascal.MatchString(token) || reClassifierSymbolWithDigit.MatchString(token) {
 		return ClassSymbol, 2
 	}
 
-	// 3. Entity acronym
+	// 3. Capitalized symbol/identifier (not stopword, boilerplate, or action)
+	if len(token) >= 2 && unicode.IsUpper(rune(token[0])) && !genericBoilerplate[low] && !actionVerbs[low] {
+		return ClassSymbol, 2
+	}
+
+	// 4. Entity acronym
 	if reClassifierAcronym.MatchString(token) && token != "AND" && token != "THE" && token != "FOR" && token != "NOT" {
 		return ClassEntity, 3
 	}
 
-	// 4. Identifier: snake_case, kebab-case
+	// 5. Identifier: snake_case, kebab-case
 	if strings.Contains(token, "_") || strings.Contains(token, "-") {
 		return ClassIdentifier, 4
 	}
 
-	// 5. Technical domain term
+	// 6. Technical domain term
 	if technicalTerms[low] {
 		return ClassTechnicalTerm, 5
 	}
 
-	// 6. Action verb
+	// 7. Action verb
 	if actionVerbs[low] {
 		return ClassAction, 6
 	}
 
-	// 7. Generic natural language boilerplate
+	// 8. Generic natural language boilerplate
 	if genericBoilerplate[low] {
 		return ClassGeneric, 7
 	}
@@ -170,11 +177,18 @@ func GenerateBoundedVariants(token string, class TokenClass) []string {
 			}
 		}
 	case ClassSymbol:
+		// Strip trailing digits if any (e.g. Handler0 -> Handler, handler)
+		trimmed := strings.TrimRight(token, "0123456789")
+		if trimmed != "" && trimmed != token {
+			add(trimmed)
+			add(strings.ToLower(trimmed))
+		}
 		// e.g. isBackupTeam -> is_backup_team, is-backup-team, is backup team
 		snake := CamelToSnake(token)
 		add(snake)
 		add(strings.ReplaceAll(snake, "_", "-"))
 		add(strings.ReplaceAll(snake, "_", " "))
+		add(strings.ToLower(token))
 	case ClassIdentifier:
 		// snake_case
 		if strings.Contains(token, "_") {
@@ -240,6 +254,9 @@ func ClassifyQueryTokens(query string) []ClassifiedToken {
 		addTok(m, ClassSymbol, 2)
 	}
 	for _, m := range reClassifierPascal.FindAllString(query, -1) {
+		addTok(m, ClassSymbol, 2)
+	}
+	for _, m := range reClassifierSymbolWithDigit.FindAllString(query, -1) {
 		addTok(m, ClassSymbol, 2)
 	}
 	for _, m := range reClassifierAcronym.FindAllString(query, -1) {

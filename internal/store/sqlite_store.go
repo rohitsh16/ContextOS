@@ -428,8 +428,8 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 		}
 	}
 
-	// 2. Prefix matching for tokens via batched OR query with priority budgeting (R18.1 §7 & §10)
-	if len(collected) < 3 {
+	// 2. Prefix and path matching for tokens via batched OR query with priority budgeting (R18.1 §7 & §10)
+	if len(collected) < limit {
 		var pfxClauses []string
 		var pfxArgs []any
 		pfxArgs = append(pfxArgs, repoID)
@@ -437,9 +437,9 @@ func (s *SQLiteStore) SearchCodeCandidates(repoID string, query string, scope st
 			if len(tok) < 3 || isStoreStopWord(tok) {
 				continue
 			}
-			pfxClauses = append(pfxClauses, "name LIKE ?")
-			pfxArgs = append(pfxArgs, tok+"%")
-			if len(pfxClauses) >= 4 {
+			pfxClauses = append(pfxClauses, "name LIKE ? OR path LIKE ?")
+			pfxArgs = append(pfxArgs, tok+"%", "%/"+strings.ToLower(tok)+"%")
+			if len(pfxClauses) >= 6 {
 				break
 			}
 		}

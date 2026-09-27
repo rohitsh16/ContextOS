@@ -607,17 +607,33 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		}
 	}
 
+	// ═══════════════════════════════════════════════════════════════════════
+	// R18.1 P0: AUTHORITATIVE RETRIEVAL PATH
+	// HybridRetriever is the sole authoritative retrieval engine.
+	// SearchCandidates is only invoked as a bounded fallback when the
+	// authoritative path returns zero candidates.
+	// ═══════════════════════════════════════════════════════════════════════
 	tCandidateStart := time.Now()
-	ms, err := s.SearchCandidates(task, 50)
-	if err != nil {
-		return model.ContextPlan{}, err
-	}
 	codes, trace, denseScores, graphScores, err := s.RetrieveEvidenceMemories(context.Background(), task, 25)
 	if err != nil {
 		return model.ContextPlan{}, err
 	}
-	ms = append(ms, codes...)
 	tCandidateGen := time.Since(tCandidateStart)
+
+	ms := codes
+	fallbackUsed := false
+	fallbackCandidateCount := 0
+
+	// Bounded legacy fallback: fires ONLY when authoritative hybrid returns 0 candidates.
+	// Hard candidate budget = 15 to prevent unbounded work.
+	if len(codes) == 0 {
+		fallbackCandidates, fErr := s.SearchCandidates(task, 15)
+		if fErr == nil && len(fallbackCandidates) > 0 {
+			ms = fallbackCandidates
+			fallbackUsed = true
+			fallbackCandidateCount = len(fallbackCandidates)
+		}
+	}
 
 	// Adaptive Timeout mitigation:
 	effectiveBudget := budget
@@ -633,16 +649,13 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		}
 	}
 
-	var tGraph time.Duration
-	var nodesExpanded, edgesTraversed int
+	// Graph expansion is now a first-class stage inside HybridRetriever.
+	// No duplicate expandGraphFromSeeds call needed.
+	var nodesExpanded int
 	if trace != nil {
 		nodesExpanded = len(trace.ExpansionNodes)
 	}
-	if len(graphScores) == 0 && !adaptiveThrottled {
-		tGraphStart := time.Now()
-		graphScores, nodesExpanded, edgesTraversed = s.expandGraphFromSeeds(task, codes)
-		tGraph = time.Since(tGraphStart)
-	}
+	_ = adaptiveThrottled
 
 	tSortStart := time.Now()
 	p := allocator.Plan(allocator.Request{
@@ -659,6 +672,8 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 
 	// Instrument R18.1 P0 Telemetry
 	p.RetrievalMode = "hybrid"
+	p.FallbackUsed = fallbackUsed
+	p.FallbackCandidateCount = fallbackCandidateCount
 	if trace != nil {
 		p.RetrievalStages = make([]string, 0, len(trace.RetrievalStages))
 		for _, st := range trace.RetrievalStages {
@@ -667,6 +682,13 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		p.CandidateCount = trace.CandidateCount
 		p.TargetRank = trace.TargetRank
 		p.TargetFound = trace.TargetPresent
+		// Propagate per-stage latencies
+		if len(trace.StageDurations) > 0 {
+			p.StageDurations = make(map[string]string, len(trace.StageDurations))
+			for stage, dur := range trace.StageDurations {
+				p.StageDurations[string(stage)] = dur
+			}
+		}
 	} else {
 		p.RetrievalStages = []string{"exact_path", "lexical", "semantic", "symbol", "graph"}
 		p.CandidateCount = len(codes)
@@ -687,12 +709,10 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		TotalDuration: time.Since(startTime),
 		StageDurations: map[compute.QueryStage]time.Duration{
 			compute.StageCandidateGen:       tCandidateGen,
-			compute.StageGraphTraversal:     tGraph,
 			compute.StageSorting:            tSort,
 			compute.StageSerialization:      tSerial,
 		},
 		NodesScanned:     nodesExpanded,
-		EdgesScanned:     edgesTraversed,
 		GraphExpansions:  nodesExpanded,
 		CandidatesScored: len(ms),
 	})

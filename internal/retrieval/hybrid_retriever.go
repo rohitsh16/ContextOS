@@ -60,6 +60,7 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 		AdmissionRejections: make([]string, 0),
 		ExpansionNodes:      make([]string, 0),
 		FinalRankedResults:  make([]CandidateTrace, 0),
+		StageDurations:      make(map[RetrievalStage]string),
 	}
 
 	limit := q.MaxResults
@@ -107,6 +108,7 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 	}
 
 	// 2. Channel 1: Exact Path and Basename (R18.1 §10)
+	tStageStart := time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageExactPath)
 	for _, p := range rep.Paths {
 		nodes, err := r.Store.LookupExactPath(q.RepoID, p)
@@ -124,8 +126,19 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 			}
 		}
 	}
+	for _, fn := range rep.Filenames {
+		baseNodes, err := r.Store.LookupBasename(q.RepoID, fn)
+		if err == nil {
+			for _, n := range baseNodes {
+				c := nodeToCandidate(n, string(StageBasename))
+				addRaw(c, StageBasename, 0.95)
+			}
+		}
+	}
+	qTrace.StageDurations[StageExactPath] = time.Since(tStageStart).String()
 
 	// 3. Channel 2: Symbol Channel (R18.1 §10)
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageSymbol)
 	for _, sym := range rep.Symbols {
 		if strings.Contains(sym, ".") {
@@ -144,9 +157,28 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 				addRaw(c, StageSymbol, 0.85)
 			}
 		}
+		// If exact symbol lookup found nothing, try basename lookup or code search (R18.1 §8)
+		if len(symNodes) == 0 {
+			baseNodes, err := r.Store.LookupBasename(q.RepoID, strings.ToLower(sym))
+			if err == nil {
+				for _, n := range baseNodes {
+					c := nodeToCandidate(n, string(StageSymbol))
+					addRaw(c, StageSymbol, 0.80)
+				}
+			}
+			symSearch, err := r.Store.SearchCodeCandidates(q.RepoID, sym, q.Scope, 10)
+			if err == nil {
+				for _, n := range symSearch {
+					c := nodeToCandidate(n, string(StageSymbol))
+					addRaw(c, StageSymbol, 0.75)
+				}
+			}
+		}
 	}
+	qTrace.StageDurations[StageSymbol] = time.Since(tStageStart).String()
 
 	// 4. Channel 3: Entity Channel (Domain acronyms, components e.g. DRMC, bunker, GCP, shared-vpc)
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageEntity)
 	maxEntities := 2
 	for i, ent := range rep.Entities {
@@ -171,8 +203,10 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 			}
 		}
 	}
+	qTrace.StageDurations[StageEntity] = time.Since(tStageStart).String()
 
 	// 5. Channel 4: Lexical Channel with Bounded Expansion (R18.1 §9 & §10)
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageLexical)
 	searchTokens := ext.AllSearchTokens
 	if len(searchTokens) > 0 {
@@ -187,8 +221,10 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 			}
 		}
 	}
+	qTrace.StageDurations[StageLexical] = time.Since(tStageStart).String()
 
 	// 6. Channel 5: Semantic Scoring for all generated candidates (R18.1 §10)
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageSemantic)
 	for i := range rawCandidates {
 		c := &rawCandidates[i]
@@ -200,6 +236,7 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 			c.Trace.SemanticScore = semSc
 		}
 	}
+	qTrace.StageDurations[StageSemantic] = time.Since(tStageStart).String()
 
 	// 7. Enforce R17.5 Admission Gate (Zero-pollution invariant)
 	var admitted []Candidate
@@ -222,7 +259,8 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 	// 8. Multi-Channel Candidate Fusion (R18.1 §11)
 	fused := FuseMultiChannels(admitted, profile.FusionWeights)
 
-	// 9. Repository-Aware Graph Expansion (R18.1 §12)
+	// 9. Repository-Aware Graph Expansion (R18.1 §12) — first-class stage
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageExpansion)
 	seedCount := 5
 	if len(fused) < seedCount {
@@ -243,10 +281,13 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 			fused = FuseMultiChannels(append(fused, expanded...), profile.FusionWeights)
 		}
 	}
+	qTrace.StageDurations[StageExpansion] = time.Since(tStageStart).String()
 
 	// 10. Task-Aware Reranking (R18.1 §14 & §15)
+	tStageStart = time.Now()
 	qTrace.RetrievalStages = append(qTrace.RetrievalStages, StageRerank)
 	finalRanked := TaskAwareRerank(fused, rep, profile, limit)
+	qTrace.StageDurations[StageRerank] = time.Since(tStageStart).String()
 
 	// Populate final trace output
 	qTrace.CandidateCount = len(admitted)
@@ -260,7 +301,7 @@ func (r *HybridRetriever) RetrieveWithDetailedTrace(
 		}
 	}
 
-	_ = start
+	qTrace.TotalDuration = time.Since(start).String()
 	return finalRanked, qTrace, nil
 }
 

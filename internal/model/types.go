@@ -93,6 +93,11 @@ type ContextPlan struct {
 	Candidates      []Candidate `json:"candidates"`
 	Selected        []Candidate `json:"selected"`
 	CreatedAt       time.Time   `json:"created_at"`
+
+	// R18.1 P0 Authoritative Retrieval Telemetry
+	FallbackUsed           bool              `json:"fallback_used,omitempty"`
+	FallbackCandidateCount int               `json:"fallback_candidate_count,omitempty"`
+	StageDurations         map[string]string `json:"stage_durations,omitempty"`
 }
 
 type HookEvent struct {
