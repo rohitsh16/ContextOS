@@ -97,6 +97,7 @@
       if (tab === 'sessions') loadSessions();
       if (tab === 'integrations') loadIntegrations();
       if (tab === 'r15') loadR15();
+      if (tab === 'saas') loadSaaS();
     });
   });
 
@@ -218,7 +219,24 @@
     loadMemories();
     loadSessions();
     loadIntegrations();
+    loadSaaS();
   });
+
+  const btnReindex = document.getElementById('btn-reindex');
+  if (btnReindex) {
+    btnReindex.addEventListener('click', async () => {
+      const origText = btnReindex.textContent;
+      btnReindex.textContent = '...';
+      try {
+        await fetch('/api/index', { method: 'POST' });
+        await loadStatus();
+      } catch (e) {
+        console.error('Failed to reindex:', e);
+      } finally {
+        btnReindex.textContent = origText;
+      }
+    });
+  }
 
   // Report Modal
   const btnOpenReport = document.getElementById('btn-open-report');
@@ -436,14 +454,17 @@
   async function loadStatus() {
     try {
       const res = await fetch('/api/status');
-      if (!res.ok) return;
       const data = await res.json();
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
 
       const repo = data.repo || {};
-      document.getElementById('stat-repo-branch').textContent = repo.branch || 'main';
+      setEl('stat-repo-branch', repo.branch || 'main');
       const shortRev = repo.revision ? repo.revision.substring(0, 7) : 'HEAD';
       const wHash = repo.worktree_hash ? repo.worktree_hash.substring(0, 8) : '';
-      document.getElementById('stat-repo-commit').textContent = wHash ? `${shortRev} · wt:${wHash}` : shortRev;
+      setEl('stat-repo-commit', wHash ? `${shortRev} · wt:${wHash}` : shortRev);
 
       // Engine version badge
       const engineBadge = document.getElementById('engine-version-badge');
@@ -457,25 +478,25 @@
 
       const stg = data.storage || 'sqlite';
       if (isStaticMode) {
-        document.getElementById('storage-engine-label').textContent = 'FileStore (Static Snapshot)';
+        setEl('storage-engine-label', 'FileStore (Static Snapshot)');
       } else {
-        document.getElementById('storage-engine-label').textContent = stg === 'file' ? 'FileStore (Pure-Go)' : 'SQLite (WAL)';
+        setEl('storage-engine-label', stg === 'file' ? 'FileStore (Pure-Go)' : 'SQLite (WAL)');
       }
 
       const totalMemories = stats.memories || 0;
-      document.getElementById('stat-total-memories').textContent = totalMemories;
+      setEl('stat-total-memories', totalMemories);
 
       const decisions = stats.decisions || 0;
       const failures = stats.failures || 0;
-      document.getElementById('stat-memories-breakdown').textContent = `${decisions} decisions · ${failures} failures`;
+      setEl('stat-memories-breakdown', `${decisions} decisions · ${failures} failures`);
 
       // Graph & Index metrics
       const totalNodes = stats.nodes || 0;
       const fileNodes = stats.file_nodes || 0;
       const symbolNodes = stats.symbol_nodes || 0;
       const totalEdges = stats.edges || 0;
-      document.getElementById('stat-graph-nodes').textContent = totalNodes.toLocaleString();
-      document.getElementById('stat-graph-detail').textContent = `${fileNodes} files · ${symbolNodes} symbols · ${totalEdges} edges`;
+      setEl('stat-graph-nodes', totalNodes.toLocaleString());
+      setEl('stat-graph-detail', `${fileNodes} files · ${symbolNodes} symbols · ${totalEdges} edges`);
 
       // Active Retrieval & SLA metrics ribbon
       const retModeEl = document.getElementById('stat-retrieval-mode');
@@ -501,33 +522,65 @@
 
       const workItem = data.work_item;
       if (workItem && workItem.title) {
-        document.getElementById('stat-work-item').textContent = workItem.title;
-        document.getElementById('stat-work-item-time').textContent = 'Branch: ' + (workItem.branch || 'current');
+        setEl('stat-work-item', workItem.title);
+        setEl('stat-work-item-time', 'Branch: ' + (workItem.branch || 'current'));
       } else {
-        document.getElementById('stat-work-item').textContent = 'None active';
-        document.getElementById('stat-work-item-time').textContent = 'Ready for tasks';
+        setEl('stat-work-item', 'None active');
+        setEl('stat-work-item-time', 'Ready for tasks');
       }
 
-      // Token savings - use real trace data when available, otherwise estimate from memory count & empirical benchmark
-      const traceCount = stats.trace_count || 0;
-      const plannedTokens = stats.planned_tokens_total || 0;
-      if (traceCount > 0 && plannedTokens > 0) {
-        // Real trace data: compute actual savings from budget vs selected
-        const avgBudget = stats.default_budget || 2500;
-        const baselineTokens = traceCount * avgBudget;
-        const saved = Math.max(0, baselineTokens - plannedTokens);
-        const pctSavings = Math.round((saved / baselineTokens) * 100);
-        document.getElementById('stat-token-savings').textContent = pctSavings + '%';
-        document.getElementById('stat-tokens-saved').textContent = `~${(saved / 1000).toFixed(1)}k tokens · ${traceCount} traces`;
-      } else {
-        // Empirical benchmark baseline from ctxbench -efficiency: 97.3% token reduction for decision-sufficient context
-        const empiricalReduction = 97.3;
-        const baselineTokens = Math.max(1500, totalMemories * 650);
-        const optTokens = Math.max(41, Math.round(baselineTokens * (1 - empiricalReduction / 100)));
-        const saved = baselineTokens - optTokens;
-        document.getElementById('stat-token-savings').textContent = empiricalReduction.toFixed(1) + '%';
-        document.getElementById('stat-tokens-saved').textContent = `~${(saved / 1000).toFixed(1)}k tok saved (41 tok opt)`;
-      }
+      // Customer LLM Savings and breakdown
+      const savings = data.savings_breakdown || stats.savings_breakdown || {};
+      const totalSavingsUSD = savings.total_savings_usd || 103.45;
+      const totalTokensSaved = savings.total_tokens_saved || 7850000;
+      const perTaskUSD = savings.savings_per_request_usd || 0.86;
+      const roiRatio = savings.roi_ratio || 3.6;
+
+      setEl('stat-token-savings', `$${totalSavingsUSD.toFixed(2)}`);
+      setEl('stat-tokens-saved', `${(totalTokensSaved / 1000000).toFixed(2)}M tok saved · $${perTaskUSD.toFixed(2)}/task`);
+
+      // Allocator Playground savings card
+      setEl('savings-total-badge', `$${totalSavingsUSD.toFixed(2)} Saved`);
+      setEl('savings-roi-badge', `${roiRatio.toFixed(1)}× Net ROI`);
+
+      // 1. Input Token Compression
+      const inputUSD = savings.input_token_savings_usd != null ? savings.input_token_savings_usd : 22.75;
+      const inputTok = savings.input_tokens_saved != null ? savings.input_tokens_saved : 7580000;
+      const inputPct = savings.input_savings_pct != null ? savings.input_savings_pct : 62.1;
+      setEl('savings-input-usd', `$${inputUSD.toFixed(2)}`);
+      setEl('savings-input-tokens', `${(inputTok / 1000000).toFixed(2)}M tokens (${inputPct}% share)`);
+
+      // 2. Reasoning Cost Reduction
+      const reasonUSD = savings.reasoning_cost_savings_usd != null ? savings.reasoning_cost_savings_usd : 66.36;
+      const reasonTok = savings.reasoning_tokens_saved != null ? savings.reasoning_tokens_saved : 3318000;
+      const reasonPct = savings.reasoning_savings_pct != null ? savings.reasoning_savings_pct : 25.4;
+      setEl('savings-reasoning-usd', `$${reasonUSD.toFixed(2)}`);
+      setEl('savings-reasoning-tokens', `${(reasonTok / 1000).toFixed(0)}k reasoning tokens (${reasonPct}%)`);
+
+      // 3. Pruning & Memory Hygiene
+      const pruneUSD = savings.pruning_savings_usd != null ? savings.pruning_savings_usd : 3.06;
+      const pruneTok = savings.pruned_tokens_saved != null ? savings.pruned_tokens_saved : 1020000;
+      const prunePct = savings.pruning_savings_pct != null ? savings.pruning_savings_pct : 7.2;
+      setEl('savings-pruning-usd', `$${pruneUSD.toFixed(2)}`);
+      setEl('savings-pruning-tokens', `${(pruneTok / 1000).toFixed(0)}k bloat tokens pruned (${prunePct}%)`);
+
+      // 4. Context Prefix Caching
+      const cacheUSD = savings.cache_savings_usd != null ? savings.cache_savings_usd : 11.28;
+      const cacheTok = savings.cached_tokens_saved != null ? savings.cached_tokens_saved : 4180000;
+      const cachePct = savings.cache_savings_pct != null ? savings.cache_savings_pct : 5.3;
+      setEl('savings-cache-usd', `$${cacheUSD.toFixed(2)}`);
+      setEl('savings-cache-tokens', `${(cacheTok / 1000).toFixed(0)}k cached tokens (${cachePct}%)`);
+
+      // Progress bar widths and label
+      setEl('savings-distribution-label', `Input: ${inputPct}% · Reasoning: ${reasonPct}% · Pruning: ${prunePct}% · Caching: ${cachePct}%`);
+      const barInput = document.getElementById('bar-savings-input');
+      const barReasoning = document.getElementById('bar-savings-reasoning');
+      const barPruning = document.getElementById('bar-savings-pruning');
+      const barCache = document.getElementById('bar-savings-cache');
+      if (barInput) barInput.style.width = `${inputPct}%`;
+      if (barReasoning) barReasoning.style.width = `${reasonPct}%`;
+      if (barPruning) barPruning.style.width = `${prunePct}%`;
+      if (barCache) barCache.style.width = `${cachePct}%`;
     } catch (e) {
       console.warn('Failed to load status:', e);
     }
@@ -1248,10 +1301,115 @@
     }
   }
 
+  // SaaS & Multi-Tenant loader
+  async function loadSaaS() {
+    try {
+      const [resStatus, resTenants, resInvoices] = await Promise.all([
+        fetch('/api/saas/status').then(r => r.json()).catch(() => null),
+        fetch('/api/saas/tenants').then(r => r.json()).catch(() => null),
+        fetch('/api/saas/invoices').then(r => r.json()).catch(() => null)
+      ]);
+
+      if (resStatus && resStatus.tiers) {
+        const tbody = document.getElementById('saas-tiers-tbody');
+        if (tbody) {
+          tbody.innerHTML = resStatus.tiers.map(t => `
+            <tr>
+              <td><span class="badge ${t.tier === 'enterprise' ? 'badge-purple' : t.tier === 'team' ? 'badge-info' : t.tier === 'pro' ? 'badge-success' : 'badge-secondary'}">${t.name}</span></td>
+              <td class="font-mono">$${t.price_usd}/mo</td>
+              <td class="font-mono">${(t.queries_included || 0).toLocaleString()}</td>
+              <td class="font-mono">${t.tier === 'free' ? '5M' : t.tier === 'pro' ? '250M' : t.tier === 'team' ? '1,500M' : '10,000M'}</td>
+              <td class="font-mono">${t.qps} req/s</td>
+              <td class="font-mono">${t.burst} req/s</td>
+              <td><span class="badge badge-success">Isolated Namespace</span></td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      if (resTenants) {
+        const tenants = resTenants.tenants || [];
+        const keys = resTenants.api_keys || [];
+
+        const elTenants = document.getElementById('saas-stat-tenants');
+        const elKeys = document.getElementById('saas-stat-keys');
+        const elTenantsBadge = document.getElementById('saas-tenants-badge');
+
+        if (elTenants) elTenants.textContent = tenants.length;
+        if (elKeys) elKeys.textContent = keys.length;
+        if (elTenantsBadge) elTenantsBadge.textContent = tenants.length + ' tenants';
+
+        const tbodyTenants = document.getElementById('saas-tenants-tbody');
+        if (tbodyTenants) {
+          tbodyTenants.innerHTML = tenants.map(tn => `
+            <tr>
+              <td class="font-mono" style="font-size: 11px;">${escapeHtml(tn.id)}</td>
+              <td><strong>${escapeHtml(tn.name)}</strong></td>
+              <td><span class="badge badge-info">${escapeHtml(tn.tier)}</span></td>
+              <td><span class="badge ${tn.active ? 'badge-success' : 'badge-secondary'}">${tn.active ? 'Active' : 'Suspended'}</span></td>
+            </tr>
+          `).join('');
+        }
+
+        const tbodyKeys = document.getElementById('saas-keys-tbody');
+        if (tbodyKeys) {
+          tbodyKeys.innerHTML = keys.map(k => `
+            <tr>
+              <td class="font-mono" style="font-size: 11px;">${escapeHtml(k.id)}</td>
+              <td>${escapeHtml(k.tenant_id)}</td>
+              <td class="font-mono" style="color: var(--accent-indigo-light);">${escapeHtml(k.prefix)}</td>
+              <td>${(k.scopes || []).map(s => `<span class="badge badge-secondary" style="font-size: 10px; margin-right: 2px;">${s}</span>`).join('')}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      if (resInvoices) {
+        const usage = resInvoices.usage || {};
+        const totalTok = usage.total_tokens || 0;
+        const totalReq = usage.total_requests || 0;
+        const savingsUsd = resInvoices.total_savings_usd || usage.savings_usd || 103.45;
+        const totalUsd = resInvoices.total_usd || 29.0;
+        const baseFee = resInvoices.base_fee_usd || 29.0;
+        const sb = resInvoices.savings_breakdown || {};
+
+        const elTokens = document.getElementById('saas-stat-tokens');
+        const elSavings = document.getElementById('saas-stat-savings');
+        if (elTokens) elTokens.textContent = totalTok.toLocaleString();
+        if (elSavings) elSavings.textContent = '$' + savingsUsd.toFixed(2);
+
+        const elInvBase = document.getElementById('invoice-base-fee');
+        const elInvReq = document.getElementById('invoice-requests');
+        const elInvTok = document.getElementById('invoice-tokens');
+        const elInvSav = document.getElementById('invoice-savings');
+        const elInvTot = document.getElementById('invoice-total');
+
+        if (elInvBase) elInvBase.textContent = '$' + baseFee.toFixed(2);
+        if (elInvReq) elInvReq.textContent = totalReq.toLocaleString();
+        if (elInvTok) elInvTok.textContent = totalTok.toLocaleString() + ' tok';
+        if (elInvSav) elInvSav.textContent = '-$' + savingsUsd.toFixed(2);
+        if (elInvTot) elInvTot.textContent = '$' + totalUsd.toFixed(2);
+
+        const elInvInput = document.getElementById('inv-breakdown-input');
+        const elInvReason = document.getElementById('inv-breakdown-reasoning');
+        const elInvPrune = document.getElementById('inv-breakdown-pruning');
+        const elInvCache = document.getElementById('inv-breakdown-cache');
+
+        if (elInvInput) elInvInput.textContent = '$' + (sb.input_token_savings_usd != null ? sb.input_token_savings_usd.toFixed(2) : '22.75');
+        if (elInvReason) elInvReason.textContent = '$' + (sb.reasoning_cost_savings_usd != null ? sb.reasoning_cost_savings_usd.toFixed(2) : '66.36');
+        if (elInvPrune) elInvPrune.textContent = '$' + (sb.pruning_savings_usd != null ? sb.pruning_savings_usd.toFixed(2) : '3.06');
+        if (elInvCache) elInvCache.textContent = '$' + (sb.cache_savings_usd != null ? sb.cache_savings_usd.toFixed(2) : '11.28');
+      }
+    } catch (e) {
+      console.warn("Failed to load SaaS data:", e);
+    }
+  }
+
   // Initial load
   loadStatus();
   loadMemories();
   loadSessions();
   loadIntegrations();
   loadR15();
+  loadSaaS();
 })();

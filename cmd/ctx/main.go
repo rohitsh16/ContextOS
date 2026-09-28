@@ -20,6 +20,7 @@ import (
 	"contextos/internal/report"
 	"contextos/internal/retrieval"
 	"contextos/internal/router"
+	"contextos/internal/saas/client"
 	"contextos/internal/server"
 	"contextos/internal/store"
 	"contextos/internal/ui"
@@ -65,6 +66,8 @@ func main() {
 	manifest := fs.String("manifest", "", "path to benchmark manifest JSON")
 	runID := fs.String("run-id", "R18-MSE-CORRECTNESS-001", "benchmark run ID")
 	reportFormat := fs.String("report", "", "report format: markdown or json (alias for -format)")
+	remoteServer := fs.String("server", "", "remote ContextOS SaaS Gateway URL (or CONTEXTOS_URL)")
+	remoteKey := fs.String("api-key", "", "API key for remote ContextOS SaaS Gateway (or CONTEXTOS_API_KEY)")
 
 	args := os.Args[2:]
 	if sub == "bench" && len(args) > 0 {
@@ -90,6 +93,73 @@ func main() {
 	stg := *storage
 	if stg == "" && os.Getenv("CONTEXTOS_STORAGE") != "" {
 		stg = os.Getenv("CONTEXTOS_STORAGE")
+	}
+
+	// Remote SaaS Gateway Client Dispatch
+	srvURL := *remoteServer
+	if srvURL == "" {
+		srvURL = os.Getenv("CONTEXTOS_URL")
+	}
+	apiKeyVal := *remoteKey
+	if apiKeyVal == "" {
+		apiKeyVal = os.Getenv("CONTEXTOS_API_KEY")
+	}
+
+	if srvURL != "" {
+		c := client.New(srvURL, apiKeyVal)
+		switch sub {
+		case "plan":
+			if *task == "" {
+				die(fmt.Errorf("-task is required"))
+			}
+			p, err := c.Plan(*task, *modelName, *budget)
+			if err != nil {
+				die(err)
+			}
+			printJSON(p)
+			return
+		case "remember":
+			if strings.TrimSpace(*content) == "" {
+				die(fmt.Errorf("-content is required"))
+			}
+			id, err := c.Remember(*kind, *content, *authority, "repo", 0.9, nil)
+			if err != nil {
+				die(err)
+			}
+			printJSON(map[string]any{"ok": true, "id": id})
+			return
+		case "search", "retrieve":
+			if *task == "" {
+				die(fmt.Errorf("-task is required"))
+			}
+			results, err := c.Search(*task, *topK)
+			if err != nil {
+				die(err)
+			}
+			printJSON(map[string]any{"ok": true, "results": results})
+			return
+		case "stats":
+			st, err := c.Stats()
+			if err != nil {
+				die(err)
+			}
+			printJSON(st)
+			return
+		case "usage":
+			u, err := c.Usage()
+			if err != nil {
+				die(err)
+			}
+			printJSON(u)
+			return
+		case "invoice":
+			inv, err := c.Invoice()
+			if err != nil {
+				die(err)
+			}
+			printJSON(inv)
+			return
+		}
 	}
 
 	if sub == "hook" {

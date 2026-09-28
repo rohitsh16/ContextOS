@@ -3,10 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"contextos/internal/mcp"
+	"contextos/internal/saas/auth"
+	"contextos/internal/saas/gateway"
+	"contextos/internal/saas/tenant"
 	"contextos/internal/server"
 	"contextos/internal/ui"
 )
@@ -20,6 +24,10 @@ func main() {
 	mcpMode := flag.Bool("mcp", false, "run MCP JSON-RPC over stdio")
 	uiMode := flag.Bool("ui", false, "run web UI dashboard")
 	port := flag.Int("port", 8765, "web UI dashboard port")
+	gatewayMode := flag.Bool("gateway", false, "run multi-tenant SaaS HTTP API gateway")
+	gatewayPort := flag.Int("gateway-port", 8080, "SaaS HTTP API gateway port")
+	adminKey := flag.String("admin-key", "", "master admin API key for SaaS gateway (or CONTEXTOS_ADMIN_KEY)")
+	tenantDataDir := flag.String("tenant-data-dir", "", "base directory for tenant storage (or CONTEXTOS_TENANT_DATA_DIR)")
 	timeout := flag.Duration("timeout", 0, "query timeout (e.g. 500ms, or CONTEXTOS_TIMEOUT / CONTEXTOS_TIMEOUT_MS)")
 	budget := flag.Int("budget", 4000, "default context budget in tokens (or CONTEXTOS_BUDGET)")
 	minBudget := flag.Int("min-budget", 500, "minimum context budget floor under adaptive timeout (or CONTEXTOS_MIN_BUDGET)")
@@ -73,9 +81,61 @@ func main() {
 		return
 	}
 	if *uiMode {
+		if nodes, err := s.Store.ListNodes(s.RepoID); err == nil && len(nodes) == 0 {
+			_ = s.Index()
+		}
 		fmt.Printf("contextd UI dashboard running on http://localhost:%d\n", *port)
 		if e := ui.StartServer(s, rp, *port); e != nil {
 			fmt.Fprintln(os.Stderr, e)
+			os.Exit(1)
+		}
+		return
+	}
+	if *gatewayMode {
+		adm := *adminKey
+		if adm == "" {
+			adm = os.Getenv("CONTEXTOS_ADMIN_KEY")
+		}
+		td := *tenantDataDir
+		if td == "" {
+			td = os.Getenv("CONTEXTOS_TENANT_DATA_DIR")
+		}
+		if td == "" {
+			td = filepath.Join(filepath.Dir(dp), "tenants")
+		}
+		authStore, err := auth.NewFileStore(filepath.Join(td, "auth.json"))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "auth store error: %v\n", err)
+			os.Exit(1)
+		}
+		tm, err := tenant.NewManager(tenant.Options{
+			BaseDataDir:     td,
+			DefaultRepoPath: rp,
+			StorageType:     stg,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "tenant manager error: %v\n", err)
+			os.Exit(1)
+		}
+		defer tm.Close()
+
+		gw, err := gateway.New(gateway.Config{
+			Port:        *gatewayPort,
+			AdminAPIKey: adm,
+			AuthStore:   authStore,
+			TenantMgr:   tm,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "gateway init error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("ContextOS SaaS Gateway running on http://localhost:%d\n", *gatewayPort)
+		srv := &http.Server{
+			Addr:    fmt.Sprintf(":%d", *gatewayPort),
+			Handler: gw.Handler(),
+		}
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Fprintf(os.Stderr, "gateway error: %v\n", err)
 			os.Exit(1)
 		}
 		return
