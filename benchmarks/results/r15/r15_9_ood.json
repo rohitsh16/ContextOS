@@ -1,6 +1,6 @@
 {
   "manifest_id": "manifest-r15-freeze-42",
-  "timestamp": "2026-09-25T19:23:57.796673Z",
+  "timestamp": "2026-09-29T14:20:24.017902Z",
   "gate": "R15.10",
   "total_tasks": 120,
   "stress_conditions": [

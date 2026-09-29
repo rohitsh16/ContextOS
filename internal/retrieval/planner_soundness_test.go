@@ -9,22 +9,16 @@ package retrieval
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	"contextos/internal/gitidx"
 	"contextos/internal/retrieval/graph"
 	"contextos/internal/retrieval/index"
-	"contextos/internal/store"
 )
 
 func TestPlannerSoundness_Theorem3(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "planner_soundness.db")
-	st, err := store.NewSQLiteStore(dbPath)
-	if err != nil {
-		t.Fatalf("create store: %v", err)
-	}
+	st := newTestStore(t, dir)
 	defer st.Close()
 
 	repoID, err := st.GetOrCreateRepo("/repo", "testrepo", "rev1", "main", "wt1")

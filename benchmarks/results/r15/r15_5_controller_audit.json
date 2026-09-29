@@ -1,7 +1,7 @@
 {
   "manifest_id": "manifest-r15-freeze-42",
   "benchmark_version": "R15.0-alpha",
-  "timestamp": "2026-09-25T19:23:57.757877Z",
+  "timestamp": "2026-09-29T14:20:23.988162Z",
   "gate": "R15.5",
   "total_tasks": 120,
   "total_successes": 120,
@@ -87,12 +87,6 @@
   ],
   "taxonomy_distribution": [
     {
-      "bucket": "transient provider failure",
-      "description": "Simulated upstream rate limit or API timeout",
-      "count": 0,
-      "percentage": 0
-    },
-    {
       "bucket": "under-retrieval",
       "description": "Model attempted reasoning without necessary repository evidence",
       "count": 0,
@@ -105,26 +99,20 @@
       "percentage": 0
     },
     {
-      "bucket": "bad stopping",
-      "description": "Premature halt before reaching target confidence",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "bad success oracle",
-      "description": "Discrepancy between oracle verification and ground-truth correctness",
-      "count": 0,
-      "percentage": 0
-    },
-    {
-      "bucket": "wrong context",
-      "description": "Distractor files displaced relevant context",
+      "bucket": "over-retrieval",
+      "description": "Redundant retrieval operations performed after evidence saturation",
       "count": 0,
       "percentage": 0
     },
     {
       "bucket": "bad routing",
       "description": "Task routed to an inappropriate model tier",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "bad stopping",
+      "description": "Premature halt before reaching target confidence",
       "count": 0,
       "percentage": 0
     },
@@ -141,8 +129,20 @@
       "percentage": 0
     },
     {
-      "bucket": "over-retrieval",
-      "description": "Redundant retrieval operations performed after evidence saturation",
+      "bucket": "under-reasoning",
+      "description": "Model allocated insufficient reasoning tokens for complex logic",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "bad success oracle",
+      "description": "Discrepancy between oracle verification and ground-truth correctness",
+      "count": 0,
+      "percentage": 0
+    },
+    {
+      "bucket": "wrong context",
+      "description": "Distractor files displaced relevant context",
       "count": 0,
       "percentage": 0
     },
@@ -153,8 +153,8 @@
       "percentage": 0
     },
     {
-      "bucket": "under-reasoning",
-      "description": "Model allocated insufficient reasoning tokens for complex logic",
+      "bucket": "transient provider failure",
+      "description": "Simulated upstream rate limit or API timeout",
       "count": 0,
       "percentage": 0
     },

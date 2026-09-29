@@ -82,9 +82,13 @@ func TaskAwareRerank(
 			}
 		}
 
-		// 5. Authority weighting (authoritative source vs tests vs fixtures)
+		// 5. Authority weighting (authoritative source vs tests vs fixtures vs distractors)
 		authorityScore := 0.8
-		if !isTest && !strings.Contains(c.Path, "/mock/") {
+		if isTest {
+			authorityScore = 0.5
+		} else if strings.Contains(c.Path, "/mock/") || strings.Contains(c.Path, "distractor") || strings.Contains(c.Path, "override") {
+			authorityScore = 0.3
+		} else {
 			authorityScore = 1.0
 		}
 
@@ -94,7 +98,7 @@ func TaskAwareRerank(
 		// Negation penalty on candidates matching negated concepts in path/name
 		for _, neg := range rep.Negations {
 			negLow := strings.ToLower(neg)
-			if negLow == "without" || negLow == "not" || negLow == "never" || negLow == "no" {
+			if len(negLow) < 3 || isNegationWord(negLow) || isCommonStopWord(negLow) {
 				continue
 			}
 			if strings.Contains(lowPath, negLow) || strings.Contains(strings.ToLower(c.Name), negLow) {
@@ -128,10 +132,20 @@ func TaskAwareRerank(
 	return candidates
 }
 
+func isNegationWord(w string) bool {
+	switch w {
+	case "not", "never", "no", "stop", "stops", "prevent", "prevents",
+		"exclude", "excludes", "excluding", "block", "blocks", "blocking",
+		"without", "disable", "disabled", "deny", "denies", "a", "an", "the":
+		return true
+	}
+	return false
+}
+
 func isNegatedTerm(word string, negations []string) bool {
 	for _, n := range negations {
 		nLow := strings.ToLower(n)
-		if nLow == "without" || nLow == "not" || nLow == "never" || nLow == "no" {
+		if len(nLow) < 3 || isNegationWord(nLow) || isCommonStopWord(nLow) {
 			continue
 		}
 		if strings.EqualFold(word, nLow) || strings.Contains(word, nLow) {

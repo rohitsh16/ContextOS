@@ -110,11 +110,8 @@ func TestQueryExpansion_BoundedExpansion(t *testing.T) {
 }
 
 func TestHybridRetriever_MultiChannelAndAdmission(t *testing.T) {
-	// Create SQLite store
-	st, err := store.NewSQLiteStore(":memory:")
-	if err != nil {
-		t.Fatalf("failed to init store: %v", err)
-	}
+	dir := t.TempDir()
+	st := newTestStore(t, dir)
 	defer st.Close()
 
 	repoID, err := st.GetOrCreateRepo("/path/to/repo", "testrepo", "rev1", "main", "wt1")

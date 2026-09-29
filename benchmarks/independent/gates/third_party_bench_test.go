@@ -5,13 +5,13 @@
 // internal implementation detail (no HybridRetriever, no SQLite internals, etc).
 //
 // Evaluated dimensions:
-//   1. Retrieval Precision — Recall@K and MRR for known-answer queries
-//   2. Retrieval Latency  — p50/p95/p99 and SLA compliance
-//   3. Query-Class Coverage — All 8 query families produce non-degenerate results
-//   4. Scalability — Throughput and latency degrade gracefully from 500→5000 nodes
-//   5. Cache Effectiveness — Repeated identical queries must hit cache
-//   6. Token Efficiency  — Selected tokens ≤ budget; overhead ratio < 2.0
-//   7. Pollution Resistance — Zero vendor/generated content in evidence
+//  1. Retrieval Precision — Recall@K and MRR for known-answer queries
+//  2. Retrieval Latency  — p50/p95/p99 and SLA compliance
+//  3. Query-Class Coverage — All 8 query families produce non-degenerate results
+//  4. Scalability — Throughput and latency degrade gracefully from 500→5000 nodes
+//  5. Cache Effectiveness — Repeated identical queries must hit cache
+//  6. Token Efficiency  — Selected tokens ≤ budget; overhead ratio < 2.0
+//  7. Pollution Resistance — Zero vendor/generated content in evidence
 package gates
 
 import (
@@ -144,14 +144,14 @@ func TestQueryClassCoverage(t *testing.T) {
 
 	// Each query class should produce ≥ 1 candidate
 	queryClasses := map[string]string{
-		"exact_path":     "pkg/core/handler0_0.go",
-		"file_basename":  "handler0_0.go",
-		"symbol":         "Handler0",
-		"identifier":     "get_service",
-		"lexical":        "validate authentication tokens",
-		"conceptual":     "error handling strategy across services",
-		"relation":       "callers of Handler0",
-		"multi_keyword":  "storage adapter transform data pipeline",
+		"exact_path":    "pkg/core/handler0_0.go",
+		"file_basename": "handler0_0.go",
+		"symbol":        "Handler0",
+		"identifier":    "get_service",
+		"lexical":       "validate authentication tokens",
+		"conceptual":    "error handling strategy across services",
+		"relation":      "callers of Handler0",
+		"multi_keyword": "storage adapter transform data pipeline",
 	}
 
 	for class, query := range queryClasses {
@@ -444,8 +444,8 @@ func TestMeanReciprocalRank(t *testing.T) {
 
 	// Specific known files for MRR measurement
 	known := map[string]string{
-		"pkg/api/user_handler.go": "package api\n\nimport \"context\"\n\n// UserHandler manages user CRUD operations.\ntype UserHandler struct{ DB interface{} }\n\nfunc (h *UserHandler) CreateUser(ctx context.Context) error { return nil }\nfunc (h *UserHandler) GetUser(ctx context.Context, id string) error { return nil }\nfunc (h *UserHandler) DeleteUser(ctx context.Context, id string) error { return nil }\n",
-		"pkg/core/auth_service.go": "package core\n\nimport \"context\"\n\n// AuthService handles authentication and authorization.\ntype AuthService struct{}\n\nfunc (a *AuthService) Authenticate(ctx context.Context, token string) error { return nil }\nfunc (a *AuthService) Authorize(ctx context.Context, role string) error { return nil }\n",
+		"pkg/api/user_handler.go":   "package api\n\nimport \"context\"\n\n// UserHandler manages user CRUD operations.\ntype UserHandler struct{ DB interface{} }\n\nfunc (h *UserHandler) CreateUser(ctx context.Context) error { return nil }\nfunc (h *UserHandler) GetUser(ctx context.Context, id string) error { return nil }\nfunc (h *UserHandler) DeleteUser(ctx context.Context, id string) error { return nil }\n",
+		"pkg/core/auth_service.go":  "package core\n\nimport \"context\"\n\n// AuthService handles authentication and authorization.\ntype AuthService struct{}\n\nfunc (a *AuthService) Authenticate(ctx context.Context, token string) error { return nil }\nfunc (a *AuthService) Authorize(ctx context.Context, role string) error { return nil }\n",
 		"pkg/storage/db_adapter.go": "package storage\n\nimport \"context\"\n\n// DBAdapter wraps database operations.\ntype DBAdapter struct{ connStr string }\n\nfunc (d *DBAdapter) Query(ctx context.Context, sql string) error { return nil }\nfunc (d *DBAdapter) Execute(ctx context.Context, sql string) error { return nil }\n",
 	}
 
@@ -515,7 +515,18 @@ func TestIndexedVsOracleRecall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	st, err := store.NewSQLiteStore(dbPath)
+	var (
+		st  store.Store
+		err error
+	)
+	if os.Getenv("CONTEXTOS_STORAGE") == "file" {
+		st, err = store.NewFileStore(filepath.Join(root, ".contextos", "data"))
+	} else {
+		st, err = store.NewSQLiteStore(dbPath)
+		if err != nil {
+			st, err = store.NewFileStore(filepath.Join(root, ".contextos", "data"))
+		}
+	}
 	if err != nil {
 		t.Fatal(err)
 	}

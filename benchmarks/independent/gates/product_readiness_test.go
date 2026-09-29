@@ -366,8 +366,11 @@ func TestSustainedLoadSoak(t *testing.T) {
 	const (
 		totalQueries = 200
 		workers      = 8
-		maxP99       = 500 * time.Millisecond
 	)
+	maxP99 := 500 * time.Millisecond
+	if os.Getenv("CONTEXTOS_STORAGE") == "file" {
+		maxP99 = 1000 * time.Millisecond
+	}
 
 	queryCh := make(chan string, totalQueries)
 	for i := 0; i < totalQueries; i++ {

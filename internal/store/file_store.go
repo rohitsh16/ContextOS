@@ -63,6 +63,12 @@ type FileStore struct {
 	workItems map[string][]model.WorkItem
 	sessions  map[string][]model.Session
 	caches    map[string]cacheRecord // key: cacheKey
+
+	edgeIndex     map[string]map[string][]EdgeRecord // repoID -> nodeID -> []EdgeRecord
+	nodeNameIndex map[string]map[string][]NodeRecord // repoID -> nameLower -> []NodeRecord
+	pathIndex     map[string]map[string][]NodeRecord // repoID -> path -> []NodeRecord
+	basenameIndex map[string]map[string][]NodeRecord // repoID -> basenameLower -> []NodeRecord
+	idIndex       map[string]map[string]NodeRecord   // repoID -> id -> NodeRecord
 }
 
 // NewFileStore initializes or loads a FileStore in the given directory.
@@ -75,18 +81,66 @@ func NewFileStore(dir string) (*FileStore, error) {
 		return nil, fmt.Errorf("mkdir file store %s: %w", dir, err)
 	}
 	fs := &FileStore{
-		baseDir:   dir,
-		repos:     make(map[string]repoRecord),
-		revisions: make(map[string]bool),
-		nodes:     make(map[string][]NodeRecord),
-		edges:     make(map[string][]EdgeRecord),
-		memories:  make(map[string][]memoryRecord),
-		workItems: make(map[string][]model.WorkItem),
-		sessions:  make(map[string][]model.Session),
-		caches:    make(map[string]cacheRecord),
+		baseDir:       dir,
+		repos:         make(map[string]repoRecord),
+		revisions:     make(map[string]bool),
+		nodes:         make(map[string][]NodeRecord),
+		edges:         make(map[string][]EdgeRecord),
+		memories:      make(map[string][]memoryRecord),
+		workItems:     make(map[string][]model.WorkItem),
+		sessions:      make(map[string][]model.Session),
+		caches:        make(map[string]cacheRecord),
+		edgeIndex:     make(map[string]map[string][]EdgeRecord),
+		nodeNameIndex: make(map[string]map[string][]NodeRecord),
+		pathIndex:     make(map[string]map[string][]NodeRecord),
+		basenameIndex: make(map[string]map[string][]NodeRecord),
+		idIndex:       make(map[string]map[string]NodeRecord),
 	}
 	_ = fs.load()
 	return fs, nil
+}
+
+func (fs *FileStore) rebuildEdgeIndexLocked(repoID string) {
+	if fs.edgeIndex == nil {
+		fs.edgeIndex = make(map[string]map[string][]EdgeRecord)
+	}
+	m := make(map[string][]EdgeRecord)
+	for _, e := range fs.edges[repoID] {
+		m[e.SrcID] = append(m[e.SrcID], e)
+		m[e.DstID] = append(m[e.DstID], e)
+	}
+	fs.edgeIndex[repoID] = m
+}
+
+func (fs *FileStore) rebuildNodeIndexLocked(repoID string) {
+	if fs.nodeNameIndex == nil {
+		fs.nodeNameIndex = make(map[string]map[string][]NodeRecord)
+	}
+	if fs.pathIndex == nil {
+		fs.pathIndex = make(map[string]map[string][]NodeRecord)
+	}
+	if fs.basenameIndex == nil {
+		fs.basenameIndex = make(map[string]map[string][]NodeRecord)
+	}
+	if fs.idIndex == nil {
+		fs.idIndex = make(map[string]map[string]NodeRecord)
+	}
+	mName := make(map[string][]NodeRecord)
+	mPath := make(map[string][]NodeRecord)
+	mBase := make(map[string][]NodeRecord)
+	mID := make(map[string]NodeRecord)
+	for _, n := range fs.nodes[repoID] {
+		nameLow := strings.ToLower(n.Name)
+		mName[nameLow] = append(mName[nameLow], n)
+		mPath[n.Path] = append(mPath[n.Path], n)
+		baseLow := strings.ToLower(filepath.Base(n.Path))
+		mBase[baseLow] = append(mBase[baseLow], n)
+		mID[n.ID] = n
+	}
+	fs.nodeNameIndex[repoID] = mName
+	fs.pathIndex[repoID] = mPath
+	fs.basenameIndex[repoID] = mBase
+	fs.idIndex[repoID] = mID
 }
 
 func (fs *FileStore) Close() error {
@@ -104,6 +158,12 @@ func (fs *FileStore) load() error {
 	readJSON(filepath.Join(fs.baseDir, "work_items.json"), &fs.workItems)
 	readJSON(filepath.Join(fs.baseDir, "sessions.json"), &fs.sessions)
 	readJSON(filepath.Join(fs.baseDir, "cache.json"), &fs.caches)
+	for repoID := range fs.edges {
+		fs.rebuildEdgeIndexLocked(repoID)
+	}
+	for repoID := range fs.nodes {
+		fs.rebuildNodeIndexLocked(repoID)
+	}
 	return nil
 }
 
@@ -257,6 +317,8 @@ func (fs *FileStore) SaveNodesAndEdges(repoID string, files []gitidx.SourceFile,
 	}
 	fs.nodes[repoID] = nodes
 	fs.edges[repoID] = edges
+	fs.rebuildEdgeIndexLocked(repoID)
+	fs.rebuildNodeIndexLocked(repoID)
 	_ = fs.save()
 	return nil
 }
@@ -272,6 +334,15 @@ func (fs *FileStore) LookupNodesByIDs(repoID string, nodeIDs []string) ([]NodeRe
 	defer fs.mu.RUnlock()
 	if len(nodeIDs) == 0 {
 		return nil, nil
+	}
+	if idx := fs.idIndex[repoID]; idx != nil {
+		var out []NodeRecord
+		for _, id := range nodeIDs {
+			if n, ok := idx[id]; ok {
+				out = append(out, n)
+			}
+		}
+		return out, nil
 	}
 	idSet := make(map[string]bool, len(nodeIDs))
 	for _, id := range nodeIDs {
@@ -295,6 +366,9 @@ func (fs *FileStore) CountNodes(repoID string) (int, error) {
 func (fs *FileStore) LookupSymbol(repoID string, name string) ([]NodeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
+	if idx := fs.nodeNameIndex[repoID]; idx != nil {
+		return append([]NodeRecord(nil), idx[strings.ToLower(name)]...), nil
+	}
 	var out []NodeRecord
 	for _, n := range fs.nodes[repoID] {
 		if strings.EqualFold(n.Name, name) {
@@ -314,12 +388,23 @@ func (fs *FileStore) LookupQualifiedSymbol(repoID string, qualifiedName string) 
 		pkgOrType = strings.ToLower(parts[len(parts)-2])
 		symName = parts[len(parts)-1]
 	}
-	var out []NodeRecord
-	for _, n := range fs.nodes[repoID] {
-		if strings.EqualFold(n.Name, symName) {
-			if pkgOrType == "" || strings.Contains(strings.ToLower(n.Path), pkgOrType) || strings.Contains(strings.ToLower(n.Signature), pkgOrType) {
-				out = append(out, n)
+	var candidates []NodeRecord
+	if idx := fs.nodeNameIndex[repoID]; idx != nil {
+		candidates = idx[strings.ToLower(symName)]
+	} else {
+		for _, n := range fs.nodes[repoID] {
+			if strings.EqualFold(n.Name, symName) {
+				candidates = append(candidates, n)
 			}
+		}
+	}
+	if pkgOrType == "" {
+		return append([]NodeRecord(nil), candidates...), nil
+	}
+	var out []NodeRecord
+	for _, n := range candidates {
+		if strings.Contains(strings.ToLower(n.Path), pkgOrType) || strings.Contains(strings.ToLower(n.Signature), pkgOrType) {
+			out = append(out, n)
 		}
 	}
 	return out, nil
@@ -329,6 +414,9 @@ func (fs *FileStore) LookupQualifiedSymbol(repoID string, qualifiedName string) 
 func (fs *FileStore) LookupExactPath(repoID string, path string) ([]NodeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
+	if idx := fs.pathIndex[repoID]; idx != nil {
+		return append([]NodeRecord(nil), idx[path]...), nil
+	}
 	var out []NodeRecord
 	for _, n := range fs.nodes[repoID] {
 		if n.Path == path {
@@ -343,6 +431,21 @@ func (fs *FileStore) LookupBasename(repoID string, basename string) ([]NodeRecor
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
 	basenameLow := strings.ToLower(basename)
+	if idx := fs.basenameIndex[repoID]; idx != nil {
+		nodes := idx[basenameLow]
+		var files []NodeRecord
+		for _, n := range nodes {
+			if n.Kind == "file" {
+				files = append(files, n)
+			}
+		}
+		if len(files) > 0 {
+			return files, nil
+		}
+		if len(nodes) > 0 {
+			return append([]NodeRecord(nil), nodes...), nil
+		}
+	}
 	var out []NodeRecord
 	for _, n := range fs.nodes[repoID] {
 		if n.Kind == "file" && strings.ToLower(n.Name) == basenameLow {
@@ -411,13 +514,44 @@ func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope str
 	}
 	var tmp []scored
 	scopeLow := strings.ToLower(scope)
+	var primaryTokensLow []string
+	for _, pt := range prioritizedTokens {
+		ptLow := strings.ToLower(pt)
+		if len(ptLow) >= 3 && !isGenericToken(ptLow) {
+			primaryTokensLow = append(primaryTokensLow, ptLow)
+		}
+	}
+	if len(primaryTokensLow) == 0 {
+		if len(nodes) > limit {
+			return append([]NodeRecord(nil), nodes[:limit]...), nil
+		}
+		return append([]NodeRecord(nil), nodes...), nil
+	}
+	queryLow := strings.ToLower(query)
 
 	for _, n := range nodes {
 		if scope != "" && !strings.Contains(strings.ToLower(n.Path), scopeLow) {
 			continue
 		}
+		nameLow := strings.ToLower(n.Name)
+		pathLow := strings.ToLower(n.Path)
+		hasTokenMatch := false
+		for _, ptLow := range primaryTokensLow {
+			if strings.Contains(nameLow, ptLow) || strings.Contains(pathLow, ptLow) {
+				hasTokenMatch = true
+				break
+			}
+			if len(ptLow) >= 6 && (strings.Contains(nameLow, ptLow[:4]) || strings.Contains(pathLow, ptLow[:4])) {
+				hasTokenMatch = true
+				break
+			}
+		}
+		if !hasTokenMatch {
+			continue
+		}
 		content := fmt.Sprintf("%s %s %s %s", n.Kind, n.Name, n.Signature, n.Path)
-		sc := 0.6*textutil.HashSemantic(query, content) + 0.4*textutil.Overlap(query, content)
+		overlap := textutil.Overlap(query, content)
+		sc := 0.6*textutil.HashSemantic(query, content) + 0.4*overlap
 
 		// R18.1 §8 Priority matching boosts
 		baseName := filepath.Base(n.Path)
@@ -438,10 +572,10 @@ func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope str
 			}
 		}
 
-		if strings.Contains(strings.ToLower(query), strings.ToLower(n.Name)) {
+		if strings.Contains(queryLow, nameLow) {
 			sc += 0.35
 		}
-		if sc > 0.05 || len(tmp) < limit {
+		if sc > 0.05 {
 			tmp = append(tmp, scored{n: n, sc: sc})
 		}
 	}
@@ -460,6 +594,16 @@ func (fs *FileStore) SearchCodeCandidates(repoID string, query string, scope str
 	return out, nil
 }
 
+func isGenericToken(w string) bool {
+	switch w {
+	case "go", "ts", "js", "py", "rs", "java", "json", "md", "txt", "yaml", "yml",
+		"file", "files", "package", "func", "type", "var", "const", "return", "import",
+		"the", "and", "for", "with", "from", "that", "this", "what", "where", "how", "why":
+		return true
+	}
+	return false
+}
+
 func (fs *FileStore) ListEdges(repoID string) ([]EdgeRecord, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
@@ -471,6 +615,20 @@ func (fs *FileStore) LookupAdjacentEdges(repoID string, nodeIDs []string) ([]Edg
 	defer fs.mu.RUnlock()
 	if len(nodeIDs) == 0 {
 		return nil, nil
+	}
+	if idx := fs.edgeIndex[repoID]; idx != nil {
+		seen := make(map[string]bool)
+		var out []EdgeRecord
+		for _, id := range nodeIDs {
+			for _, e := range idx[id] {
+				key := e.SrcID + "|" + e.DstID + "|" + e.Kind
+				if !seen[key] {
+					seen[key] = true
+					out = append(out, e)
+				}
+			}
+		}
+		return out, nil
 	}
 	idSet := make(map[string]bool, len(nodeIDs))
 	for _, id := range nodeIDs {
@@ -535,6 +693,8 @@ func (fs *FileStore) UpdateNodesAndEdges(repoID string, files []gitidx.SourceFil
 	if edges != nil {
 		fs.edges[repoID] = edges
 	}
+	fs.rebuildEdgeIndexLocked(repoID)
+	fs.rebuildNodeIndexLocked(repoID)
 	_ = fs.save()
 	return nil
 }
@@ -1094,6 +1254,10 @@ func (fs *FileStore) GetCache(key, repoID, revision, worktreeHash string) (strin
 	return c.PlanJSON, nil
 }
 
+func (fs *FileStore) saveCacheLocked() {
+	writeJSON(filepath.Join(fs.baseDir, "cache.json"), fs.caches)
+}
+
 func (fs *FileStore) PutCache(key, repoID, revision, worktreeHash, task, modelName string, budget int, planJSON string) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
@@ -1109,7 +1273,7 @@ func (fs *FileStore) PutCache(key, repoID, revision, worktreeHash, task, modelNa
 		HitCount:     0,
 		CreatedAt:    now(),
 	}
-	_ = fs.save()
+	fs.saveCacheLocked()
 	return nil
 }
 
@@ -1120,7 +1284,7 @@ func (fs *FileStore) IncrementCacheHit(key string) error {
 		c.HitCount++
 		c.LastHitAt = now()
 		fs.caches[key] = c
-		_ = fs.save()
+		fs.saveCacheLocked()
 	}
 	return nil
 }

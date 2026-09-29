@@ -3,7 +3,6 @@ package retrieval
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -14,11 +13,7 @@ import (
 func setupTestStore(t *testing.T, count int) (store.Store, string) {
 	t.Helper()
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "retrieval_test.db")
-	st, err := store.NewSQLiteStore(dbPath)
-	if err != nil {
-		t.Fatalf("failed to create sqlite store: %v", err)
-	}
+	st := newTestStore(t, dir)
 
 	repoID, err := st.GetOrCreateRepo("/test/repo", "testrepo", "rev1", "main", "wt1")
 	if err != nil {

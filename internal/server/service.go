@@ -80,7 +80,7 @@ func NewWithOptions(dbPath, repoPath string, opts Options) (*Service, error) {
 	if storageType == "file" {
 		dir := dbPath
 		if dir == "file" || dir == "" || filepath.Ext(dir) != "" {
-			dir = filepath.Join(filepath.Dir(dbPath), "data")
+			dir = filepath.Join(filepath.Dir(dbPath), ".contextos", "data")
 		}
 		var e error
 		st, e = store.NewFileStore(dir)
@@ -92,7 +92,7 @@ func NewWithOptions(dbPath, repoPath string, opts Options) (*Service, error) {
 		if e != nil {
 			// If SQLite cannot open (e.g. no CGO or missing libsqlite3) and user did not explicitly force sqlite, fall back to pure-Go FileStore
 			if storageType == "" {
-				dir := filepath.Join(filepath.Dir(dbPath), "data")
+				dir := filepath.Join(filepath.Dir(dbPath), ".contextos", "data")
 				var fe error
 				st, fe = store.NewFileStore(dir)
 				if fe != nil {

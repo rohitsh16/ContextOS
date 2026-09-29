@@ -34,7 +34,16 @@ func TestIncrementalEquivalence_Theorem8(t *testing.T) {
 	}
 
 	dbPathFull := filepath.Join(t.TempDir(), "full.db")
-	stFull, err := store.NewSQLiteStore(dbPathFull)
+	var stFull store.Store
+	var err error
+	if os.Getenv("CONTEXTOS_STORAGE") == "file" || os.Getenv("CGO_ENABLED") == "0" {
+		stFull, err = store.NewFileStore(filepath.Join(t.TempDir(), "full_data"))
+	} else {
+		stFull, err = store.NewSQLiteStore(dbPathFull)
+		if err != nil {
+			stFull, err = store.NewFileStore(filepath.Join(t.TempDir(), "full_data"))
+		}
+	}
 	if err != nil {
 		t.Fatalf("create full store: %v", err)
 	}
@@ -58,7 +67,15 @@ func TestIncrementalEquivalence_Theorem8(t *testing.T) {
 
 	// Now run incremental index on a second identical store
 	dbPathIncr := filepath.Join(t.TempDir(), "incr.db")
-	stIncr, err := store.NewSQLiteStore(dbPathIncr)
+	var stIncr store.Store
+	if os.Getenv("CONTEXTOS_STORAGE") == "file" || os.Getenv("CGO_ENABLED") == "0" {
+		stIncr, err = store.NewFileStore(filepath.Join(t.TempDir(), "incr_data"))
+	} else {
+		stIncr, err = store.NewSQLiteStore(dbPathIncr)
+		if err != nil {
+			stIncr, err = store.NewFileStore(filepath.Join(t.TempDir(), "incr_data"))
+		}
+	}
 	if err != nil {
 		t.Fatalf("create incr store: %v", err)
 	}

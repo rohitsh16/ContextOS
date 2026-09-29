@@ -1,6 +1,7 @@
 package bench
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,9 +11,18 @@ import (
 func TestCorpusGeneratorAndRetrievalBenchmark(t *testing.T) {
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "corpus_bench_test.db")
-	st, err := store.NewSQLiteStore(dbPath)
+	var st store.Store
+	var err error
+	if os.Getenv("CONTEXTOS_STORAGE") == "file" || os.Getenv("CGO_ENABLED") == "0" {
+		st, err = store.NewFileStore(filepath.Join(dir, "data"))
+	} else {
+		st, err = store.NewSQLiteStore(dbPath)
+		if err != nil {
+			st, err = store.NewFileStore(filepath.Join(dir, "data"))
+		}
+	}
 	if err != nil {
-		t.Fatalf("failed to create sqlite store: %v", err)
+		t.Fatalf("failed to create store: %v", err)
 	}
 	defer st.Close()
 

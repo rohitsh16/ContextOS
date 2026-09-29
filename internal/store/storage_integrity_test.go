@@ -8,6 +8,7 @@ package store
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"contextos/internal/gitidx"
@@ -16,7 +17,16 @@ import (
 func TestStorageIntegrity_ZeroOrphanEdges(t *testing.T) {
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "integrity_test.db")
-	st, err := NewSQLiteStore(dbPath)
+	var st Store
+	var err error
+	if strings.ToLower(filepath.Ext(dbPath)) == ".db" {
+		st, err = NewSQLiteStore(dbPath)
+		if err != nil && strings.Contains(err.Error(), "requires cgo") {
+			st, err = NewFileStore(filepath.Join(dir, "filestore"))
+		}
+	} else {
+		st, err = NewFileStore(filepath.Join(dir, "filestore"))
+	}
 	if err != nil {
 		t.Fatalf("create store: %v", err)
 	}

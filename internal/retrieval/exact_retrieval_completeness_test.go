@@ -13,16 +13,11 @@ import (
 	"testing"
 
 	"contextos/internal/gitidx"
-	"contextos/internal/store"
 )
 
 func TestExactRetrievalCompleteness_Theorem2(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "exact_test.db")
-	st, err := store.NewSQLiteStore(dbPath)
-	if err != nil {
-		t.Fatalf("create store: %v", err)
-	}
+	st := newTestStore(t, dir)
 	defer st.Close()
 
 	repoID, err := st.GetOrCreateRepo("/repo", "testrepo", "rev1", "main", "wt1")

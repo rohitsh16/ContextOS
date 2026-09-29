@@ -198,14 +198,20 @@ func DecomposeQueryRepresentation(query string) *QueryRepresentation {
 		rep.Constraints = append(rep.Constraints, QueryConstraint{
 			Description: neg,
 		})
-		// Extract object immediately following negation word (e.g. "without SQLite" -> "sqlite")
-		idx := strings.Index(low, negLow+" ")
-		if idx >= 0 {
-			after := strings.Fields(low[idx+len(negLow)+1:])
-			if len(after) > 0 {
-				negTerm := strings.Trim(after[0], "?.,;:!\"'")
-				if negTerm != "" {
-					rep.Negations = append(rep.Negations, negTerm)
+		// Extract object immediately following exclusion word (e.g. "without SQLite" -> "sqlite")
+		if negLow == "without" || negLow == "no" || negLow == "not" || negLow == "never" {
+			idx := strings.Index(low, negLow+" ")
+			if idx >= 0 {
+				after := strings.Fields(low[idx+len(negLow)+1:])
+				for _, w := range after {
+					clean := strings.Trim(w, "?.,;:!\"'")
+					if clean == "a" || clean == "an" || clean == "the" {
+						continue
+					}
+					if len(clean) >= 3 && !isCommonStopWord(clean) {
+						rep.Negations = append(rep.Negations, clean)
+					}
+					break
 				}
 			}
 		}

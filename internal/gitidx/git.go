@@ -76,6 +76,20 @@ func run(dir string, args ...string) (string, error) {
 	return strings.TrimRight(string(b), "\r\n"), nil
 }
 
+func findGitRoot(dir string) string {
+	curr := dir
+	for {
+		if _, err := os.Stat(filepath.Join(curr, ".git")); err == nil {
+			return curr
+		}
+		parent := filepath.Dir(curr)
+		if parent == curr {
+			return ""
+		}
+		curr = parent
+	}
+}
+
 // Detect inspects the repository at path and computes a cryptographically
 // correct, content-addressed worktree fingerprint (PR-02).
 func Detect(path string) (Repo, error) {
@@ -83,8 +97,8 @@ func Detect(path string) (Repo, error) {
 	if e != nil {
 		return Repo{}, e
 	}
-	root, e := run(abs, "rev-parse", "--show-toplevel")
-	if e != nil || root == "" {
+	root := findGitRoot(abs)
+	if root == "" {
 		return Repo{
 			Path:         abs,
 			Name:         filepath.Base(abs),

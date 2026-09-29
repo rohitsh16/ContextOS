@@ -2,6 +2,7 @@ package store
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -191,6 +192,9 @@ func TestSQLiteStore(t *testing.T) {
 	dbPath := filepath.Join(root, "test.db")
 	s, err := NewSQLiteStore(dbPath)
 	if err != nil {
+		if strings.Contains(err.Error(), "requires cgo") {
+			t.Skip("skipping SQLite test: cgo is disabled")
+		}
 		t.Fatalf("NewSQLiteStore failed: %v", err)
 	}
 	testStoreContract(t, s)
@@ -214,6 +218,9 @@ func TestBidirectionalMigration(t *testing.T) {
 	// 1. Populate SQLiteStore
 	sqlStore, err := NewSQLiteStore(dbPath)
 	if err != nil {
+		if strings.Contains(err.Error(), "requires cgo") {
+			t.Skip("skipping bidirectional migration test: cgo is disabled")
+		}
 		t.Fatal(err)
 	}
 	defer sqlStore.Close()
