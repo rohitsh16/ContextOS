@@ -84,22 +84,26 @@ L1 memory cache: high-reuse claims/decisions/failures.
 L2 context bundle cache: task+state -> selected context.
 L3 provider prefix cache: stable prompt prefix.
 
-## v0 MCP surface
+## Production MCP surface
 Resources:
 - context://repo/current
 - context://work-item/current
 - context://memory/relevant
-- context://decision/{id}
-- context://failure/{id}
 - context://session/latest
+- context://trace/latest
 
 Tools:
-- context_search
+- context_compute_plan
 - context_plan
-- context_resume
-- context_handoff
+- context_search
 - context_remember
 - context_invalidate
+- context_resume
+- context_handoff
+- context_route
+- context_work_start
+- context_event
+- context_session_start
 - context_trace
 - context_stats
 

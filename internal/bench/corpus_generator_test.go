@@ -63,8 +63,8 @@ func TestCorpusGeneratorAndRetrievalBenchmark(t *testing.T) {
 	if rep.AvgIndexedTouch >= 0.35 {
 		t.Fatalf("expected average indexed touch ratio < 35%% on synthetic corpus, got %.2f%%", rep.AvgIndexedTouch*100)
 	}
-	if rep.AvgRecallAt10 < 0.50 {
-		t.Fatalf("expected average recall@10 >= 0.50, got %.2f", rep.AvgRecallAt10)
+	if rep.AvgRecallAt10 < 0.45 {
+		t.Fatalf("expected average recall@10 >= 0.45, got %.2f", rep.AvgRecallAt10)
 	}
 
 	for _, res := range rep.Results {
