@@ -39,13 +39,17 @@ That's it. Your agents now have persistent context.
 | **Persistent memory** | Facts, decisions, constraints, failures survive across sessions |
 | **Git-aware** | Tracks revisions, branches, worktree state; auto-invalidates stale context |
 | **Code indexing** | Extracts symbols, types, functions + builds a reference graph |
+| **7-Stage Hybrid Retrieval** | Exact path, symbol AST, entity, BM25, semantic hash, causal expansion & RRF rerank |
 | **Budget allocation** | Greedy marginal-utility allocator stays within token limits |
 | **Prompt-cache aware** | Stable prefix / variable context ordering for provider cache hits |
+| **Compute optimization** | Capability-preserving optimizer, reasoning effort levels (minimal→maximum) & thinking budgets |
 | **Context caching** | Identical (revision, task, model, budget) → cached plan, zero recompute |
 | **Hook capture** | Records prompts, tool calls, failures automatically per agent |
 | **Cross-agent handoff** | Transfer context between models/agents with `ctx handoff` |
-| **Model routing** | Recommends model by task complexity and budget |
-| **MCP server** | 12 tools + 5 resources over JSON-RPC stdio |
+| **Model routing** | Recommends model by task complexity, budget, and capability envelope |
+| **MCP server** | 13 tools + 5 resources over JSON-RPC stdio |
+| **Web UI dashboard** | Local visual dashboard with token savings simulator and graph index viewer |
+| **Enterprise SaaS** | Multi-tenant isolation, rate limiting, API keys, token metering & Stripe-ready invoicing |
 
 ---
 
@@ -59,6 +63,18 @@ ctx resume -repo .
 ### Plan context for a task
 ```bash
 ctx plan -task "Fix duplicate payment processing" -budget 4000 -render
+```
+
+### 7-stage hybrid retrieval with candidate inspection
+```bash
+# Retrieve top ranked evidence candidates with execution trace
+ctx retrieve -repo . -task "Fix duplicate payment processing" -top 20 -trace -format md
+```
+
+### Launch local real-time Web UI Dashboard
+```bash
+# Start visual dashboard on localhost:8765
+ctx ui -repo . -port 8765
 ```
 
 ### Hand off to another agent
@@ -77,9 +93,14 @@ ctx remember -kind decision -authority user \
 ctx stats -repo .
 ```
 
-### Route to the best model
+### Route to the best model and compute envelope
 ```bash
 ctx route -task "distributed lock migration" -budget 8000
+```
+
+### Run correctness & benchmark gates
+```bash
+ctx bench correctness -suite standard -format table
 ```
 
 ### Switch storage engines (Migrate SQLite ↔ FileStore)
@@ -117,7 +138,9 @@ ctx init|index     -repo PATH                          Index repository symbols
 ctx remember       -repo PATH -kind K -content '...'   Persist a memory
 ctx plan           -repo PATH -task '...' [-model M]   Build context plan
                    [-budget N] [-render] [-auto-prune]
-ctx resume         -repo PATH                          Recover work state
+ctx retrieve       -repo PATH -task '...' [-top N]     7-stage hybrid candidate retrieval
+                   [-trace] [-format md|json]
+ctx resume         -repo PATH                          Recover active work state
 ctx handoff        -repo PATH -task '...' -target M    Cross-agent handoff
 ctx invalidate     -repo PATH -id MEMORY_ID            Invalidate a memory
 ctx gc             -repo PATH [-keep-days N] [-dry-run]Garbage collect expired cache & traces
@@ -126,11 +149,18 @@ ctx work           -repo PATH -title "..."             Start a work item
 ctx session        -repo PATH -agent NAME              Start an agent session
 ctx event          -repo PATH -event TYPE -payload J   Record an event
 ctx stats          -repo PATH                          Show statistics
-ctx route          -task "..." -budget N               Recommend a model
+ctx route          -task "..." -budget N               Recommend a model & effort level
+ctx ui             -repo PATH [-port 8765]             Launch real-time web UI dashboard
+ctx bench          [correctness|retrieval|mse]         Run correctness & retrieval benchmarks
+ctx audit          -repo PATH [-format md|json]        Audit admission and exclusion universe
+ctx report         -repo PATH [-format md|json]        Generate evaluation/benchmark report
+ctx publish        -repo PATH [-output FILE]           Publish empirical test results to markdown
 ctx install        -repo PATH -agent claude|cursor|    Install for one agent
                    codex|gemini|antigravity|all
+ctx uninstall      -repo PATH [-agent NAME]            Uninstall agent integrations
 ctx setup          -repo PATH                          Index + install all
 ctx hook           -agent NAME -event TYPE < stdin     Process hook event
+ctx completion     [bash|zsh]                          Generate shell completion script
 
 Storage Options & Feature Flags:
   -storage sqlite|file    Choose storage engine (or CONTEXTOS_STORAGE)
@@ -152,32 +182,33 @@ ctx -repo /path/to/repo -mcp
 contextd -repo /path/to/repo -mcp
 ```
 
-### Supported Tools (12)
+### Supported Tools (13)
 
 | Tool | Description |
 |---|---|
-| `context_plan` | Build a minimum-sufficient context plan for a task |
-| `context_remember` | Persist a decision, constraint, pattern, failure, or fact |
-| `context_resume` | Recover active branch, work items, and recent context |
-| `context_invalidate` | Invalidate a stale or superseded memory |
-| `context_query` | Hybrid BM25 + semantic search over engineering memory |
-| `context_handoff` | Produce cross-agent handoff context |
-| `context_session_summary` | Compact summary of the current session |
-| `context_work_item_start` | Start tracking a new task |
-| `context_work_item_close` | Close an active work item |
-| `context_work_item_current` | Inspect active work item |
-| `context_session_start` | Start an agent session |
-| `context_event` | Record an agent/tool event |
+| `context_plan` | Select minimum-sufficient, cache-aware context under a token budget with adaptive timeout mitigation |
+| `context_remember` | Persist durable engineering knowledge (decisions, constraints, failures, patterns) |
+| `context_resume` | Recover active repository/work state and recent context |
+| `context_invalidate` | Invalidate a stale or superseded memory at the current revision |
+| `context_search` | Search durable engineering memory and repository context with hybrid BM25 + semantic matching |
+| `context_compute_plan` | Generate provider-neutral adaptive compute plan (reasoning effort, token budget, model routing, verification tier) |
+| `context_handoff` | Produce structured cross-agent handoff context |
+| `context_work_start` | Start tracking a persistent engineering work item |
+| `context_session_start` | Start an agent session with associated metadata |
+| `context_event` | Record an agent/tool lifecycle event |
+| `context_stats` | Display runtime statistics and token allocation metrics |
+| `context_trace` | Show the latest context allocation plan and decisions |
+| `context_route` | Recommend an optimal model and reasoning effort using task complexity and budget |
 
 ### Supported Resources (5)
 
 | URI | Content |
 |---|---|
-| `context://active` | Currently active context package |
-| `context://decisions` | All recorded architectural decisions |
-| `context://failures` | Negative knowledge and failure postmortems |
-| `context://graph` | File dependency and AST symbol graph |
-| `context://session/latest` | Latest agent session |
+| `context://memory/relevant` | Top durable engineering memories relevant to the recent context |
+| `context://repo/current` | Current repository metadata, git revision, and active branch |
+| `context://session/latest` | Most recent agent session state and history |
+| `context://trace/latest` | Most recent context allocation trace, candidate scores, and decisions |
+| `context://work-item/current` | Active engineering work item details |
 
 ---
 
@@ -236,21 +267,41 @@ state graph        policy
          Model context
 ```
 
-### Context Selection Pipeline
+### Authoritative 7-Stage Hybrid Retrieval Pipeline
+
+ContextOS uses an inspectable 7-stage evidence retrieval pipeline with end-to-end stage telemetry:
 
 ```
-scope → validate → FTS/hybrid candidates → score → greedy budget allocation → order → cache
+Task Query ──► 1. Exact Path Match    ──► Pinpointed file and line ranges
+           ──► 2. AST Symbol Nav       ──► Types, interfaces, functions & methods
+           ──► 3. Entity Resolution    ──► Package & identifier resolution
+           ──► 4. Lexical (BM25)       ──► Term-frequency keyword matches
+           ──► 5. Semantic Hash        ──► Offline deterministic embedding similarity
+           ──► 6. Causal Expansion    ──► Callers, callees, dependency graph traversal
+           ──► 7. RRF Fusion & Rerank  ──► Reciprocal Rank Fusion candidate scoring
 ```
 
 The scoring combines:
 - **Semantic similarity** — hashed deterministic similarity (zero dependencies, offline)
-- **Lexical overlap** — token intersection
+- **Lexical overlap** — BM25 token intersection
 - **Authority** — user > test > source > commit > doc > inference
 - **Freshness** — revision-aware invalidation + staleness penalty
 - **Memory kind** — decisions > failures > constraints > state > observations > code > facts
 - **Evidence** — provenance-backed memories score higher
 - **Reuse** — frequently-used context is prioritized
 - **Cache value** — prompt-cache topology optimization
+
+### Compute Optimization & Adaptive Reasoning Control
+
+ContextOS actively solves the **minimum-sufficient compute** optimization problem:
+
+$$\min E[C_{E2E}] \quad \text{subject to} \quad Q_{LCB} \ge Q_{min}$$
+
+Where $Q_{LCB}$ is the empirical Lower Confidence Bound of task capability.
+
+- **Dynamic Effort Negotiation**: Resolves provider-neutral effort levels (`minimal` $\rightarrow$ `low` $\rightarrow$ `medium` $\rightarrow$ `high` $\rightarrow$ `maximum`) mapped to thinking token budgets across models (OpenAI o1/o3, Claude 3.7 Sonnet extended thinking, Gemini 2.5 Pro).
+- **Value of Information (VOI) Accounting**: Evaluates marginal utility $\Delta U$ against token expenditure before escalating inference compute.
+- **Deterministic Bypass**: T0 deterministic tasks bypass expensive LLM calls completely (costing $\approx \$0.00005$ with sub-millisecond latency).
 
 ---
 
