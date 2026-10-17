@@ -495,3 +495,27 @@ Where:
 - Level 3 reduces test-time thinking tokens by $84.37\%$ and eliminates compute on deterministic AST queries.
 - Result: **98.6% total cost reduction** and **90.41% Cost-Per-Success (CPS) optimization**.
 
+---
+
+## 11. Recursive Self-Improvement via Dream-RSI (Evolving Worlds)
+
+While ASC-1 optimizes single-turn and multi-turn context packing under fixed scoring parameters, autonomous agents in evolving repositories benefit from continuous meta-learning. Traditional self-improvement requires retraining neural network weights, which is infeasible for closed-source models and computationally prohibitive for client-side execution.
+
+ContextOS incorporates the **Dream-RSI** architecture (*Recursive Self-Improvement through Evolving Worlds*, Zheng et al., 2026). Under this paradigm:
+1. **Model Weights Remain Frozen**: The underlying foundation model $\mathcal{A}$ is treated as a static reasoning oracle.
+2. **The Exploration & Context Policy $\pi_\theta$ is Optimized**: The allocation weights $\mathbf{w}_{\text{alloc}}$, dynamic pruning threshold $\tau_{\text{prune}}$, backtracking threshold $\gamma_{\text{backtrack}}$, and retrieval stage routes are the subject of continuous optimization.
+3. **The "Dream" Replay Simulator**: Using `internal/temporal` and historical session traces from `internal/hook`, ContextOS reconstructs an offline "evolving world" replay simulator $\mathcal{W}_{\text{sim}}$. Alternative exploration policies $\pi_\theta$ are simulated counterfactually across past task trees at native speed ($<10\text{ms}$ per branch) with zero LLM API cost.
+4. **Statistical Non-Regression Gates**: A mutated policy $\pi_{\theta'}$ is promoted only if it achieves a statistically significant improvement ($p < 0.05$ via permutation test and Cliff's Delta $\delta \ge 0.30$) across the regression benchmark without causing performance degradation on historical tasks.
+
+For full system architecture, Go interface definitions, and execution flow, see [DREAM_RSI.md](file:///Users/rohitshukla/Desktop/ContextOS/docs/DREAM_RSI.md).
+
+---
+
+## 12. References & Citations
+
+1. **Zheng, T., Wu, X., Zhang, Z., He, Z., Zhang, C., Coleman, B., Wei, R., Bai, D., Liu, H., Liu, R., Wang, X., Zhuan, Y., Kang, W.-C., Xiang, R., Huang, H., Cheng, X., & Guo, Y.** (2026). *Dream-RSI: Recursive Self-Improvement through Evolving Worlds*. arXiv preprint [arXiv:2609.14858](https://arxiv.org/abs/2609.14858).
+2. **Robertson, S., & Zaragoza, H.** (2009). *The Probabilistic Relevance Framework: BM25 and Beyond*. Foundations and Trends in Information Retrieval, 3(4), 333–389.
+3. **Cormack, G. V., Clarke, C. L., & Buettcher, S.** (2009). *Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods*. Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval, 758–759.
+4. **Sviridenko, M.** (2004). *A Note on Approximating the Bounded Knapsack Problem*. Information Processing Letters, 89(4), 173–175.
+5. **Cliff, N.** (1993). *Dominance Statistics: Ordinal Analyses to Answer Ordinal Questions*. Psychological Bulletin, 114(3), 494–509.
+

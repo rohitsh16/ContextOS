@@ -1,12 +1,12 @@
 {
-  "run_id": "r16-stress-a6c8ee755ea1fa8e",
-  "timestamp": "2026-09-29T14:20:28.441512Z",
+  "run_id": "r16-stress-e7528fa9b486124c",
+  "timestamp": "2026-10-17T09:16:57.51855Z",
   "metadata": {
-    "execution_id": "exec_34346332613037336235653938633034",
+    "execution_id": "exec_66663737366637653337343165633262",
     "run_type": "synthetic",
     "provider_mode": "mock",
     "pricing_version": "2026-03-v1",
-    "timestamp": "2026-09-29T14:20:28.441512Z"
+    "timestamp": "2026-10-17T09:16:57.51855Z"
   },
   "verdict": "GREEN",
   "verdict_reasons": [
@@ -77,7 +77,7 @@
   "ring0_passed": true,
   "ring1_total_tasks": 500,
   "ring1_violation_rate": 0,
-  "ring1_cost_regret": 1.1539054064627698,
+  "ring1_cost_regret": 1.15390540646277,
   "same_task_compute_curves": [
     {
       "task_id": "T1-01",
@@ -703,7 +703,7 @@
       "task_remained_safe": true
     }
   ],
-  "controller_overhead_ratio": 0.0009237802618917856,
+  "controller_overhead_ratio": 0.0009237802618917853,
   "avoidable_cost_reduction": 0.9540812017603452,
   "floor_ablation_delta_q": 0.625,
   "trace_jsonl_path": "../results/r16/r16_stress_trace.jsonl"

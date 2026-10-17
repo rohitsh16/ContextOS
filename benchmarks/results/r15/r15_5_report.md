@@ -1,6 +1,6 @@
 # Phase R15.5 — ContextOS Compute Controller Audit Report
 
-**Timestamp:** 2026-09-29T14:20:23Z  
+**Timestamp:** 2026-10-17T09:16:55Z  
 **Manifest:** `manifest-r15-freeze-42` | **Gate:** `R15.5`  
 **Total Tasks Audited:** 120 | **Overall Success Rate:** 100.00%  
 **Average Cost Per Task:** $0.0031 | **Average Reasoning Tokens:** 546 tok  
@@ -25,20 +25,20 @@
 
 | Failure Category | Count | Pct (%) | Description |
 |---|---|---|---|
-| `under-retrieval` | 0 | 0.00% | Model attempted reasoning without necessary repository evidence |
-| `over-reasoning` | 0 | 0.00% | Model allocated excessive reasoning tokens on trivial tasks |
+| `under-reasoning` | 0 | 0.00% | Model allocated insufficient reasoning tokens for complex logic |
 | `over-retrieval` | 0 | 0.00% | Redundant retrieval operations performed after evidence saturation |
 | `bad routing` | 0 | 0.00% | Task routed to an inappropriate model tier |
+| `transient provider failure` | 0 | 0.00% | Simulated upstream rate limit or API timeout |
+| `bad success oracle` | 0 | 0.00% | Discrepancy between oracle verification and ground-truth correctness |
+| `over-reasoning` | 0 | 0.00% | Model allocated excessive reasoning tokens on trivial tasks |
 | `bad stopping` | 0 | 0.00% | Premature halt before reaching target confidence |
 | `bad calibration` | 0 | 0.00% | Significant gap between confidence and empirical success probability |
-| `controller overhead` | 0 | 0.00% | Decision engine compute exceeded 5% of task budget |
-| `under-reasoning` | 0 | 0.00% | Model allocated insufficient reasoning tokens for complex logic |
-| `bad success oracle` | 0 | 0.00% | Discrepancy between oracle verification and ground-truth correctness |
 | `wrong context` | 0 | 0.00% | Distractor files displaced relevant context |
 | `verification failure` | 0 | 0.00% | Generated patch failed automated test assertions |
-| `transient provider failure` | 0 | 0.00% | Simulated upstream rate limit or API timeout |
+| `under-retrieval` | 0 | 0.00% | Model attempted reasoning without necessary repository evidence |
 | `missing context` | 0 | 0.00% | Omission of necessary dependency files from working context |
 | `cache side effect` | 0 | 0.00% | Prompt cache miss or invalidation penalty |
+| `controller overhead` | 0 | 0.00% | Decision engine compute exceeded 5% of task budget |
 
 ## 3. Controller Decision Performance
 

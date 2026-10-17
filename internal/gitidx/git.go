@@ -90,6 +90,45 @@ func findGitRoot(dir string) string {
 	}
 }
 
+func readGitHead(root string) (string, string, bool) {
+	headPath := filepath.Join(root, ".git", "HEAD")
+	b, err := os.ReadFile(headPath)
+	if err != nil {
+		return "", "", false
+	}
+	head := strings.TrimSpace(string(b))
+	if strings.HasPrefix(head, "ref: ") {
+		ref := strings.TrimSpace(strings.TrimPrefix(head, "ref: "))
+		branch := filepath.Base(ref)
+		// Check direct ref file: .git/refs/heads/...
+		refPath := filepath.Join(root, ".git", ref)
+		if refBytes, err := os.ReadFile(refPath); err == nil {
+			rev := strings.TrimSpace(string(refBytes))
+			if rev != "" {
+				return rev, branch, true
+			}
+		}
+		// Check packed-refs
+		if packedBytes, err := os.ReadFile(filepath.Join(root, ".git", "packed-refs")); err == nil {
+			for _, line := range strings.Split(string(packedBytes), "\n") {
+				line = strings.TrimSpace(line)
+				if strings.HasSuffix(line, " "+ref) {
+					fields := strings.Fields(line)
+					if len(fields) >= 2 {
+						return fields[0], branch, true
+					}
+				}
+			}
+		}
+		return "init", branch, true
+	}
+	// Detached HEAD: .git/HEAD contains the commit hash directly
+	if len(head) >= 40 {
+		return head, "HEAD", true
+	}
+	return "", "", false
+}
+
 // Detect inspects the repository at path and computes a cryptographically
 // correct, content-addressed worktree fingerprint (PR-02).
 func Detect(path string) (Repo, error) {
@@ -107,13 +146,17 @@ func Detect(path string) (Repo, error) {
 			WorktreeHash: "uncommitted",
 		}, nil
 	}
-	rev, e := run(root, "rev-parse", "HEAD")
-	if e != nil || rev == "" {
-		rev = "init"
-	}
-	branch, e := run(root, "branch", "--show-current")
-	if e != nil || branch == "" {
-		branch = "main"
+	rev, branch, ok := readGitHead(root)
+	if !ok {
+		var e error
+		rev, e = run(root, "rev-parse", "HEAD")
+		if e != nil || rev == "" {
+			rev = "init"
+		}
+		branch, e = run(root, "branch", "--show-current")
+		if e != nil || branch == "" {
+			branch = "main"
+		}
 	}
 
 	wt, err := ComputeWorktreeFingerprint(root)

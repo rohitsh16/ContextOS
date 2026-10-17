@@ -48,6 +48,7 @@ That's it. Your agents now have persistent context.
 | **Cross-agent handoff** | Transfer context between models/agents with `ctx handoff` |
 | **Model routing** | Recommends model by task complexity, budget, and capability envelope |
 | **MCP server** | 13 tools + 5 resources over JSON-RPC stdio |
+| **Dream-RSI (Recursive Self-Improvement)** | Self-improving exploration policies via offline replay simulator ("evolving worlds", arXiv:2609.14858) |
 | **Web UI dashboard** | Local visual dashboard with token savings simulator and graph index viewer |
 | **Enterprise SaaS** | Multi-tenant isolation, rate limiting, API keys, token metering & Stripe-ready invoicing |
 
@@ -352,7 +353,10 @@ $$
 
 The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
 
-See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation framework and empirical benchmarks, [`docs/DASHBOARD.md`](docs/DASHBOARD.md) for the dashboard efficiency metrics glossary & deployment guide, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+### Recursive Self-Improvement (Dream-RSI)
+ContextOS embeds the **Dream-RSI** architecture (*Recursive Self-Improvement through Evolving Worlds*, [arXiv:2609.14858](https://arxiv.org/abs/2609.14858)). Under this framework, underlying model weights remain frozen while the exploration policy, dynamic candidate pruning thresholds, and retrieval routes are iteratively optimized offline using historical replay simulators ("evolving worlds") at native speed without LLM API costs. See [`docs/DREAM_RSI.md`](docs/DREAM_RSI.md).
+
+See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/DREAM_RSI.md`](docs/DREAM_RSI.md) for the Dream-RSI specification and citation, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation framework and empirical benchmarks, [`docs/DASHBOARD.md`](docs/DASHBOARD.md) for the dashboard efficiency metrics glossary & deployment guide, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
 
 ---
 
