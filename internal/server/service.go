@@ -708,9 +708,9 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 	compute.GlobalProfiler().Record(compute.QueryMetrics{
 		TotalDuration: time.Since(startTime),
 		StageDurations: map[compute.QueryStage]time.Duration{
-			compute.StageCandidateGen:       tCandidateGen,
-			compute.StageSorting:            tSort,
-			compute.StageSerialization:      tSerial,
+			compute.StageCandidateGen:  tCandidateGen,
+			compute.StageSorting:       tSort,
+			compute.StageSerialization: tSerial,
 		},
 		NodesScanned:     nodesExpanded,
 		GraphExpansions:  nodesExpanded,
@@ -866,7 +866,7 @@ func (s *Service) Stats() (map[string]any, error) {
 	// Active engine features (reflects completed PRs and performance subsystems)
 	r["features"] = []string{
 		"portable-integrations",      // PR-01
-		"content-addressed-worktree",  // PR-02
+		"content-addressed-worktree", // PR-02
 		"graph-intelligence-ppr",     // PR-03
 		"incremental-indexing",       // PR-04
 		"positional-trigrams",        // PR-11..12
