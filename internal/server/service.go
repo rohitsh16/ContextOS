@@ -16,6 +16,7 @@ import (
 	"contextos/internal/compute"
 	"contextos/internal/config"
 	"contextos/internal/db"
+	"contextos/internal/dreamrsi"
 	"contextos/internal/extractor"
 	"contextos/internal/gitidx"
 	"contextos/internal/graph"
@@ -52,6 +53,7 @@ type Service struct {
 	MinBudget       int
 	AdaptiveTimeout bool
 	RetrievalMode   string
+	ActivePolicy    dreamrsi.ExplorationPolicy
 }
 
 // New creates a new Service using default options.
@@ -185,7 +187,7 @@ func NewWithOptions(dbPath, repoPath string, opts Options) (*Service, error) {
 		retrievalMode = "adaptive"
 	}
 
-	return &Service{
+	svc := &Service{
 		Store:           st,
 		DB:              d,
 		Repo:            r,
@@ -196,7 +198,9 @@ func NewWithOptions(dbPath, repoPath string, opts Options) (*Service, error) {
 		MinBudget:       minBudget,
 		AdaptiveTimeout: adaptiveTimeout,
 		RetrievalMode:   retrievalMode,
-	}, nil
+	}
+	svc.LoadPolicy()
+	return svc, nil
 }
 
 func now() string { return time.Now().UTC().Format(time.RFC3339Nano) }
@@ -205,6 +209,51 @@ func (s *Service) Close() {
 	if s != nil && s.Store != nil {
 		_ = s.Store.Close()
 	}
+}
+
+func (s *Service) LoadPolicy() dreamrsi.ExplorationPolicy {
+	if s == nil {
+		return dreamrsi.DefaultBaselinePolicy()
+	}
+	policyPath := filepath.Join(s.Repo.Path, ".contextos", "dream_policy.json")
+	b, err := os.ReadFile(policyPath)
+	if err == nil {
+		var p dreamrsi.ExplorationPolicy
+		if json.Unmarshal(b, &p) == nil && p.Version > 0 {
+			s.ActivePolicy = p
+			return p
+		}
+	}
+	s.ActivePolicy = dreamrsi.DefaultBaselinePolicy()
+	return s.ActivePolicy
+}
+
+func (s *Service) SavePolicy(p dreamrsi.ExplorationPolicy) error {
+	if s == nil {
+		return fmt.Errorf("service is nil")
+	}
+	dir := filepath.Join(s.Repo.Path, ".contextos")
+	_ = os.MkdirAll(dir, 0755)
+	policyPath := filepath.Join(dir, "dream_policy.json")
+	b, err := json.MarshalIndent(p, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(policyPath, b, 0644); err != nil {
+		return err
+	}
+	s.ActivePolicy = p
+	return nil
+}
+
+func (s *Service) ResetPolicy() error {
+	if s == nil {
+		return fmt.Errorf("service is nil")
+	}
+	policyPath := filepath.Join(s.Repo.Path, ".contextos", "dream_policy.json")
+	_ = os.Remove(policyPath)
+	s.ActivePolicy = dreamrsi.DefaultBaselinePolicy()
+	return nil
 }
 
 func (s *Service) RefreshRepo() error {
@@ -665,6 +714,7 @@ func (s *Service) Plan(task, modelName string, budget int) (model.ContextPlan, e
 		RepoRevision: s.Repo.Revision,
 		GraphScores:  graphScores,
 		DenseScores:  denseScores,
+		Policy:       &s.ActivePolicy,
 	}, ms)
 	tSort := time.Since(tSortStart)
 	p.Model = modelName

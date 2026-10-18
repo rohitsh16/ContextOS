@@ -1,7 +1,7 @@
 # R15.14: Adaptive Graph Retrieval & Fine-Grained Compute Optimization
 
 **Empirical Evaluation across 120 Stratified Benchmark Tasks**
-**Timestamp:** 2026-10-17T09:16:57Z
+**Timestamp:** 2026-10-17T09:48:29Z
 
 ---
 

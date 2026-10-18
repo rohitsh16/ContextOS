@@ -14,9 +14,11 @@ import (
 	agentpkg "contextos/internal/agent"
 	correctness_bench "contextos/benchmarks/correctness"
 	"contextos/internal/doctor"
+	"contextos/internal/dreamrsi"
 	"contextos/internal/gitidx"
 	"contextos/internal/hook"
 	"contextos/internal/integrations"
+	"contextos/internal/model"
 	"contextos/internal/report"
 	"contextos/internal/retrieval"
 	"contextos/internal/router"
@@ -641,9 +643,153 @@ func main() {
 			}
 			fmt.Print(sb.String())
 		}
+	case "dream":
+		subCmd := "status"
+		if len(args) > 0 {
+			subCmd = args[0]
+		}
+		switch subCmd {
+		case "status":
+			pol := s.ActivePolicy
+			if strings.ToLower(*format) == "json" {
+				b, _ := json.MarshalIndent(pol, "", "  ")
+				fmt.Println(string(b))
+			} else {
+				fmt.Println("==========================================================================")
+				fmt.Println("               CONTEXTOS DREAM-RSI ACTIVE POLICY PROFILE                  ")
+				fmt.Println("==========================================================================")
+				fmt.Printf("Policy ID:             %s (v%d)\n", pol.ID, pol.Version)
+				fmt.Printf("Description:           %s\n", pol.Description)
+				fmt.Printf("Prune Threshold:       %.3f\n", pol.PruneThreshold)
+				fmt.Printf("Backtrack Penalty:     %.2f\n", pol.BacktrackPenalty)
+				fmt.Printf("RRF Constant:          %.1f\n", pol.RRFConstant)
+				fmt.Printf("Min Authority Floor:   %.2f\n", pol.MinAuthorityFloor)
+				fmt.Println("--------------------------------------------------------------------------")
+				fmt.Println("Scoring Weights:")
+				fmt.Printf("  Semantic:     %.2f | Lexical:  %.2f | Graph:     %.2f\n", pol.WeightSemantic, pol.WeightLexical, pol.WeightGraph)
+				fmt.Printf("  TaskAffinity: %.2f | Authority:%.2f | Evidence:  %.2f\n", pol.WeightTaskAffinity, pol.WeightAuthority, pol.WeightEvidence)
+				fmt.Printf("  Reuse:        %.2f | FreshRisk:%.2f | LenPenalty:%.2f\n", pol.WeightReuse, pol.WeightFreshnessRisk, pol.WeightLengthPenalty)
+				fmt.Println("==========================================================================")
+			}
+		case "reset":
+			if err := s.ResetPolicy(); err != nil {
+				die(err)
+			}
+			fmt.Println("✓ Active Dream-RSI exploration policy successfully reset to default baseline.")
+		case "optimize":
+			fmt.Println("Initiating offline Dreaming cycle over historical replay scenarios...")
+			scenarios := buildReplayScenarios(s)
+			sim := dreamrsi.NewReplaySimulator(scenarios)
+			cfg := dreamrsi.DefaultOptimizerConfig()
+			cfg.Generations = 15
+			cfg.PopulationSize = 8
+			opt := dreamrsi.NewDreamOptimizer(sim, cfg)
+
+			report := opt.Optimize(s.ActivePolicy)
+			if report.PromotedToActive {
+				if err := s.SavePolicy(report.WinningPolicy); err != nil {
+					die(err)
+				}
+			}
+
+			if strings.ToLower(*format) == "json" {
+				b, _ := json.MarshalIndent(report, "", "  ")
+				fmt.Println(string(b))
+			} else {
+				fmt.Println("==========================================================================")
+				fmt.Println("            DREAM-RSI OFFLINE OPTIMIZATION CYCLE COMPLETE                 ")
+				fmt.Println("==========================================================================")
+				fmt.Printf("Duration:              %v\n", report.Duration)
+				fmt.Printf("Total Policy Trials:   %d across %d generations\n", report.TotalSimulatedEvals, report.GenerationsRun)
+				fmt.Printf("Baseline Success Rate: %.1f%%  -->  Winning Success Rate: %.1f%%\n",
+					report.BaselineSuccessRate*100, report.WinningSuccessRate*100)
+				fmt.Printf("Baseline Tokens Mean:  %.1f  -->  Winning Tokens Mean: %.1f\n",
+					report.BaselineTokensMean, report.WinningTokensMean)
+				fmt.Printf("Empirical Token Savings: %.2f%%\n", report.TokenSavingsPct)
+				fmt.Printf("Cliff's Delta:         %.3f (%s)\n", report.CliffsDelta, report.CliffsInterpretation)
+				fmt.Printf("Permutation P-Value:   %.4f\n", report.PermutationPValue)
+				fmt.Printf("Promoted to Active:    %v (Saved to .contextos/dream_policy.json)\n", report.PromotedToActive)
+				fmt.Println("==========================================================================")
+			}
+		default:
+			die(fmt.Errorf("unknown dream subcommand: %s (valid: status, optimize, reset)", subCmd))
+		}
 	default:
 		usage()
 	}
+}
+
+func buildReplayScenarios(s *server.Service) []dreamrsi.SimulationScenario {
+	memories, err := s.Store.ListMemories(s.RepoID, 100)
+	if err != nil || len(memories) < 2 {
+		return defaultReplayScenarios()
+	}
+
+	var cands []model.Candidate
+	for _, m := range memories {
+		tok := m.TokenCost
+		if tok <= 0 {
+			tok = 50
+		}
+		cands = append(cands, model.Candidate{
+			ID:           m.ID,
+			Content:      m.Content,
+			Location:     m.Location,
+			Tokens:       tok,
+			Semantic:     0.8,
+			Lexical:      0.7,
+			TaskAffinity: 0.8,
+			Authority:    m.Confidence,
+			Evidence:     1.0,
+		})
+	}
+
+	return []dreamrsi.SimulationScenario{
+		{
+			ID:               "scenario-repo-active",
+			Task:             "active repository task execution",
+			Budget:           s.DefaultBudget,
+			Candidates:       cands,
+			RequiredEvidence: []string{memories[0].Content},
+			BaselineTokens:   s.DefaultBudget,
+		},
+	}
+}
+
+func defaultReplayScenarios() []dreamrsi.SimulationScenario {
+	var scenarios []dreamrsi.SimulationScenario
+	for i := 0; i < 15; i++ {
+		scenarios = append(scenarios, dreamrsi.SimulationScenario{
+			ID:     fmt.Sprintf("synth-task-%d", i),
+			Task:   fmt.Sprintf("component optimization %d", i),
+			Budget: 500,
+			Candidates: []model.Candidate{
+				{
+					ID:           fmt.Sprintf("c-%d-core", i),
+					Content:      fmt.Sprintf("CoreDirective_%d", i),
+					Tokens:       60,
+					Semantic:     0.92,
+					Lexical:      0.88,
+					TaskAffinity: 0.90,
+					Authority:    0.95,
+					Evidence:     1.0,
+				},
+				{
+					ID:           fmt.Sprintf("c-%d-marginal", i),
+					Content:      fmt.Sprintf("SecondaryHelper_%d", i),
+					Tokens:       100,
+					Semantic:     0.40,
+					Lexical:      0.35,
+					TaskAffinity: 0.30,
+					Authority:    0.75,
+					Evidence:     0.5,
+				},
+			},
+			RequiredEvidence: []string{fmt.Sprintf("CoreDirective_%d", i)},
+			BaselineTokens:   400,
+		})
+	}
+	return scenarios
 }
 
 func usage() {

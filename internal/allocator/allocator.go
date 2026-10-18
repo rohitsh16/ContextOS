@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"contextos/internal/dreamrsi"
 	"contextos/internal/model"
 	"contextos/internal/semantic"
 	"contextos/internal/temporal"
@@ -24,6 +25,7 @@ type Request struct {
 	EmbeddingProvider semantic.EmbeddingProvider  // Dense embedding provider for pluggable semantic retrieval (PR-06).
 	DenseScores       map[string]float64          // Dense cosine similarity scores keyed by memory ID or location (PR-06).
 	ChangedFiles      map[string]string           // Changed files and statuses ("M", "A", "D") for scoped staleness (PR-08).
+	Policy            *dreamrsi.ExplorationPolicy // Active Dream-RSI exploration policy profile (nil = default baseline)
 }
 
 // authorityScore maps the provenance or source authority string of a memory to a numeric weight in [0.45, 1.0].
@@ -154,9 +156,12 @@ func Score(req Request, m model.Memory) model.Candidate {
 	}
 	cacheValue := reuse*0.8 + 0.2*math.Min(1, float64(tok)/8000.0)
 
-	// Preliminary linear score (stable tiebreaker; overwritten by Plan() via RRF × confidence).
-	score := 1.15*sem + 1.0*lex + 0.9*affinity + 0.75*auth + 0.6*evidence + 0.45*reuse + 0.35*graph - 1.5*freshRisk - 0.15*math.Min(1, float64(tok)/4000.0)
-	density := score / float64(max(1, tok))
+	policy := req.Policy
+	if policy == nil {
+		def := dreamrsi.DefaultBaselinePolicy()
+		policy = &def
+	}
+	score, density := policy.ScoreCandidate(sem, lex, affinity, auth, evidence, reuse, graph, freshRisk, tok)
 
 	src := m.Source
 	if src == "" {
@@ -169,10 +174,10 @@ func Score(req Request, m model.Memory) model.Candidate {
 	if hardStale {
 		reason = "rejected: explicitly invalidated"
 	}
-	if auth < 0.6 {
+	if auth < policy.MinAuthorityFloor {
 		reason = "rejected: low authority"
 	}
-	if hardStale || auth < 0.6 {
+	if hardStale || auth < policy.MinAuthorityFloor {
 		density = math.Inf(-1)
 	}
 	return model.Candidate{
@@ -186,9 +191,15 @@ func Score(req Request, m model.Memory) model.Candidate {
 
 // rrfScore computes Reciprocal Rank Fusion (Cormack et al., 2009) across 3 signal rankings.
 // Each signal contributes 1/(k+rank) where k=60 dampens single-list dominance.
-// RRF is scale-independent: it fuses signals by rank position rather than raw score magnitude.
 func rrfScore(semRank, lexRank, affRank int) float64 {
-	const k = 60.0
+	return rrfScoreK(60.0, semRank, lexRank, affRank)
+}
+
+// rrfScoreK computes Reciprocal Rank Fusion with a specified damping constant k.
+func rrfScoreK(k float64, semRank, lexRank, affRank int) float64 {
+	if k <= 0 {
+		k = 60.0
+	}
 	return 1/(k+float64(semRank)) + 1/(k+float64(lexRank)) + 1/(k+float64(affRank))
 }
 
@@ -303,11 +314,19 @@ func RankCandidates(req Request, ms []model.Memory) []model.Candidate {
 
 	// RRF × authority × freshness × confidence: any hard-rejected item cannot win even if
 	// its content is on-topic. Confidence down-weights low-certainty memories.
+	rrfConstant := 60.0
+	if req.Policy != nil && req.Policy.RRFConstant > 0 {
+		rrfConstant = req.Policy.RRFConstant
+	}
 	for i := range cands {
-		rrf := rrfScore(semRanks[i], lexRanks[i], affRanks[i])
+		rrf := rrfScoreK(rrfConstant, semRanks[i], lexRanks[i], affRanks[i])
 		fused := rrf * cands[i].Authority * cands[i].Freshness * cands[i].Confidence
 		cands[i].Score = fused
 		cands[i].Density = fused / float64(max(1, cands[i].Tokens))
+		if req.Policy != nil && cands[i].Density < req.Policy.PruneThreshold {
+			cands[i].Density = math.Inf(-1)
+			cands[i].Reason = "rejected: below dream-rsi prune threshold"
+		}
 		// Hard-rejected items sort to the bottom regardless of content quality.
 		if strings.HasPrefix(cands[i].Reason, "rejected:") {
 			cands[i].Density = math.Inf(-1)
@@ -359,7 +378,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 			continue
 		}
 		// Only hard-rejected items (not budget-rejected) are excluded from rescue consideration.
-		if c.Reason == "rejected: explicitly invalidated" || c.Reason == "rejected: low authority" {
+		if strings.HasPrefix(c.Reason, "rejected:") && c.Reason != "rejected: token budget" {
 			continue
 		}
 		if c.Tokens <= req.Budget {
@@ -399,7 +418,7 @@ func Plan(req Request, ms []model.Memory) model.ContextPlan {
 		if cands[i].Selected {
 			continue
 		}
-		if cands[i].Reason == "rejected: explicitly invalidated" || cands[i].Reason == "rejected: low authority" {
+		if strings.HasPrefix(cands[i].Reason, "rejected:") && cands[i].Reason != "rejected: token budget" {
 			continue
 		}
 		if cands[i].Tokens <= remaining {

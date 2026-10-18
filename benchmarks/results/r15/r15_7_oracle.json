@@ -1,7 +1,7 @@
 {
   "manifest_id": "manifest-r15-freeze-42",
   "benchmark_version": "R15.0-alpha",
-  "timestamp": "2026-10-17T09:16:55.876462Z",
+  "timestamp": "2026-10-17T09:48:29.015143Z",
   "gate": "R15.6-R15.8",
   "total_tasks": 120,
   "target_error_rate": 0.12,

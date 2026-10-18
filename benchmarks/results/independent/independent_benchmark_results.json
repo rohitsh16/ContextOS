@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-09-29T14:20:58.162323Z",
+  "timestamp": "2026-10-17T09:49:56.221199Z",
   "total_tasks": 6,
-  "avg_token_reduction_pct": 98.62209656060985,
-  "total_baseline_tokens": 27941,
-  "total_contextos_tokens": 385,
-  "total_gemini_baseline_10turn_usd": 0.02095575,
-  "total_gemini_contextos_10turn_usd": 0.00009384375,
-  "gemini_net_savings_10turn_usd": 0.02086190625,
-  "gemini_savings_pct_10turn": 99.5521813821982,
-  "total_claude_baseline_10turn_usd": 0.83823,
-  "total_claude_contextos_10turn_usd": 0.0021945000000000003,
-  "claude_net_savings_10turn_usd": 0.8360355,
-  "claude_savings_pct_10turn": 99.73819834651587,
+  "avg_token_reduction_pct": 98.5858298008763,
+  "total_baseline_tokens": 28073,
+  "total_contextos_tokens": 397,
+  "total_gemini_baseline_10turn_usd": 0.021054749999999997,
+  "total_gemini_contextos_10turn_usd": 0.00009676875,
+  "gemini_net_savings_10turn_usd": 0.020957981249999997,
+  "gemini_savings_pct_10turn": 99.5403946852848,
+  "total_claude_baseline_10turn_usd": 0.84219,
+  "total_claude_contextos_10turn_usd": 0.0022629,
+  "claude_net_savings_10turn_usd": 0.8399271,
+  "claude_savings_pct_10turn": 99.73130766216649,
   "results": [
     {
       "id": "TASK-01",
@@ -33,7 +33,7 @@
       "claude_base_cost_1turn": 0.012861000000000001,
       "claude_ctx_cost_1turn": 0.00018899999999999999,
       "savings_pct_10turn": 99.5223932820154,
-      "bypass_latency_ms": 52.339
+      "bypass_latency_ms": 28.755
     },
     {
       "id": "TASK-02",
@@ -55,7 +55,7 @@
       "claude_base_cost_1turn": 0.038541000000000006,
       "claude_ctx_cost_1turn": 0.00010499999999999999,
       "savings_pct_10turn": 99.9114579279209,
-      "bypass_latency_ms": 51.697
+      "bypass_latency_ms": 29.822
     },
     {
       "id": "TASK-03",
@@ -66,18 +66,18 @@
         "internal/allocator/allocator.go",
         "internal/model/plan.go"
       ],
-      "baseline_bytes": 21797,
-      "baseline_tokens": 5449,
-      "contextos_tokens": 89,
-      "token_reduction_pct": 98.36667278399706,
-      "gemini_base_cost_1turn": 0.000408675,
-      "gemini_ctx_cost_1turn": 0.000006675,
-      "gemini_base_cost_10turn": 0.00408675,
-      "gemini_ctx_cost_10turn": 0.00002169375,
-      "claude_base_cost_1turn": 0.016347,
-      "claude_ctx_cost_1turn": 0.000267,
-      "savings_pct_10turn": 99.46916865479905,
-      "bypass_latency_ms": 62.315
+      "baseline_bytes": 22322,
+      "baseline_tokens": 5581,
+      "contextos_tokens": 101,
+      "token_reduction_pct": 98.19028847876726,
+      "gemini_base_cost_1turn": 0.00041857499999999997,
+      "gemini_ctx_cost_1turn": 0.0000075749999999999995,
+      "gemini_base_cost_10turn": 0.004185749999999999,
+      "gemini_ctx_cost_10turn": 0.00002461875,
+      "claude_base_cost_1turn": 0.016743,
+      "claude_ctx_cost_1turn": 0.000303,
+      "savings_pct_10turn": 99.41184375559935,
+      "bypass_latency_ms": 28.723
     },
     {
       "id": "TASK-04",
@@ -99,7 +99,7 @@
       "claude_base_cost_1turn": 0.004284,
       "claude_ctx_cost_1turn": 0.00029699999999999996,
       "savings_pct_10turn": 97.74684873949579,
-      "bypass_latency_ms": 51.742
+      "bypass_latency_ms": 29.04
     },
     {
       "id": "TASK-05",
@@ -121,7 +121,7 @@
       "claude_base_cost_1turn": 0.007506,
       "claude_ctx_cost_1turn": 0.000258,
       "savings_pct_10turn": 98.88289368505195,
-      "bypass_latency_ms": 56.98
+      "bypass_latency_ms": 29.233
     },
     {
       "id": "TASK-06",
@@ -141,7 +141,7 @@
       "claude_base_cost_1turn": 0.004284,
       "claude_ctx_cost_1turn": 0.000039,
       "savings_pct_10turn": 99.70413165266106,
-      "bypass_latency_ms": 50.829
+      "bypass_latency_ms": 28.969
     }
   ]
 }

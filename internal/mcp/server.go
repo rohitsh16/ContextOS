@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"contextos/internal/dreamrsi"
+	"contextos/internal/model"
 	"contextos/internal/server"
 )
 
@@ -206,6 +208,19 @@ func allTools() []ToolDefinition {
 			Name:        "context_trace",
 			Description: "Show latest context allocation trace",
 			InputSchema: schema(map[string]any{}),
+		},
+		{
+			Name:        "context_dream_status",
+			Description: "Show the active Dream-RSI (Recursive Self-Improvement) exploration policy parameters",
+			InputSchema: schema(map[string]any{}),
+		},
+		{
+			Name:        "context_dream_optimize",
+			Description: "Execute an offline Dreaming cycle to recursively optimize exploration heuristics and candidate pruning bounds",
+			InputSchema: schema(map[string]any{
+				"generations": prop("integer"),
+				"population":  prop("integer"),
+			}),
 		},
 		{
 			Name:        "context_work_start",
@@ -487,6 +502,43 @@ func (m *MCP) Handle(q Request) Response {
 			}
 			v := m.S.Route(task, budget)
 			return textOK(q.ID, v)
+
+		case "context_dream_status":
+			pol := m.S.ActivePolicy
+			return textOK(q.ID, pol)
+
+		case "context_dream_optimize":
+			gens := 15
+			pop := 8
+			if g, ok := a["generations"].(float64); ok && g > 0 {
+				gens = int(g)
+			}
+			if p, ok := a["population"].(float64); ok && p > 0 {
+				pop = int(p)
+			}
+			scenarios := []dreamrsi.SimulationScenario{
+				{
+					ID:     "task-mcp-active",
+					Task:   "active repo exploration",
+					Budget: m.S.DefaultBudget,
+					Candidates: []model.Candidate{
+						{ID: "c1", Content: "PrimaryDirective", Tokens: 60, Semantic: 0.9, Lexical: 0.8, Authority: 0.95, Evidence: 1.0},
+						{ID: "c2", Content: "SecondaryHelper", Tokens: 100, Semantic: 0.4, Lexical: 0.3, Authority: 0.75, Evidence: 0.5},
+					},
+					RequiredEvidence: []string{"PrimaryDirective"},
+					BaselineTokens:   400,
+				},
+			}
+			sim := dreamrsi.NewReplaySimulator(scenarios)
+			cfg := dreamrsi.DefaultOptimizerConfig()
+			cfg.Generations = gens
+			cfg.PopulationSize = pop
+			opt := dreamrsi.NewDreamOptimizer(sim, cfg)
+			rep := opt.Optimize(m.S.ActivePolicy)
+			if rep.PromotedToActive {
+				_ = m.S.SavePolicy(rep.WinningPolicy)
+			}
+			return textOK(q.ID, rep)
 
 		default:
 			return errMethodNotFound(q.ID, fmt.Sprintf("Unknown tool: %s", p.Name))

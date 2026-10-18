@@ -1,6 +1,6 @@
 # ContextOS R16 Capability-Preserving Optimization Benchmark Report
 
-**Date:** 2026-10-17 09:16:57 UTC | **Manifest:** `r16-capability-1792228617` | **Version:** `R16.0` | **RunType:** `synthetic`
+**Date:** 2026-10-17 09:48:29 UTC | **Manifest:** `r16-capability-1792230509` | **Version:** `R16.0` | **RunType:** `synthetic`
 
 ## 1. Executive Summary
 

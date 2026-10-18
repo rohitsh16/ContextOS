@@ -4,8 +4,10 @@ import (
 	"math"
 	"testing"
 
+	"contextos/internal/dreamrsi"
 	"contextos/internal/model"
 	"contextos/internal/semantic"
+	"strings"
 )
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -668,5 +670,40 @@ func TestPlanWithEmbeddingProvider(t *testing.T) {
 	}
 	if p.Selected[0].Semantic <= 0 {
 		t.Errorf("expected candidate Semantic score to be positive for m1, got %.4f", p.Selected[0].Semantic)
+	}
+}
+
+func TestPlanWithDreamRSIPolicy(t *testing.T) {
+	baselinePolicy := dreamrsi.DefaultBaselinePolicy()
+	reqDefault := Request{
+		Task:   "kafka transaction pattern",
+		Budget: 200,
+		Policy: &baselinePolicy,
+	}
+	ms := []model.Memory{
+		{ID: "m1", Kind: "decision", Content: "kafka transaction outbox pattern", Authority: "user", TokenCost: 10},
+		{ID: "m2", Kind: "fact", Content: "kafka transaction details documentation", Authority: "user", TokenCost: 10},
+	}
+	pDefault := Plan(reqDefault, ms)
+	if len(pDefault.Selected) == 0 {
+		t.Fatalf("expected memories selected with default policy")
+	}
+
+	// Test aggressive pruning policy
+	pruningPolicy := baselinePolicy
+	pruningPolicy.PruneThreshold = 100.0 // extreme threshold that prunes low-density items
+	reqPrune := Request{
+		Task:   "kafka transaction pattern",
+		Budget: 200,
+		Policy: &pruningPolicy,
+	}
+	pPrune := Plan(reqPrune, ms)
+	if len(pPrune.Selected) != 0 {
+		t.Fatalf("expected 0 candidates selected under high prune threshold, got %d", len(pPrune.Selected))
+	}
+	for _, c := range pPrune.Candidates {
+		if !strings.HasPrefix(c.Reason, "rejected:") {
+			t.Errorf("expected candidate %s to be rejected under high prune threshold, got reason: %s", c.ID, c.Reason)
+		}
 	}
 }
