@@ -160,9 +160,7 @@ func (g *Graph) DegreeNorm(id string) float64 {
 	return math.Log1p(float64(deg)) / math.Log1p(float64(maxDeg))
 }
 
-// ComputePPR calculates Task-conditioned Personalized PageRank:
-// r = \alpha s + (1 - \alpha) P^T r
-// where s is the normalized seed vector, P is the row-normalized transition matrix.
+// ComputePPR computes Personalized PageRank scores seeded from task-relevant nodes.
 func (g *Graph) ComputePPR(seeds map[string]float64) map[string]float64 {
 	n := len(g.nodes)
 	scores := make(map[string]float64, n)

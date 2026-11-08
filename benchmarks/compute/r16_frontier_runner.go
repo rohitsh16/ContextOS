@@ -47,10 +47,8 @@ func difficultyBucket(d float64) string {
 	return "0.75-1.00"
 }
 
-// BuildObservedFrontier joins only finished measurements; it is safe to run
-// after a locked split, not as an online shortcut to future outcomes.
-// Repeated trials for the same (provider, model, effort) are aggregated
-// using sample standard error and 95% lower confidence bound.
+// BuildObservedFrontier aggregates completed run measurements into empirical
+// cost-quality frontier points with 95% confidence bounds.
 func BuildObservedFrontier(taskID string, runs []R16S2Run) compute.Frontier {
 	var obs []compute.EmpiricalObservation
 	for _, r := range runs {
@@ -219,9 +217,8 @@ func DefaultR16S2Tasks() []R16S2Task {
 	}
 }
 
-// RunR16S2Canary executes the full 300-run canary matrix (12 tasks × 5 effort levels × 5 repeats).
-// It enforces 70/15/15 holdout isolation, builds observed frontiers, evaluates the 5 policies,
-// checks automated integrity gates, and emits all 5 required artifacts.
+// RunR16S2Canary executes the canary benchmark matrix across tasks and effort levels,
+// evaluating policies against holdouts and generating summary artifacts.
 func RunR16S2Canary(config R16S2Config) (R16S2Summary, error) {
 	if config.ResultsDir == "" {
 		config.ResultsDir = "benchmarks/results/r16"

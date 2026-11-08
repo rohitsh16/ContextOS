@@ -126,13 +126,8 @@ func EstimateTokens(s string) int {
 	return int(float64(n)*1.3 + 0.999)
 }
 
-// BM25Score computes a BM25-style relevance score (Robertson & Sparck Jones, 1994) for a query
-// against a document. It improves over plain Overlap by applying:
-//   - TF saturation (k1=1.5): additional occurrences of a matched term yield diminishing returns.
-//   - Length normalization (b=0.75): long verbose documents are penalized; short focused ones rewarded.
-//
-// avgDocLen is the average token count across the candidate corpus; pass 0 to use the document's own length.
-// Result is normalized to [0,1] relative to a perfect match at average document length.
+// BM25Score computes term-frequency saturated and length-normalized relevance
+// between a query and a document, returning a normalized score in [0, 1].
 func BM25Score(query, doc string, avgDocLen float64) float64 {
 	const k1, b = 1.5, 0.75
 	qt := Tokens(query)
@@ -218,9 +213,7 @@ func (cs *CorpusStats) AddDocument(doc string) {
 	}
 }
 
-// IDF computes the Robertson-Spärck Jones probabilistic inverse document frequency with +1 smoothing:
-// IDF(t) = ln(1 + (N - df(t) + 0.5) / (df(t) + 0.5))
-// This formulation ensures non-negative scores for any document frequency df(t) <= N.
+// IDF computes smoothed inverse document frequency for a given term.
 func (cs *CorpusStats) IDF(term string) float64 {
 	if cs == nil || cs.DocCount == 0 {
 		return 0.0
@@ -272,9 +265,7 @@ func (cs *CorpusStats) ScoreBM25(query, doc string, k1, b float64) float64 {
 	return score
 }
 
-// ScoreBM25Plus computes the BM25+ extension (Lv & Zhai, 2011), adding a lower-bound delta to prevent
-// over-penalization of long documents with low term frequencies.
-// delta defaults to 1.0 if <= 0.
+// ScoreBM25Plus computes the BM25+ score with a lower-bound delta for long documents.
 func (cs *CorpusStats) ScoreBM25Plus(query, doc string, k1, b, delta float64) float64 {
 	if k1 <= 0 {
 		k1 = 1.5

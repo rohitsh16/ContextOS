@@ -20,15 +20,8 @@ const (
 	ConfigVersion = version.ApplicationVersion
 )
 
-// ResolveBinary locates a ContextOS binary using a portable resolution
-// strategy. The order is:
-//
-//  1. Explicit CONTEXTOS_BIN environment variable
-//  2. PATH lookup
-//  3. Repo-local ./bin/ directory
-//  4. Well-defined installation path (~/.local/bin)
-//
-// This avoids embedding developer-specific absolute paths.
+// ResolveBinary locates a ContextOS executable by checking CONTEXTOS_BIN,
+// PATH, the repository's ./bin directory, and ~/.local/bin.
 func ResolveBinary(name, repoRoot string) (string, error) {
 	// 1. Explicit environment variable
 	if envDir := os.Getenv("CONTEXTOS_BIN"); envDir != "" {
@@ -81,9 +74,7 @@ func isExecutable(path string) bool {
 	return !info.IsDir() && info.Mode()&0111 != 0
 }
 
-// managedMarker returns metadata fields that mark a JSON config as
-// ContextOS-managed. This allows the installer to distinguish managed
-// from user-owned configuration.
+// managedMarker returns metadata fields that mark a JSON config as ContextOS-managed.
 func managedMarker() map[string]any {
 	return map[string]any{
 		"_managedBy": ManagedBy,

@@ -62,13 +62,8 @@ func NewSubsystemPlanner(
 	}
 }
 
-// ExecutePlan orchestrates the full pipeline:
-// Classify → Exact Retrieval → Canonicalize → Evidence Validation →
-// Bounded Graph Expand (from validated seeds only) → Fuse → Adaptive Stop →
-// Compile ContextUnits → Optimize Context → Cache Prefix.
-//
-// R17 Phase 6: The planner now enforces the soundness contract (Theorem 3):
-// if retrieval returns EvidenceNone, no candidates are selected.
+// ExecutePlan runs the full retrieval pipeline: query classification, candidate retrieval,
+// graph expansion, score fusion, and budget-constrained context optimization.
 func (p *SubsystemPlanner) ExecutePlan(ctx context.Context, q Query, lctx LocalizerContext) (*PlannedContext, RetrievalTrace, error) {
 	startTotal := time.Now()
 	trace := RetrievalTrace{

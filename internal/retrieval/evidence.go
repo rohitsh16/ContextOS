@@ -143,11 +143,8 @@ func (e *PlannerSoundnessError) Error() string {
 	return fmt.Sprintf("planner soundness violation: attempted to produce %d selected candidates from status %s (NO_EVIDENCE contract requires 0)", e.AttemptedSize, e.Status)
 }
 
-// AssertPlannerSoundness validates that the planner contract is satisfied.
-// Returns a PlannerSoundnessError if a NO_EVIDENCE state has been combined
-// with a non-empty selection — which would violate Theorem 3.
-//
-// Usage: call this at the start of ExecutePlan after obtaining an EvidencePackage.
+// AssertPlannerSoundness ensures that no candidates are selected when no evidence was found,
+// preventing ungrounded model hallucinations.
 func AssertPlannerSoundness(pkg EvidencePackage, selectedCandidates []Candidate) error {
 	if pkg.Status == EvidenceNone && len(selectedCandidates) > 0 {
 		return &PlannerSoundnessError{

@@ -49,9 +49,8 @@ func authorityScore(v string) float64 {
 	}
 }
 
-// stale evaluates whether a candidate memory is outdated relative to the active repository revision
-// and changed file set using path-scoped diff intersections (PR-08).
-// Returns freshRisk (0.0–1.0 penalty) and hardStale (true = explicitly invalidated/deleted → immediate rejection).
+// stale evaluates whether a candidate memory is outdated relative to the active repository revision.
+// Returns freshRisk (0.0-1.0 penalty) and hardStale (true if explicitly invalidated).
 func stale(m model.Memory, currentRevision string, changedFiles map[string]string) (float64, bool) {
 	eval := temporal.NewScopedStalenessEvaluator(changedFiles, currentRevision, nil)
 	return eval.EvaluateStaleness(m)
@@ -80,10 +79,7 @@ func kindBoost(kind string) float64 {
 	}
 }
 
-// confWeight converts a raw Memory.Confidence value to a multiplicative score gate in [0.1, 1.0].
-// When Confidence is unset (0.0), returns 1.0 for backward compatibility with memories stored before
-// confidence tracking was introduced. Positive values are floored at 0.1 to prevent total suppression
-// of uncertain-but-useful memories.
+// confWeight maps a confidence score to a multiplicative weight in [0.1, 1.0].
 func confWeight(c float64) float64 {
 	if c <= 0 {
 		return 1.0 // Not specified → full confidence assumed.
@@ -91,11 +87,8 @@ func confWeight(c float64) float64 {
 	return math.Max(0.1, c)
 }
 
-// Score evaluates a single candidate memory against a planning request.
-// It computes BM25 lexical overlap, hash-based semantic similarity, authority weighting,
-// confidence weighting, graph centrality, and staleness risk.
-// The Score and Density fields are preliminary; Plan() overwrites them with RRF-fused values
-// after cross-candidate ranking.
+// Score evaluates a single candidate memory against a planning request
+// using lexical overlap, semantic similarity, authority, and staleness risk.
 func Score(req Request, m model.Memory) model.Candidate {
 	tok := m.TokenCost
 	if tok <= 0 {
@@ -213,38 +206,8 @@ func rankBy(n int, less func(i, j int) bool) []int {
 	return idx
 }
 
-// Formal Objective Function (PR-10):
-//
-//   F(C) = sum_i alpha_i Coverage_i(C) + sum_j beta_j Relevance_j(C) - lambda Redundancy(C) + eta Cache(C) - rho Risk(C)
-//
-// Classification of terms:
-//   - Coverage(C): submodular (diminishing returns over code/memory coverage)
-//   - Relevance(C): modular (independent item scores under BM25/PPR/Dense)
-//   - Redundancy(C): supermodular penalty (pairwise term/content overlap)
-//   - Cache(C): modular (prefix stability benefit)
-//   - Risk(C): supermodular penalty (accumulated staleness/invalidation risk)
-//
-// Explicit theoretical assumptions:
-//   - Assumption A1: Monotonicity — F(A) <= F(B) for A subseteq B in unconstrained utility
-//   - Assumption A2: Submodularity — Delta(e | A) >= Delta(e | B) for A subseteq B
-//   - Assumption A3: Non-negative costs — c(e) > 0 for all candidate memories
-//   - Assumption A4: Feasibility — total token cost sum_{e in C} c(e) <= Budget
-//
-// Plan executes the budget-constrained context optimization algorithm across candidate memories.
-// It applies four passes in sequence:
-//
-//  1. BM25 Lexical Scoring  — TF saturation + length normalization (Robertson & Sparck Jones 1994).
-//
-//  2. Reciprocal Rank Fusion — combines semantic, lexical, and affinity signals by rank position
-//     (Cormack et al., 2009), gated multiplicatively by authority × freshness × confidence.
-//
-//  3. Singleton Rescue — density-greedy selection with singleton rescue and fill pass.
-//     After greedy packing, if a single item that fits the budget has a higher aggregate score
-//     than the greedy selection, it replaces the selection as a knapsack safeguard.
-//
-//  4. Fill Pass — fills remaining budget with highest-density eligible items not yet selected.
-// RankCandidates scores all candidate memories using hybrid BM25, semantic similarity,
-// and task affinity, fuses them with Reciprocal Rank Fusion, and returns them sorted by density.
+// RankCandidates scores candidate memories using BM25 and semantic similarity,
+// fuses rankings with RRF, and returns candidates sorted by utility density.
 func RankCandidates(req Request, ms []model.Memory) []model.Candidate {
 	if len(ms) == 0 {
 		return nil

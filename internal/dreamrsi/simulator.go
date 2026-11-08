@@ -59,9 +59,8 @@ func NewReplaySimulator(scenarios []SimulationScenario) *ReplaySimulator {
 	}
 }
 
-// Replay executes a counterfactual simulation of a task scenario under policy.
-// It recalculates candidate marginal utilities, applies dynamic pruning,
-// knapsack budget packing, and verifies evidence retention.
+// Replay simulates a task scenario under an alternative exploration policy,
+// testing candidate pruning, budget packing, and evidence retention.
 func (s *ReplaySimulator) Replay(sc SimulationScenario, p ExplorationPolicy) SimulationResult {
 	start := time.Now()
 

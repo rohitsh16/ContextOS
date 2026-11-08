@@ -19,9 +19,8 @@ type AdmissionPolicy struct {
 	Version           string          `json:"version"`
 }
 
-// DefaultAdmissionPolicy creates the conservative R17.5 admission policy:
-// authoritative source, docs, and tests are admitted;
-// generated, vendored, build output, agent worktrees, and caches are strictly excluded.
+// DefaultAdmissionPolicy admits source, docs, and tests while excluding
+// generated code, vendored packages, build artifacts, and agent worktrees.
 func DefaultAdmissionPolicy() AdmissionPolicy {
 	return AdmissionPolicy{
 		IncludeClasses: []EvidenceClass{
@@ -71,9 +70,7 @@ func matchGlobOrPrefix(pattern, path string) bool {
 	return false
 }
 
-// EvaluateAdmission assesses candidate file eligibility based on classification and admission policy (R17.5 §9).
-// Invariant I1: Retrieved(e) => Eligible(e)
-// Invariant I2: Admission(S, P) == Admission(S, P) (deterministic)
+// EvaluateAdmission checks candidate file eligibility against the admission policy.
 func EvaluateAdmission(relPath string, content []byte, isTracked bool, isIgnored bool, policy AdmissionPolicy) EvidenceEligibility {
 	relSlash := filepath.ToSlash(relPath)
 

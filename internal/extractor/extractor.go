@@ -268,11 +268,8 @@ type ConflictResolutionResult struct {
 	Resolved        bool
 }
 
-// ResolveConflicts compares candidate memory against existing memories in the store.
-// Invariant: historical records are never mutated or silently erased.
-// If candidate contradicts m_old, m_old is marked invalidated/superseded with interval [t0, t1],
-// and candidate is created with interval [t1, ...].
-// If candidate duplicates m_old, evidence is merged and reuse count incremented.
+// ResolveConflicts compares candidate memories against existing memories,
+// invalidating contradicted entries and merging evidence for duplicates.
 func ResolveConflicts(existing []model.Memory, candidate ExtractedClaim, currentRevision string) ConflictResolutionResult {
 	candID := generateMemoryID(candidate.Claim, candidate.Kind)
 	candMem := model.Memory{

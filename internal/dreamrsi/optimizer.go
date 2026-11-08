@@ -71,11 +71,8 @@ func NewDreamOptimizer(sim *ReplaySimulator, cfg OptimizerConfig) *DreamOptimize
 	}
 }
 
-// Optimize executes the full Dream-RSI cycle:
-// 1. Evaluates baseline policy.
-// 2. Explores candidate policy space across generations.
-// 3. Evaluates Pareto-fitness: R(pi) = SuccessRate*100 + EvidenceRecall*50 + TokenReduction*0.5.
-// 4. Applies statistical safety gate (Cliff's Delta and paired permutation test).
+// Optimize searches for improved context allocation policies by simulating historical
+// trajectories offline and validating improvements with statistical gates.
 func (o *DreamOptimizer) Optimize(initialPolicy ExplorationPolicy) DreamOptimizationReport {
 	start := time.Now()
 

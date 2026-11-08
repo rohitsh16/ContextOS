@@ -74,10 +74,8 @@ func DefaultExclusionPolicy() ExclusionPolicy {
 	}
 }
 
-// IsExcluded reports whether a repository-relative path (slash-separated) is
-// excluded by this policy. This is the single authoritative exclusion gate.
-//
-// Invariant: for any file f admitted by IsExcluded(p)==false, f ∈ A(S).
+// IsExcluded reports whether a repository-relative path matches an excluded
+// directory, worktree prefix, or file pattern.
 func (ep *ExclusionPolicy) IsExcluded(relPath string) bool {
 	clean := filepath.ToSlash(relPath)
 
@@ -147,15 +145,8 @@ func (ep *ExclusionPolicy) IsExcludedWithTelemetry(relPath string, t *ExclusionT
 	return false
 }
 
-// CanonicalPath computes the repository-relative canonical path for a file
-// given the repository root. It enforces:
-//
-//  1. Separator normalization (always forward slash)
-//  2. Removal of . segments
-//  3. Rejection of paths escaping root (path traversal)
-//  4. Rejection of paths inside excluded subtrees
-//
-// Returns an error if the path is invalid or escapes the root.
+// CanonicalPath returns the normalized repository-relative path for a file,
+// rejecting paths that escape the root or reside in excluded directories.
 func CanonicalPath(repoRoot, absPath string) (string, error) {
 	absRoot, err := filepath.Abs(repoRoot)
 	if err != nil {

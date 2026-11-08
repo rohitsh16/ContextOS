@@ -44,9 +44,7 @@ func ComputeEntropy(scores []float64, temperature float64) float64 {
 	return entropy
 }
 
-// DetermineAdaptiveK scales K between kMin and kMax based on candidate score entropy (PR.md Section 18).
-// Low entropy -> confident distribution -> small K
-// High entropy -> uncertain distribution -> larger K
+// DetermineAdaptiveK scales candidate count K between kMin and kMax based on score distribution entropy.
 func DetermineAdaptiveK(scores []float64, kMin, kMax int, temperature float64) int {
 	if len(scores) == 0 {
 		return kMin

@@ -1,8 +1,7 @@
 package evaluation
 
-// ReasoningRubric returns a preregistered rubric for reasoning/design tasks
-// per R16-S2 Section 7.2. These tasks lack executable test harnesses so
-// scoring uses structured deterministic criteria.
+// ReasoningRubric returns the rubric for architectural and design tasks
+// where outcomes are evaluated with structured criteria rather than unit tests.
 func ReasoningRubric(taskClass string) Rubric {
 	switch taskClass {
 	case "T3", "complex_reasoning":

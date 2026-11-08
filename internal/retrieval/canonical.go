@@ -75,13 +75,8 @@ type DeduplicationResult struct {
 	DAR float64
 }
 
-// DeduplicateCandidates applies the R17 canonicalization invariant to a
-// candidate slice. For every set of candidates that share the same
-// CanonicalNodeKey, only the one with the highest Score is retained, but
-// the provenance of all observations is merged.
-//
-// Theorem 1 (R17): After canonicalization, adding or removing duplicate
-// physical copies cannot change the score of the logical candidate.
+// DeduplicateCandidates retains the highest-scoring candidate per canonical key
+// while merging observation provenance across duplicates.
 func DeduplicateCandidates(candidates []Candidate, repoID string) DeduplicationResult {
 	if len(candidates) == 0 {
 		return DeduplicationResult{}
@@ -135,13 +130,8 @@ func DeduplicateCandidates(candidates []Candidate, repoID string) DeduplicationR
 	}
 }
 
-// MergeCandidatesWithTier merges tiered candidate slices respecting the
-// priority order defined in R17 §24:
-//
-//	Tier 0 (exact) > Tier 1 (lexical) > Tier 2 (graph) > Tier 3 (semantic)
-//
-// Exact-tier matches dominate: if a node appears in Tier 0, no lower-tier
-// entry for the same canonical key can override it.
+// MergeCandidatesWithTier combines tiered candidate slices, prioritizing
+// exact matches over lexical, graph, and semantic candidates.
 func MergeCandidatesWithTier(exact, lexical, graph, semantic []Candidate, repoID string) []Candidate {
 	const (
 		tierExact    = 0

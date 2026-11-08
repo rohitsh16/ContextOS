@@ -1,223 +1,162 @@
 # ContextOS
 
-**Persistent, budget-aware context for AI coding agents.**
+**Persistent, budget-aware memory for AI coding agents.**
 
-ContextOS is a local-first context runtime that keeps engineering state across sessions, agents, repository revisions, and machine restarts. It builds minimum-sufficient context packages under a token budget — so your agents remember decisions, avoid past failures, and stay efficient.
+ContextOS is a local context runtime that keeps state across sessions, agents, and git revisions. It works out of the box with **Claude Code**, **Cursor**, **Codex**, **Gemini CLI**, and **Antigravity**.
 
-Works with **Claude Code**, **Cursor**, **Codex**, **Gemini CLI**, and **Antigravity** out of the box.
+---
+
+## Why ContextOS?
+
+Today's AI coding assistants are powerful, but they have a fundamental limitation: **they have amnesia**.
+
+1. **Lost context across sessions**: Every time you start a new chat, restart your IDE, or switch models, your agent starts from a blank slate. You have to re-explain your architecture and project conventions over and over.
+2. **Repeated mistakes**: If an agent tries an approach that breaks your build or fails a test, it will happily try that same broken approach again in the next session.
+3. **Bloated prompts and wasted money**: Agents typically dump entire files into their context window. This burns through your token budget, slows down response times, and increases API costs.
+4. **Agent lock-in**: Context discovered in Cursor doesn't carry over when you switch to Claude Code or Codex.
+
+**ContextOS solves this locally on your machine.** It indexes your code, tracks architectural decisions and past failures, and builds tightly packed, budget-bounded context packets that keep your agents fast, cheap, and aligned with your project.
+
+---
+
+## Key Features
+
+- **Persistent Memory**: Decisions, constraints, active task state, and past failures survive across sessions, IDE restarts, and model changes.
+- **Git Synchronization**: ContextOS tracks git branches and commit hashes. When code changes, outdated memories are automatically invalidated so agents never act on stale assumptions.
+- **AST Symbol Indexing**: Extracts functions, types, and interfaces into a reference graph. Agents can query exact symbol definitions without reading whole files.
+- **7-Stage Hybrid Retrieval**: Combines exact path matching, symbol lookup, entity resolution, BM25 text search, semantic hashing, call graph expansion, and rank fusion to find the best evidence.
+- **Token Budget Allocation**: Packs context into a strict token budget (e.g., 4,000 tokens) using marginal-utility knapsack optimization, ensuring you never exceed model limits.
+- **Prompt Cache Friendly**: Partitions context into a stable prefix (decisions, invariants, definitions) and dynamic task state. This maximizes prompt-cache hits with providers like Anthropic and OpenAI, cutting latency and costs.
+- **Cross-Agent Handoff**: Pass tasks between tools with `ctx handoff` — start in Cursor, continue in Claude Code, and pick up in Antigravity without losing state.
+- **Local MCP Server**: Exposes 13 tools and 5 resources over standard input/output (stdio JSON-RPC). No cloud accounts or external API keys needed.
+- **Local Web Dashboard**: A built-in web UI (`ctx ui`) to inspect your memory graph, simulate token savings, and monitor active sessions.
+- **Dual Storage Engines**: Uses embedded SQLite by default, or a pure-Go FileStore with zero dependencies and no CGO.
 
 ---
 
 ## Quick Start
 
+### 1. Build & Install
+
+**Prerequisites**: Go 1.23+ and a C compiler (for SQLite).
+
 ```bash
-# 1. Build from source (requires Go 1.23+ and system SQLite3)
+# Clone the repository
+git clone https://github.com/your-username/ContextOS.git
+cd ContextOS
+
+# Build binaries (bin/ctx, bin/contextd, bin/ctx-hook, bin/ctxbench)
 make
 
-# 2. Install to ~/.local/bin
+# Install `ctx` to ~/.local/bin
 make install-user
+```
 
-# 3. Set up any repository — indexes code + installs hooks/MCP for all agents
-cd /path/to/your/repo
+> **Pure-Go Build (Zero Dependencies / No CGO)**:
+> If you don't have SQLite or CGO available, you can build ContextOS as a pure-Go binary:
+> ```bash
+> CGO_ENABLED=0 go build -o bin/ctx ./cmd/ctx
+> CGO_ENABLED=0 go build -o bin/contextd ./cmd/contextd
+> ```
+> ContextOS will automatically use the built-in **FileStore** engine.
+
+### 2. Set Up Your Repository
+
+Navigate to any codebase and run:
+
+```bash
+cd /path/to/your/project
 ctx setup
 ```
 
-That's it. Your agents now have persistent context.
+`ctx setup` handles everything in one shot:
+1. Indexes your repository's code symbols and git revision state.
+2. Initializes the local database at `~/.contextos/context.db`.
+3. Automatically detects and configures MCP servers and lifecycle hooks for Claude Code, Cursor, Codex, Gemini CLI, and Antigravity.
 
-> **Storage engines**: ContextOS supports two storage backends:
-> - **SQLite** (default): High-performance embedded DB with WAL mode and FTS5.
-> - **FileStore** (`-storage file` or `CONTEXTOS_STORAGE=file`): Zero-dependency, pure Go standard library storage engine (zero CGO, zero external libraries). Ideal when SQLite or CGO is unavailable.
->
-> Default database path is `~/.contextos/context.db` (SQLite) or `~/.contextos/data` (FileStore). Override via `-db PATH` or `CONTEXTOS_DB=/path/to/storage`.
-
----
-
-## What It Does
-
-| Capability | Detail |
-|---|---|
-| **Persistent memory** | Facts, decisions, constraints, failures survive across sessions |
-| **Git-aware** | Tracks revisions, branches, worktree state; auto-invalidates stale context |
-| **Code indexing** | Extracts symbols, types, functions + builds a reference graph |
-| **7-Stage Hybrid Retrieval** | Exact path, symbol AST, entity, BM25, semantic hash, causal expansion & RRF rerank |
-| **Budget allocation** | Greedy marginal-utility allocator stays within token limits |
-| **Prompt-cache aware** | Stable prefix / variable context ordering for provider cache hits |
-| **Compute optimization** | Capability-preserving optimizer, reasoning effort levels (minimal→maximum) & thinking budgets |
-| **Context caching** | Identical (revision, task, model, budget) → cached plan, zero recompute |
-| **Hook capture** | Records prompts, tool calls, failures automatically per agent |
-| **Cross-agent handoff** | Transfer context between models/agents with `ctx handoff` |
-| **Model routing** | Recommends model by task complexity, budget, and capability envelope |
-| **MCP server** | 13 tools + 5 resources over JSON-RPC stdio |
-| **Dream-RSI (Recursive Self-Improvement)** | Self-improving exploration policies via offline replay simulator ("evolving worlds", arXiv:2609.14858) |
-| **Web UI dashboard** | Local visual dashboard with token savings simulator and graph index viewer |
-| **Enterprise SaaS** | Multi-tenant isolation, rate limiting, API keys, token metering & Stripe-ready invoicing |
+Your agents now have persistent, budget-aware memory.
 
 ---
 
 ## Everyday Usage
 
 ### Resume where you left off
+Recover active branch state, open work items, recent decisions, and known gotchas:
 ```bash
 ctx resume -repo .
 ```
 
 ### Plan context for a task
+Assemble the most relevant code definitions and memories within a strict token budget:
 ```bash
-ctx plan -task "Fix duplicate payment processing" -budget 4000 -render
+ctx plan -task "Fix race condition in webhook dispatcher" -budget 4000 -render
 ```
 
-### 7-stage hybrid retrieval with candidate inspection
+### Search symbols and project memory
+Run 7-stage hybrid search across code symbols, documentation, and stored decisions:
 ```bash
-# Retrieve top ranked evidence candidates with execution trace
-ctx retrieve -repo . -task "Fix duplicate payment processing" -top 20 -trace -format md
+ctx retrieve -task "webhook retry policy" -top 10
 ```
 
-### Launch local real-time Web UI Dashboard
-```bash
-# Start visual dashboard on localhost:8765
-ctx ui -repo . -port 8765
-```
-
-### Hand off to another agent
-```bash
-ctx handoff -task "Continue failover implementation" -target codex -budget 4000
-```
-
-### Store a decision
+### Record an architectural decision
+Teach your agents a design rule so they follow it consistently:
 ```bash
 ctx remember -kind decision -authority user \
-  -content "Use the outbox pattern because DB and Kafka are not atomic."
+  -content "Use the outbox pattern for Kafka publishing because database and message broker transactions are not atomic."
 ```
 
-### Check stats
+### Record a failure to prevent repeating mistakes
+Save negative knowledge (bugs or failed attempts) so agents avoid the same trap:
+```bash
+ctx remember -kind failure -authority test \
+  -content "Unbuffered channels in the hook dispatcher caused deadlocks under bursty traffic."
+```
+
+### Hand off work to another agent
+Transfer active context cleanly when switching between models or IDEs:
+```bash
+ctx handoff -task "Implement Redis failover tests" -target claude -budget 4000
+```
+
+### Open the local visual dashboard
+Launch the web interface to view memories, symbol graphs, and token savings:
+```bash
+ctx ui -port 8765
+```
+
+### Check repository statistics
+View indexed symbol counts, stored memories, and cache efficiency:
 ```bash
 ctx stats -repo .
 ```
 
-### Route to the best model and compute envelope
+### Switch storage backends
+Migrate your data between SQLite and the zero-dependency FileStore without data loss:
 ```bash
-ctx route -task "distributed lock migration" -budget 8000
-```
-
-### Run correctness & benchmark gates
-```bash
-ctx bench correctness -suite standard -format table
-```
-
-### Switch storage engines (Migrate SQLite ↔ FileStore)
-Transfer all repositories, AST nodes, memories, work items, sessions, events, and traces without data loss:
-```bash
-# Transfer SQLite data to zero-DB FileStore
+# SQLite -> FileStore
 ctx migrate -to file
 
-# Transfer FileStore data back to SQLite
+# FileStore -> SQLite
 ctx migrate -to sqlite
-
-# Specify custom source and destination paths
-ctx migrate -from sqlite -to file -from-path ~/.contextos/context.db -to-path ~/.contextos/data
 ```
 
-### Storage Garbage Collection (Opt-In Pruning)
+### Storage cleanup (Opt-in garbage collection)
+Prune expired execution traces and cached plans:
 ```bash
-# Dry run to see what expired entries would be pruned
+# Dry run to see what would be pruned
 ctx gc -repo . -keep-days 30 -dry-run
 
-# Run garbage collection
+# Run cleanup
 ctx gc -repo . -keep-days 30
-
-# Enable automated pruning during context planning (opt-in feature flag)
-ctx plan -task "refactor storage" -auto-prune
-# Or set CONTEXTOS_AUTO_PRUNE=1
 ```
-
----
-
-## Full CLI Reference
-
-```
-ctx init|index     -repo PATH                          Index repository symbols
-ctx remember       -repo PATH -kind K -content '...'   Persist a memory
-ctx plan           -repo PATH -task '...' [-model M]   Build context plan
-                   [-budget N] [-render] [-auto-prune]
-ctx retrieve       -repo PATH -task '...' [-top N]     7-stage hybrid candidate retrieval
-                   [-trace] [-format md|json]
-ctx resume         -repo PATH                          Recover active work state
-ctx handoff        -repo PATH -task '...' -target M    Cross-agent handoff
-ctx invalidate     -repo PATH -id MEMORY_ID            Invalidate a memory
-ctx gc             -repo PATH [-keep-days N] [-dry-run]Garbage collect expired cache & traces
-ctx migrate        -to file|sqlite [-from file|sqlite] Transfer data between storage engines
-ctx work           -repo PATH -title "..."             Start a work item
-ctx session        -repo PATH -agent NAME              Start an agent session
-ctx event          -repo PATH -event TYPE -payload J   Record an event
-ctx stats          -repo PATH                          Show statistics
-ctx route          -task "..." -budget N               Recommend a model & effort level
-ctx ui             -repo PATH [-port 8765]             Launch real-time web UI dashboard
-ctx bench          [correctness|retrieval|mse]         Run correctness & retrieval benchmarks
-ctx audit          -repo PATH [-format md|json]        Audit admission and exclusion universe
-ctx report         -repo PATH [-format md|json]        Generate evaluation/benchmark report
-ctx publish        -repo PATH [-output FILE]           Publish empirical test results to markdown
-ctx install        -repo PATH -agent claude|cursor|    Install for one agent
-                   codex|gemini|antigravity|all
-ctx uninstall      -repo PATH [-agent NAME]            Uninstall agent integrations
-ctx setup          -repo PATH                          Index + install all
-ctx hook           -agent NAME -event TYPE < stdin     Process hook event
-ctx completion     [bash|zsh]                          Generate shell completion script
-
-Storage Options & Feature Flags:
-  -storage sqlite|file    Choose storage engine (or CONTEXTOS_STORAGE)
-  -auto-prune             Opt-in automated storage pruning (or CONTEXTOS_AUTO_PRUNE=1)
-  -db PATH                Custom SQLite DB or file store directory
-```
-
----
-
-## MCP Server
-
-The MCP server runs locally over stdio — no network, no API keys:
-
-```bash
-# Start standalone MCP server for a repo
-ctx -repo /path/to/repo -mcp
-
-# Or via the daemon binary directly
-contextd -repo /path/to/repo -mcp
-```
-
-### Supported Tools (13)
-
-| Tool | Description |
-|---|---|
-| `context_plan` | Select minimum-sufficient, cache-aware context under a token budget with adaptive timeout mitigation |
-| `context_remember` | Persist durable engineering knowledge (decisions, constraints, failures, patterns) |
-| `context_resume` | Recover active repository/work state and recent context |
-| `context_invalidate` | Invalidate a stale or superseded memory at the current revision |
-| `context_search` | Search durable engineering memory and repository context with hybrid BM25 + semantic matching |
-| `context_compute_plan` | Generate provider-neutral adaptive compute plan (reasoning effort, token budget, model routing, verification tier) |
-| `context_handoff` | Produce structured cross-agent handoff context |
-| `context_work_start` | Start tracking a persistent engineering work item |
-| `context_session_start` | Start an agent session with associated metadata |
-| `context_event` | Record an agent/tool lifecycle event |
-| `context_stats` | Display runtime statistics and token allocation metrics |
-| `context_trace` | Show the latest context allocation plan and decisions |
-| `context_route` | Recommend an optimal model and reasoning effort using task complexity and budget |
-
-### Supported Resources (5)
-
-| URI | Content |
-|---|---|
-| `context://memory/relevant` | Top durable engineering memories relevant to the recent context |
-| `context://repo/current` | Current repository metadata, git revision, and active branch |
-| `context://session/latest` | Most recent agent session state and history |
-| `context://trace/latest` | Most recent context allocation trace, candidate scores, and decisions |
-| `context://work-item/current` | Active engineering work item details |
 
 ---
 
 ## Agent Integrations
 
-`ctx setup` automatically configures hooks + MCP for all supported agents:
+When you run `ctx setup`, ContextOS registers its MCP server and lifecycle hooks for all supported agents on your machine:
 
-| Agent | Hooks File | MCP Config | Rules / Context Guidance |
+| Agent | Hooks Configuration | MCP Server Config | Rules / Context Guidance |
 |---|---|---|---|
 | **Claude Code** | `.claude/settings.local.json` | `.mcp.json` | — |
 | **Cursor** | `.cursor/hooks.json` | `.cursor/mcp.json` | `.cursor/rules/contextos.mdc` |
@@ -225,138 +164,147 @@ contextd -repo /path/to/repo -mcp
 | **Gemini CLI** | `.gemini/settings.json` | `.gemini/settings.json` | — |
 | **Antigravity** | `.agents/hooks.json` | `.agents/mcp_config.json` | `.agents/rules/contextos.md` |
 
-Install for a single agent:
-
+To install for a specific agent only:
 ```bash
-ctx install -repo . -agent antigravity
+ctx install -agent cursor
 ```
 
-All installations are idempotent — running setup twice won't duplicate entries.
+All installations are idempotent — running setup multiple times will never duplicate entries or overwrite custom configurations.
 
 ---
 
-## Architecture
+## MCP Server
 
-```
-Claude / Cursor / Codex / Gemini / Antigravity
-             |
-        MCP + hooks
-             |
-             v
-       +-----------+
-       | ContextOS |
-       +-----+-----+
-             |
-     +-------+--------+
-     |                |
-     v                v
-Engineering      Cost / cache
-state graph        policy
-     |                |
-     +-------+--------+
-             v
-     Candidate generation
-             |
-     Validity / authority
-             |
-     Marginal utility scoring
-             |
-     Budgeted greedy allocation
-             |
-     Stable prefix ordering
-             |
-         Model context
-```
-
-### Authoritative 7-Stage Hybrid Retrieval Pipeline
-
-ContextOS uses an inspectable 7-stage evidence retrieval pipeline with end-to-end stage telemetry:
-
-```
-Task Query ──► 1. Exact Path Match    ──► Pinpointed file and line ranges
-           ──► 2. AST Symbol Nav       ──► Types, interfaces, functions & methods
-           ──► 3. Entity Resolution    ──► Package & identifier resolution
-           ──► 4. Lexical (BM25)       ──► Term-frequency keyword matches
-           ──► 5. Semantic Hash        ──► Offline deterministic embedding similarity
-           ──► 6. Causal Expansion    ──► Callers, callees, dependency graph traversal
-           ──► 7. RRF Fusion & Rerank  ──► Reciprocal Rank Fusion candidate scoring
-```
-
-The scoring combines:
-- **Semantic similarity** — hashed deterministic similarity (zero dependencies, offline)
-- **Lexical overlap** — BM25 token intersection
-- **Authority** — user > test > source > commit > doc > inference
-- **Freshness** — revision-aware invalidation + staleness penalty
-- **Memory kind** — decisions > failures > constraints > state > observations > code > facts
-- **Evidence** — provenance-backed memories score higher
-- **Reuse** — frequently-used context is prioritized
-- **Cache value** — prompt-cache topology optimization
-
-### Compute Optimization & Adaptive Reasoning Control
-
-ContextOS actively solves the **minimum-sufficient compute** optimization problem:
-
-$$\min E[C_{E2E}] \quad \text{subject to} \quad Q_{LCB} \ge Q_{min}$$
-
-Where $Q_{LCB}$ is the empirical Lower Confidence Bound of task capability.
-
-- **Dynamic Effort Negotiation**: Resolves provider-neutral effort levels (`minimal` $\rightarrow$ `low` $\rightarrow$ `medium` $\rightarrow$ `high` $\rightarrow$ `maximum`) mapped to thinking token budgets across models (OpenAI o1/o3, Claude 3.7 Sonnet extended thinking, Gemini 2.5 Pro).
-- **Value of Information (VOI) Accounting**: Evaluates marginal utility $\Delta U$ against token expenditure before escalating inference compute.
-- **Deterministic Bypass**: T0 deterministic tasks bypass expensive LLM calls completely (costing $\approx \$0.00005$ with sub-millisecond latency).
-
----
-
-## Building
-
-**Requirements**: Go 1.23+.
+ContextOS includes a standard Model Context Protocol (MCP) server that runs locally over stdio:
 
 ```bash
-make          # Build all binaries to bin/ (SQLite support enabled)
-make test     # Run all tests
-make bench    # Run synthetic policy benchmark
-make install-user  # Install to ~/.local/bin
-make clean    # Remove build artifacts
+# Run via CLI
+ctx -repo /path/to/repo -mcp
+
+# Or directly via the daemon
+contextd -repo /path/to/repo -mcp
 ```
 
-The default build links system SQLite3 through CGO. On macOS, Apple clang works automatically. On Linux, install `libsqlite3-dev`.
+### Tools (13)
 
-### Zero-Dependency / Pure-Go Build (No CGO, No SQLite)
-ContextOS can be built completely without CGO or external libraries for sandboxed or minimal environments:
-```bash
-CGO_ENABLED=0 go build -o bin/ctx ./cmd/ctx
-CGO_ENABLED=0 go build -o bin/contextd ./cmd/contextd
-```
-When built with `CGO_ENABLED=0`, ContextOS defaults to the pure-Go **FileStore** engine automatically.
-
----
-
-## Binaries
-
-| Binary | Purpose |
+| Tool | What It Does |
 |---|---|
-| `ctx` | CLI for all user-facing operations |
-| `contextd` | MCP server daemon (stdio JSON-RPC) |
-| `ctx-hook` | Standalone hook handler for agent integrations |
-| `ctxbench` | Synthetic policy benchmark |
+| `context_plan` | Selects minimum-sufficient, cache-aware context under a token budget. |
+| `context_remember` | Stores an architectural decision, constraint, failure, or fact. |
+| `context_resume` | Recovers active repository state, recent decisions, and open work items. |
+| `context_invalidate` | Invalidates an outdated memory when code changes supersede it. |
+| `context_search` | Searches code symbols and memories using hybrid BM25 and semantic matching. |
+| `context_compute_plan` | Recommends reasoning effort, token budgets, and verification tiers for a task. |
+| `context_handoff` | Produces a structured handoff payload for switching between agents. |
+| `context_route` | Recommends the optimal model based on task difficulty and budget. |
+| `context_work_start` | Starts tracking a persistent engineering work item across sessions. |
+| `context_session_start` | Initializes a tracked agent session tied to a work item. |
+| `context_event` | Records tool invocations, milestones, and lifecycle events. |
+| `context_stats` | Returns runtime statistics, cache hit rates, and token savings. |
+| `context_trace` | Inspects the latest context allocation decisions and candidate scores. |
+
+### Resources (5)
+
+| Resource URI | Description |
+|---|---|
+| `context://repo/current` | Current git repository metadata, branch name, and commit hash. |
+| `context://work-item/current` | Active engineering work item and task objectives. |
+| `context://memory/relevant` | High-priority memories matching the current task. |
+| `context://session/latest` | Most recent agent session state and history. |
+| `context://trace/latest` | Latest context allocation trace and candidate scores. |
 
 ---
 
-## Research Direction
+## How It Works Under the Hood
 
-The core problem is **minimum-sufficient context**:
+```
+   Coding Agent (Claude / Cursor / Codex / Gemini / Antigravity)
+                               │
+                          MCP / Hooks
+                               ▼
+                        ┌─────────────┐
+                        │  ContextOS  │
+                        └──────┬──────┘
+                               │
+            ┌──────────────────┴──────────────────┐
+            ▼                                     ▼
+   7-Stage Hybrid Retrieval              6-Pass Budget Packing
+   • Exact path matching                 • Multi-signal scoring
+   • AST symbol resolution               • Rank fusion (RRF)
+   • Entity primary key lookup           • Greedy knapsack packing
+   • Lexical search (BM25)               • Singleton rescue guarantee
+   • Locality-sensitive semantic hash    • Residual fill pass
+   • Call graph expansion                • Stable prefix ordering
+   • Rank fusion & deduplication                  │
+            │                                     ▼
+            └─────────────────────────► Cached Model Context
+                                        (Stable Prefix + Tail)
+```
 
-Given a task $q$, target model $\mathcal{A}$, and success threshold $\tau$, find the smallest context set $C^*$ such that:
+### 1. The 7-Stage Hybrid Retrieval Pipeline
+1. **Exact Path Match**: Direct lookups for specific files and line numbers.
+2. **AST Symbol Resolution**: Pulls function signatures, structs, and interface definitions directly from the AST.
+3. **Entity Lookup**: Direct hash-addressed retrieval for stored memory items.
+4. **Lexical Search (BM25)**: Keyword search with length normalization to find relevant references.
+5. **Semantic Hashing**: Fast, offline 64-bit cosine similarity matching without external embedding APIs.
+6. **Graph Expansion**: Traverses callers, callees, and imports to capture connected code dependencies.
+7. **Rank Fusion (RRF)**: Merges all ranking signals into a single score and deduplicates candidates across git trees.
 
-$$
-C^* = \arg\min_C \text{Tokens}(C) \quad \text{subject to} \quad P(\text{success} \mid C, q, \mathcal{A}) \ge \tau
-$$
+### 2. The 6-Pass Context Packing Pipeline
+1. **Candidate Scoring**: Evaluates relevance, authority, freshness, and confidence for every candidate.
+2. **Reciprocal Rank Fusion**: Combines signals and applies hard filters (stale or unverified notes are discarded).
+3. **Greedy Knapsack Selection**: Packs items in descending order of utility per token until the budget is filled.
+4. **Singleton Rescue**: Ensures high-value single items that fit the budget are never crowded out.
+5. **Residual Fill**: Uses any remaining token budget to include next-best supporting context.
+6. **Stable Prefix Partitioning**: Organizes the prompt so that invariant knowledge (decisions, interfaces) sits at the front, maximizing LLM prompt-cache hits.
 
-The current implementation uses our inspectable, mathematically-grounded 6-pass deterministic baseline (BM25 + RRF + Singleton Rescue + Fill Pass + KV Prefix Partitioning). The architecture is designed so the allocator can become a learned marginal-utility policy trained from real longitudinal traces — without changing storage or MCP interfaces.
+---
 
-### Recursive Self-Improvement (Dream-RSI)
-ContextOS embeds the **Dream-RSI** architecture (*Recursive Self-Improvement through Evolving Worlds*, [arXiv:2609.14858](https://arxiv.org/abs/2609.14858)). Under this framework, underlying model weights remain frozen while the exploration policy, dynamic candidate pruning thresholds, and retrieval routes are iteratively optimized offline using historical replay simulators ("evolving worlds") at native speed without LLM API costs. See [`docs/DREAM_RSI.md`](docs/DREAM_RSI.md).
+## Storage Options
 
-See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RESEARCH.md`](docs/RESEARCH.md) for formal mathematical theory and bounds, [`docs/DREAM_RSI.md`](docs/DREAM_RSI.md) for the Dream-RSI specification and citation, [`docs/ASC-1-SPEC.md`](docs/ASC-1-SPEC.md) for the specification, [`docs/EVALUATION.md`](docs/EVALUATION.md) for the evaluation framework and empirical benchmarks, [`docs/DASHBOARD.md`](docs/DASHBOARD.md) for the dashboard efficiency metrics glossary & deployment guide, and [`docs/integrations.md`](docs/integrations.md) for provider integration details.
+ContextOS supports two persistence backends:
+
+- **SQLite** (Default): Embedded database with Write-Ahead Logging (WAL) and Full-Text Search (FTS5). High performance for concurrent reads and writes.
+- **FileStore**: Pure-Go standard library implementation with zero external dependencies and zero CGO. Reads and writes plain JSON files. Perfect for locked-down or containerized environments.
+
+Default storage path is `~/.contextos/context.db` (SQLite) or `~/.contextos/data` (FileStore). Override via `-db PATH` or the `CONTEXTOS_DB` environment variable.
+
+---
+
+## Documentation
+
+- [`docs/CONTEXT.md`](docs/CONTEXT.md) — Comprehensive architecture manual and design details.
+- [`docs/MEMORY_HUB_GUIDE.md`](docs/MEMORY_HUB_GUIDE.md) — Practical guide to writing effective constraints, facts, and decisions.
+- [`docs/EVALUATION.md`](docs/EVALUATION.md) — Empirical benchmarks, token savings measurements, and evaluation results.
+- [`docs/RESEARCH.md`](docs/RESEARCH.md) — Mathematical formulations, formal bounds, and optimization proofs.
+- [`docs/DREAM_RSI.md`](docs/DREAM_RSI.md) — Offline replay simulation and recursive self-improvement specification.
+
+---
+
+## CLI Reference
+
+```
+ctx init|index     -repo PATH                          Index repository code symbols
+ctx remember       -repo PATH -kind K -content '...'   Save an engineering memory
+ctx plan           -repo PATH -task '...' [-budget N]  Build an optimized context plan
+ctx retrieve       -repo PATH -task '...' [-top N]     Run 7-stage candidate retrieval
+ctx resume         -repo PATH                          Recover active branch & work state
+ctx handoff        -repo PATH -task '...' -target M    Prepare context for another agent
+ctx invalidate     -repo PATH -id MEMORY_ID            Invalidate an obsolete memory
+ctx gc             -repo PATH [-keep-days N]           Garbage collect expired traces
+ctx migrate        -to file|sqlite                     Transfer data between storage engines
+ctx work           -repo PATH -title "..."             Start a tracked work item
+ctx session        -repo PATH -agent NAME              Start an agent session
+ctx event          -repo PATH -event TYPE -payload J   Record a lifecycle event
+ctx stats          -repo PATH                          Show memory and cache statistics
+ctx route          -task "..." -budget N               Recommend a model and effort level
+ctx ui             -repo PATH [-port 8765]             Start the local web UI dashboard
+ctx bench          [correctness|retrieval]             Run benchmark suites
+ctx audit          -repo PATH                          Audit admitted vs excluded files
+ctx install        -repo PATH -agent NAME              Install hooks and MCP for an agent
+ctx setup          -repo PATH                          Index repo and configure all agents
+ctx completion     [bash|zsh]                          Generate shell completion scripts
+```
 
 ---
 
@@ -364,8 +312,7 @@ See [`docs/CONTEXT.md`](docs/CONTEXT.md) for the architecture manual, [`docs/RES
 
 Licensed under the **Business Source License 1.1 (BSL 1.1)**:
 - **Free** for personal, academic, and local developer use with AI coding agents.
-- **Commercial & Hosted / SaaS** use requires a commercial license from the author.
+- **Commercial & Hosted / SaaS** use requires a commercial license from the authors.
 - Converts to **Apache 2.0** on January 1, 2030.
 
-See [`LICENSE`](LICENSE) for full terms or commercial inquiries.
-
+See [`LICENSE`](LICENSE) for full terms.

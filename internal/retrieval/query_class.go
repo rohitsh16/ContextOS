@@ -119,11 +119,8 @@ var (
 	rePathSep = regexp.MustCompile(`[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)+`)
 )
 
-// ClassifyQuery analyzes the query string and returns a QueryClassification.
-// Classification is deterministic and does not call any LLM or remote API.
-//
-// Design principle: strong identifiers (filenames, symbols) are detected first.
-// Only queries with no strong identifier fall through to LEXICAL/CONCEPTUAL.
+// ClassifyQuery deterministically analyzes a query string to detect file paths,
+// symbols, or conceptual intent without calling external models.
 func ClassifyQuery(query string) QueryClassification {
 	q := strings.TrimSpace(query)
 	if q == "" {

@@ -22,10 +22,8 @@ func (cs ChangeSet) HasChanges() bool {
 	return len(cs.Added) > 0 || len(cs.Deleted) > 0 || len(cs.Modified) > 0
 }
 
-// DetectChanges scans the repo and compares against manifest using a multi-tier approach:
-// Tier 1: Stat-based size/mtime check.
-// Tier 2: Content hashing only when stat changes.
-// Tier 3: Transitive closure on reverse dependency graph for affected files.
+// DetectChanges scans the repository and compares files against the manifest,
+// identifying added, modified, deleted, and affected dependent files.
 func DetectChanges(root string, m *Manifest, reverseDeps map[string][]string) (ChangeSet, error) {
 	var cs ChangeSet
 	currentFiles := make(map[string]os.FileInfo)

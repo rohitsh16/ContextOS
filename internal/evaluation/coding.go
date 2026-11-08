@@ -1,12 +1,6 @@
 package evaluation
 
-// CodingRubric returns a preregistered rubric for coding tasks with composite
-// quality scoring: Q = w_b·Build + w_u·UnitTests + w_i·IntegrationTests +
-// w_r·RegressionTests + w_s·StaticAnalysis.
-//
-// Weights are fixed before analyzing holdout outcomes (Invariant E).
-// For tasks where binary correctness is available, binary correctness
-// dominates the gate via the Required field.
+// CodingRubric returns the evaluation rubric and weights for a given task class.
 func CodingRubric(taskClass string) Rubric {
 	switch taskClass {
 	case "T1", "local_correctness":
@@ -71,9 +65,7 @@ func CodingRubric(taskClass string) Rubric {
 	}
 }
 
-// EvaluateCoding scores a coding task outcome against its preregistered rubric.
-// Components must be normalized to [0,1]. The caller supplies observed component
-// scores; the rubric determines weights and hard-gate criteria.
+// EvaluateCoding scores a coding task outcome against its evaluation rubric.
 func EvaluateCoding(taskClass string, components map[string]float64) Result {
 	rubric := CodingRubric(taskClass)
 	return rubric.Score(components)

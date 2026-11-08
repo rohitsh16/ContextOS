@@ -157,9 +157,8 @@ func PairedPermutationTest(deltas []float64, nPermutations int, seed int64) floa
 	return float64(countExtreme) / float64(nPermutations)
 }
 
-// CliffsDelta computes Cliff's delta effect size for paired observations:
-// d = (#(Δ > 0) - #(Δ < 0)) / n.
-// Returns effect size d in [-1, 1] and qualitative interpretation.
+// CliffsDelta computes Cliff's delta effect size for paired observations,
+// returning a value in [-1, 1] along with a qualitative interpretation.
 func CliffsDelta(deltas []float64) (float64, string) {
 	if len(deltas) == 0 {
 		return 0.0, "negligible"

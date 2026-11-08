@@ -29,14 +29,8 @@ type CounterfactualResult struct {
 	Essential         bool              `json:"essential"`
 }
 
-// EvaluateCounterfactualAblations implements Section 17 Counterfactual Evaluation:
-// Delta Q_i = Q(C) - Q(C \setminus {i})
-// Runs ablations for:
-// - C \setminus decisions
-// - C \setminus failures
-// - C \setminus source
-// - C \setminus graph
-// - C \setminus cache prefix
+// EvaluateCounterfactualAblations measures the impact of removing individual
+// context dimensions (decisions, failures, source, graph, cache prefix) on task quality.
 func EvaluateCounterfactualAblations(
 	candidates []model.Candidate,
 	evalFn func([]model.Candidate) float64,

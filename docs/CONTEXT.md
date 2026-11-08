@@ -90,7 +90,7 @@ ContextOS is a local-first, model-neutral context runtime designed for software 
 
 ---
 
-## 2. Memory Model & Epistemological Taxonomy
+## 2. Memory Model & Knowledge Types
 
 Rather than unstructured text lumps or naive vector dumps, ContextOS classifies all memories into strongly typed knowledge entities:
 

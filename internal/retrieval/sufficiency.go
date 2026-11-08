@@ -80,10 +80,8 @@ type SufficiencyResult struct {
 	Reason          string   `json:"reason"`
 }
 
-// EvaluateSufficiency calculates the Evidence Coverage Ratio (ECR) and determines whether
-// the selected evidence set E is sufficient to answer query q under contract C (R18 §28, §30).
-//
-// Relevance != Sufficiency (R18 §31).
+// EvaluateSufficiency calculates the Evidence Coverage Ratio and checks whether
+// the collected evidence is adequate to answer the query contract.
 func EvaluateSufficiency(evidence []*EvidenceNode, contract QueryContract, minCoverage float64) SufficiencyResult {
 	if minCoverage <= 0 {
 		minCoverage = 0.8

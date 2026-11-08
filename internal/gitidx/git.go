@@ -56,9 +56,7 @@ var DefaultExclusions = map[string]bool{
 // and WalkSymbols. It includes all agent worktree roots (R17 Phase 1).
 var defaultPolicy = DefaultExclusionPolicy()
 
-// isExcludedPath reports whether a repository-relative path should be
-// excluded. Uses the authoritative ExclusionPolicy which covers both
-// directory-name exclusions and agent worktree path-prefix exclusions.
+// isExcludedPath reports whether a path matches the exclusion policy.
 func isExcludedPath(relPath string) bool {
 	return defaultPolicy.IsExcluded(relPath)
 }
@@ -174,15 +172,8 @@ type MerkleNode struct {
 	Children map[string]*MerkleNode `json:"children,omitempty"`
 }
 
-// ComputeWorktreeFingerprint computes a content-addressed, Merkle-style
-// fingerprint for the uncommitted changes in a git repository.
-//
-// Invariant:
-//
-//	Content(A) == Content(B) => Fingerprint(A) == Fingerprint(B)
-//	Content(A) != Content(B) => Fingerprint(A) != Fingerprint(B)
-//
-// It returns "clean" when there are no uncommitted changes.
+// ComputeWorktreeFingerprint computes a SHA-256 fingerprint of uncommitted working tree changes,
+// returning "clean" when there are no uncommitted modifications.
 func ComputeWorktreeFingerprint(root string) (string, error) {
 	status, err := run(root, "status", "--porcelain=v1", "--untracked-files=all")
 	if err != nil {

@@ -27,16 +27,13 @@ func (f Frontier) FindMinimumSufficient(floor CapabilityFloor) (Configuration, b
 	return feasible[0], true
 }
 
-// FindEmpiricalOracle has the same mathematical rule as production selection,
-// but accepts only a pre-built observed frontier and therefore belongs in an
-// offline evaluator, never the online estimator.
+// FindEmpiricalOracle finds the minimum-sufficient configuration from an observed frontier.
 func (f Frontier) FindEmpiricalOracle(floor CapabilityFloor) (Configuration, bool) {
 	return f.FindMinimumSufficient(floor)
 }
 
-// BuildAggregatedFrontier aggregates observations for a given taskID into an empirical Frontier.
-// Repeated trials for the same (provider, model, effort) are combined:
-// mean quality, mean cost, mean latency, and 95% LCB (using sample standard error) are computed.
+// BuildAggregatedFrontier aggregates trial observations into an empirical frontier
+// with mean metrics and 95% lower confidence bounds.
 func BuildAggregatedFrontier(taskID string, observations []EmpiricalObservation) Frontier {
 	type key struct {
 		provider string

@@ -1,25 +1,23 @@
-# ContextOS Rules for Antigravity
+# ContextOS Agent Guidelines
 
-This repository uses ContextOS for persistent, token-bounded context management, adaptive compute routing, and deterministic retrieval.
+This project uses ContextOS to manage agent memory, context budgets, and git synchronization.
 
-## Core Directives
+## How to Work with ContextOS
 
-1. **Session Initialization**:
-   - Call `context_resume` at the start of a task or session to recover uncommitted changes, active branch state, open work items, and high-authority engineering decisions.
+1. **Start of Session**:
+   Call `context_resume` at the beginning of a task to see active branch state, uncommitted changes, open work items, and past architectural decisions.
 
-2. **Context Planning & Deterministic Retrieval (R17)**:
-   - Use `context_plan` to assemble minimum-sufficient context under strict token budgets.
-   - For exact file or symbol lookups, prefix or pass explicit paths (e.g. `internal/retrieval/planner.go` or `planner.go`). ContextOS R17 provides quotient-space candidate canonicalization and dedicated exact indexes (`LookupExactPath`, `LookupBasename`), guaranteeing recall completeness without heuristic degradation.
-   - Respect the planner soundness guarantee: satisfied evidence states ensure all target nodes are strictly bounded within the token budget.
+2. **Planning Context**:
+   Use `context_plan` to assemble only the code symbols and memories needed for your task under a strict token budget.
+   If you know the specific file or symbol you need, include the path (e.g., `internal/allocator/allocator.go`) in the task query for instant exact matching.
 
-3. **Adaptive Compute & Model Routing (R16)**:
-   - Use `context_compute_plan` or `context_route` before complex multi-step reasoning to evaluate task complexity, recommended token budgets, reasoning effort, and verification tiers (T0 deterministic AST bypass, T1 cached context plan, T2 full graph traversal).
+3. **Routing & Budgets**:
+   Use `context_route` or `context_compute_plan` before complex multi-step reasoning to get a recommended token budget and reasoning effort level.
 
-4. **Durable Knowledge Lifecycle**:
-   - Persist critical architectural choices with `context_remember` (`kind: "decision"`, `authority: "user"` or `"verified"`).
-   - Persist dead ends and anti-patterns with `context_remember` (`kind: "failure"`) to prevent subsequent agent loops from repeating discarded approaches.
-   - When a previous decision or assumption is superseded by code changes, invalidate it using `context_invalidate` with its memory ID. ContextOS anchors invalidations to git commit revisions, preserving historical fidelity.
+4. **Saving Knowledge**:
+   - Save key architectural choices with `context_remember` (`kind: "decision"`).
+   - Save bugs, failed attempts, and gotchas with `context_remember` (`kind: "failure"`) so future sessions don't repeat them.
+   - If an older decision is superseded by code changes, invalidate it with `context_invalidate`.
 
-5. **Cross-Agent Handoff**:
-   - Use `context_handoff` when transferring engineering state, active tasks, and context budgets to another agent, subagent, or model family.
-
+5. **Passing Context to Another Agent**:
+   Use `context_handoff` when handing off work to another agent or subagent so it receives a clean, focused summary of the task state.

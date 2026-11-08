@@ -77,9 +77,8 @@ func isNegativeStatement(text string) bool {
 	return false
 }
 
-// SemanticVerifyClaims evaluates each claim against the admitted evidence set (R18.1 §41).
-// Note: Lexical overlap is insufficient: "The service does NOT use Kafka" vs "The service uses Kafka"
-// has high lexical overlap but is contradictory!
+// SemanticVerifyClaims evaluates candidate claims against admitted evidence,
+// detecting contradictions and semantic negation rather than relying solely on lexical overlap.
 func SemanticVerifyClaims(claims []AtomicClaim, evidence []*retrieval.EvidenceNode) ClaimVerificationResult {
 	start := time.Now()
 	var verified []AtomicClaim

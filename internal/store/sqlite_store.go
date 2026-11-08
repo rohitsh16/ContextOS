@@ -290,10 +290,7 @@ func (s *SQLiteStore) LookupQualifiedSymbol(repoID string, qualifiedName string)
 	return s.LookupSymbol(repoID, sym)
 }
 
-// LookupExactPath returns all nodes whose path exactly matches the given
-// canonical repository-relative path (R17 Phase 3, Theorem 2).
-// This is the primary deterministic lookup; approximate LookupPath remains
-// for backward compatibility but must not outrank an exact match.
+// LookupExactPath returns nodes whose path exactly matches the given repository-relative path.
 func (s *SQLiteStore) LookupExactPath(repoID string, path string) ([]NodeRecord, error) {
 	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND path=?`, repoID, path)
 	if err != nil {
@@ -302,9 +299,7 @@ func (s *SQLiteStore) LookupExactPath(repoID string, path string) ([]NodeRecord,
 	return s.scanNodeRows(rows, repoID), nil
 }
 
-// LookupBasename returns all file nodes whose filename (last path component)
-// exactly matches the given basename (R17 Phase 3).
-// Uses the idx_nodes_repo_name index for O(log N) lookup.
+// LookupBasename returns file nodes whose filename matches the given basename.
 func (s *SQLiteStore) LookupBasename(repoID string, basename string) ([]NodeRecord, error) {
 	rows, err := s.DB.Query(`SELECT `+nodeColumnsSQL+` FROM nodes WHERE repo_id=? AND name=? COLLATE NOCASE`, repoID, basename)
 	if err != nil {

@@ -22,11 +22,8 @@ func hookCommand(hookBinary, agent, event string) string {
 	return fmt.Sprintf("%s -agent %s -event %s", shellQuote(hookBinary), shellQuote(agent), shellQuote(event))
 }
 
-// mergeMapFile reads an existing JSON file, structurally merges the new entries,
-// and writes the result back. It uses identity-based dedup for arrays
-// (matching on "command" or "name" keys where available) so that repeated
-// installations do not duplicate ContextOS entries while preserving
-// unrelated user configuration.
+// mergeMapFile reads an existing JSON file, merges new entries, and writes it back,
+// preserving existing user configuration and avoiding duplicates.
 func mergeMapFile(path string, base map[string]any) error {
 	if b, err := os.ReadFile(path); err == nil && len(b) > 0 {
 		var existing map[string]any
@@ -68,9 +65,7 @@ func deepMerge(dst, src map[string]any) map[string]any {
 	return dst
 }
 
-// containsJSONByIdentity uses stable identity fields (command, name)
-// to detect existing installations rather than full JSON comparison.
-// This is structurally aware per PR-01 Step 5.
+// containsJSONByIdentity checks if an array already contains an entry matching by key or JSON content.
 func containsJSONByIdentity(arr []any, needle any) bool {
 	nID := identityKey(needle)
 	if nID != "" {
@@ -154,13 +149,6 @@ func ensureTomlSection(path, section string) error {
 }
 
 // Install configures agent integrations (hooks, MCP, rules) for the given agent.
-// Binary paths can be:
-//   - Absolute paths (backward compatible)
-//   - Relative paths (resolved from repoRoot)
-//   - Bare names (resolved via ResolveBinary)
-//
-// The installation is idempotent: Install(Install(R)) = Install(R).
-// Existing unrelated configuration is preserved.
 func Install(agent, repoRoot, hookBinary, mcpBinary string) (InstallResult, error) {
 	repoRoot, _ = filepath.Abs(repoRoot)
 
@@ -391,10 +379,7 @@ ContextOS provides deterministic, budget-bounded context management, adaptive co
 	}
 }
 
-// resolveBinaryPath resolves a binary path portably.
-// If the path is already absolute, it is returned as-is.
-// If it's a bare name, ResolveBinary is used for lookup.
-// If it's a relative path, it's resolved from repoRoot.
+// resolveBinaryPath resolves an absolute, relative, or bare binary name portably.
 func resolveBinaryPath(binary, repoRoot string) (string, error) {
 	if filepath.IsAbs(binary) {
 		return binary, nil

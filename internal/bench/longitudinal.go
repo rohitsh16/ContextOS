@@ -82,11 +82,8 @@ type LongitudinalReport struct {
 	Summary        string                   `json:"summary"`
 }
 
-// RunLongitudinalBenchmark runs the multi-generation agent protocol A_1 -> A_2 -> ... -> A_T
-// across three comparative conditions:
-// 1. ContextOS Adaptive: persistent memory + scoped temporal validity + cache-aware prefix packing
-// 2. Stateless Cold: agent starts fresh on every generation with 0 memory
-// 3. Naive Accumulator: retains all memories unconditionally without temporal scoping or pruning
+// RunLongitudinalBenchmark evaluates agents across multiple generations comparing
+// ContextOS against stateless-cold and naive-accumulator baselines.
 func RunLongitudinalBenchmark(cfg LongitudinalConfig) LongitudinalReport {
 	if cfg.Generations <= 0 {
 		cfg.Generations = 10

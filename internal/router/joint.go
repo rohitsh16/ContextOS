@@ -156,11 +156,8 @@ func OptimizeJointRoute(req JointRouteRequest) JointRouteDecision {
 	return bestDecision
 }
 
-// CompareStrategies evaluates:
-// 1. "fixed": default fixed model (Claude Sonnet) and fixed budget (5000)
-// 2. "model-only": model recommendation based on task alone, with fixed budget (5000)
-// 3. "context-only": fixed model (Claude Sonnet), optimizing budget only
-// 4. "joint": full joint (A*, C*) optimization
+// CompareStrategies evaluates fixed, model-only, context-only, and joint
+// routing strategies to compare cost and expected quality outcomes.
 func CompareStrategies(req JointRouteRequest) map[string]JointRouteDecision {
 	if req.TaskValue <= 0 {
 		req.TaskValue = 10.0

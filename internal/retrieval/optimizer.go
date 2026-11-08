@@ -33,9 +33,8 @@ type OptimizationResult struct {
 	ObjectiveScore       float64       `json:"objective_score"`
 }
 
-// OptimizeContext selects the minimal decision-sufficient subset of ContextUnits (PR.md Section 25).
-// Solves: min_C [ lambda_t * Tokens(C) + lambda_r * Risk(C) - lambda_u * Utility(C) ]
-// subject to: P(correct decision | C, q) >= tau and Tokens(C) <= Budget.
+// OptimizeContext selects the minimal decision-sufficient subset of context units
+// that satisfies the target correctness threshold within the token budget.
 func OptimizeContext(available []ContextUnit, cfg OptimizerConfig) OptimizationResult {
 	if len(available) == 0 {
 		return OptimizationResult{}
